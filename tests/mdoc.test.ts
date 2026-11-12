@@ -99,7 +99,7 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     expect(q.credential_sets).toEqual([{ options: [['pid'], ['pid_mdoc']] }, { options: [['birth_certificate']] }]);
     const wild = await createServices(testConfig({ ATTESTATION_PID_ACCEPTED_VCT: '*' }));
     const tx2 = await wild.verifier.createTransaction(cfg.rps[0]!, 'pid', '/');
-    expect((wild.verifier.requestParams(tx2) as any).dcql_query.credentials[0].meta).toEqual({});
+    expect((wild.verifier.requestParams(tx2) as any).dcql_query.credentials[0].meta.vct_values.length).toBeGreaterThan(1); // never empty: wallets require vct_values
   });
 
   it('declares mso_mdoc in client_metadata only when an mdoc answer is acceptable', async () => {
@@ -117,7 +117,8 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     const { cfg, svc } = await setup();
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid_any', '/');
     const q = (svc.verifier.requestParams(tx) as any).dcql_query;
-    expect(q.credentials[0]).toEqual({ id: 'pid', format: 'dc+sd-jwt', meta: {}, claims: [{ path: ['given_name'] }, { path: ['family_name'] }] });
+    expect(q.credentials[0].meta.vct_values).toEqual(expect.arrayContaining(['urn:eudi:pid:1', 'urn:eu.europa.ec.eudi:pid:1', 'eu.europa.ec.eudi.pid.1']));
+    expect(q.credentials[0].claims).toEqual([{ path: ['given_name'] }, { path: ['family_name'] }]);
     expect(q.credentials[1].claims.map((c: any) => c.path[1])).toEqual(['given_name', 'family_name']);
     expect(q.credentials[1].claim_sets).toBeUndefined();
   });

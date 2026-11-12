@@ -24,6 +24,9 @@ export function requestedCredentials(presentation: PresentationConfig, attestati
   });
 }
 
+/** Wallets (e.g. kotlinx-based DCQL parsers) REQUIRE vct_values for dc+sd-jwt, so a wildcard is expressed as a list of well-known PID types. */
+export const PROBE_VCTS = ['urn:eudi:pid:1', 'urn:eu.europa.ec.eudi:pid:1', 'eu.europa.ec.eudi.pid.1', 'urn:eudi:pid:de:1', 'urn:eudi:pid:fr:1'];
+
 export const mdocQueryId = (type: string) => `${type}_mdoc`;
 const claimId = (s: string) => s.replace(/[^A-Za-z0-9_-]/g, '_');
 
@@ -44,7 +47,7 @@ export function buildDcql(reqs: RequestedCredential[]) {
     const ids: string[] = [];
     if (r.formats.includes('dc+sd-jwt')) {
       const anyVct = r.anyVct || r.attestation.acceptedVct.includes('*');
-      credentials.push({ id: r.type, format: 'dc+sd-jwt', meta: anyVct ? {} : { vct_values: r.attestation.acceptedVct }, ...claimsPart(r.claims, r, (n) => [n]) });
+      credentials.push({ id: r.type, format: 'dc+sd-jwt', meta: { vct_values: anyVct ? [...new Set([...r.attestation.acceptedVct.filter((v) => v !== '*'), ...PROBE_VCTS])] : r.attestation.acceptedVct }, ...claimsPart(r.claims, r, (n) => [n]) });
       ids.push(r.type);
     }
     const m = r.attestation.mdoc;
