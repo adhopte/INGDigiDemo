@@ -6,13 +6,6 @@ import { ROOT_DIR, type AppConfig, type RpConfig } from './config.js';
 import { log } from './logger.js';
 import { rpRouter } from './rps/router.js';
 
-declare module 'express-session' {
-  interface SessionData {
-    // Filled in by later steps (OIDC state, disclosed claims, etc.)
-    [key: string]: unknown;
-  }
-}
-
 export function createApp(config: AppConfig) {
   const app = express();
 

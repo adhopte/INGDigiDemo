@@ -23,3 +23,11 @@ code { background:#eef0f6; padding:.1rem .35rem; border-radius:.3rem; font-size:
 .btn { display:inline-block; background:var(--theme); color:#fff; border:0; border-radius:.5rem; padding:.7rem 1.2rem; font-size:1rem; font-weight:600; cursor:pointer; text-decoration:none; }
 .btn[disabled], .btn.disabled { background:#b8bdc9; cursor:not-allowed; }
 .site-footer { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; padding:1rem 1.5rem; border-top:1px solid var(--border); color:var(--muted); font-size:.85rem; }
+.badge { display:inline-block; background:#fff3bf; color:#5f3b00; border:1px solid #f59f00; border-radius:.4rem; padding:.1rem .5rem; font-size:.75rem; font-weight:700; vertical-align:middle; }
+.actions { display:flex; gap:.75rem; flex-wrap:wrap; margin-top:1rem; }
+.btn.secondary { background:#fff; color:var(--fg); border:1px solid var(--border); }
+.claims { border-collapse:collapse; width:100%; margin:.5rem 0; }
+.claims th, .claims td { text-align:left; padding:.4rem .6rem; border-bottom:1px solid var(--border); font-size:.92rem; word-break:break-word; }
+.claims th { width:35%; color:var(--muted); font-weight:600; }
+.warn { color:#a61e4d; }
+.wallet { border:2px dashed #f59f00; }

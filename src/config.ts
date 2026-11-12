@@ -36,6 +36,8 @@ export interface AppConfig {
   multiCredential: boolean;
   sessionSecret: string;
   intermediaryIssuerUrl: string | undefined;
+  /** Token endpoint client authentication for the RP clients on the Intermediary. */
+  oidcClientAuth: 'basic' | 'post';
   issuer: {
     apiBaseUrl: string | undefined;
     clientId: string | undefined;
@@ -147,6 +149,7 @@ export function loadConfig(env: Env = process.env, rpsFile = path.join(ROOT_DIR,
     multiCredential: parseBool(env.MULTI_CREDENTIAL, false),
     sessionSecret,
     intermediaryIssuerUrl,
+    oidcClientAuth: env.OIDC_CLIENT_AUTH === 'post' ? 'post' : 'basic',
     issuer: {
       apiBaseUrl: env.ISSUER_API_BASE_URL?.replace(/\/+$/, '') || undefined,
       clientId: env.ISSUER_CLIENT_ID || undefined,

@@ -40,3 +40,11 @@ In mock mode a yellow banner is shown on every page, the OIDC redirect is replac
 ## Endpoints
 
 * `GET /` landing page · `GET /healthz` health check (200)
+* `GET /<rp>/auth/start?p=<presentation>&returnTo=/<rp>/…` starts a wallet presentation (PKCE S256 + state + nonce)
+* `GET /<rp>/callback` OIDC redirect URI (`<PUBLIC_BASE_URL>/<rp>/callback`); validates and stores the disclosed claims in the session
+* `GET /<rp>/mock-wallet` simulated wallet (MOCK_MODE only)
+
+## OIDC integration (`src/oidc/`)
+
+* `client.ts` – per-RP openid-client `Configuration` via discovery on `INTERMEDIARY_ISSUER_URL` (client secret read from the env var named in `rps.json`; `OIDC_CLIENT_AUTH=basic|post`).
+* `flow.ts` – `beginAuth` / `completeAuth`. State is single-use and kept in the session; the callback URL is rebuilt from `PUBLIC_BASE_URL` so it matches the registered redirect URI behind Render's proxy. `exchangeAndValidate` delegates signature/`iss`/`aud`/`exp`/`nonce`/PKCE/`state` checks to openid-client. `returnTo` is restricted to the RP's own paths. Only claim *names* are logged.
