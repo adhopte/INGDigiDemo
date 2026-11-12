@@ -7,6 +7,8 @@ export const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)
 export interface PresentationConfig {
   /** Logical credential types requested, e.g. ["pid"], ["payment"], ["pid","birth_certificate"]. */
   types: string[];
+  /** Probe mode: accept / request any SD-JWT vct (wildcard) for this presentation. */
+  anyVct: boolean;
   /** Fallback claim set accepted when the wallet's credential lacks some of `claims` (DCQL claim_sets). */
   minClaims: string[];
   /** Claims requested from the wallet (and shown to the user). */
@@ -156,6 +158,7 @@ export function buildRpConfigs(raw: unknown, attestations: Record<string, Attest
     for (const [pk, p] of Object.entries((e.presentations ?? {}) as Record<string, any>)) {
         presentations[pk] = {
         types: strList(p.types),
+        anyVct: p.anyVct === true,
         minClaims: env[`${P}_${upper(pk)}_MIN_CLAIMS`] ? env[`${P}_${upper(pk)}_MIN_CLAIMS`]!.split(',').map((x) => x.trim()).filter(Boolean) : strList(p.minClaims),
         claims: env[`${P}_${upper(pk)}_CLAIMS`] ? env[`${P}_${upper(pk)}_CLAIMS`]!.split(',').map((x) => x.trim()).filter(Boolean) : strList(p.claims),
       };

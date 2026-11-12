@@ -113,6 +113,15 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     expect(shop.vp_formats_supported.mso_mdoc).toBeUndefined();
   });
 
+  it('probe presentation pid_any: wildcard vct, two claims, no claim_sets', async () => {
+    const { cfg, svc } = await setup();
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid_any', '/');
+    const q = (svc.verifier.requestParams(tx) as any).dcql_query;
+    expect(q.credentials[0]).toEqual({ id: 'pid', format: 'dc+sd-jwt', meta: {}, claims: [{ path: ['given_name'] }, { path: ['family_name'] }] });
+    expect(q.credentials[1].claims.map((c: any) => c.path[1])).toEqual(['given_name', 'family_name']);
+    expect(q.credentials[1].claim_sets).toBeUndefined();
+  });
+
   it('unit: chain validator and primitives', async () => {
     const ca = await makeCa(); const dsc = await makeDsc(ca);
     const leaf = Buffer.from(dsc.cert.rawData);

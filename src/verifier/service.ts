@@ -227,7 +227,7 @@ export class Verifier {
 
     type Verified = { iss: string; vct?: string; docType?: string; claims: Claims };
     const verified: Verified[] = [];
-    const acceptedVcts = [...new Set(tx.reqs.flatMap((r) => r.attestation.acceptedVct))];
+    const acceptedVcts = [...new Set(tx.reqs.flatMap((r) => (r.anyVct ? ['*'] : r.attestation.acceptedVct)))];
     const mdocReqs = tx.reqs.filter((r) => r.attestation.mdoc && r.attestation.formats.includes('mso_mdoc'));
     for (const p of presented) {
       try {
@@ -261,7 +261,7 @@ export class Verifier {
     const byType: Record<string, Claims> = {};
     const issuers = new Set<string>();
     for (const req of tx.reqs) {
-      const match = verified.find((v) => (v.vct !== undefined && (req.attestation.acceptedVct.includes('*') || req.attestation.acceptedVct.includes(v.vct))) || (v.docType !== undefined && v.docType === req.attestation.mdoc?.docType));
+      const match = verified.find((v) => (v.vct !== undefined && (req.anyVct || req.attestation.acceptedVct.includes('*') || req.attestation.acceptedVct.includes(v.vct))) || (v.docType !== undefined && v.docType === req.attestation.mdoc?.docType));
       if (!match) this.fail(tx, 'missing_credential', `No credential for type ${req.type}`);
       const absent = req.minClaims.filter((c) => match.claims[c] === undefined);
       if (absent.length) this.fail(tx, 'missing_credential', `Credential lacks required claims: ${absent.join(', ')}`);

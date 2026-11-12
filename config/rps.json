@@ -101,6 +101,20 @@
             "family_name",
             "birthdate"
           ]
+        },
+        "pid_any": {
+          "types": [
+            "pid"
+          ],
+          "anyVct": true,
+          "claims": [
+            "given_name",
+            "family_name"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name"
+          ]
         }
       },
       "attestations": [

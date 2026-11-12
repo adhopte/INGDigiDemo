@@ -7,6 +7,8 @@ export interface RequestedCredential {
   claims: string[];
   /** Subset that must be present; the wallet may satisfy the request with just these (DCQL claim_sets). */
   minClaims: string[];
+  /** Probe: no vct restriction. */
+  anyVct: boolean;
 }
 
 export function requestedCredentials(presentation: PresentationConfig, attestations: Record<string, AttestationConfig>): RequestedCredential[] {
@@ -16,7 +18,7 @@ export function requestedCredentials(presentation: PresentationConfig, attestati
     const subset = presentation.claims.filter((c) => attestation.claims.includes(c));
     const claims = subset.length ? subset : attestation.claims;
     const min = presentation.minClaims.filter((c) => claims.includes(c));
-    return { type, attestation, claims, minClaims: min.length && min.length < claims.length ? min : claims };
+    return { type, attestation, claims, minClaims: min.length && min.length < claims.length ? min : claims, anyVct: presentation.anyVct };
   });
 }
 
@@ -39,7 +41,7 @@ export function buildDcql(reqs: RequestedCredential[]) {
   for (const r of reqs) {
     const ids: string[] = [];
     if (r.attestation.formats.includes('dc+sd-jwt')) {
-      const anyVct = r.attestation.acceptedVct.includes('*');
+      const anyVct = r.anyVct || r.attestation.acceptedVct.includes('*');
       credentials.push({ id: r.type, format: 'dc+sd-jwt', meta: anyVct ? {} : { vct_values: r.attestation.acceptedVct }, ...claimsPart(r.claims, r, (n) => [n]) });
       ids.push(r.type);
     }
@@ -70,7 +72,7 @@ export function buildPresentationDefinition(reqs: RequestedCredential[], id: str
       constraints: {
         limit_disclosure: 'required',
         fields: [
-          ...(r.attestation.acceptedVct.includes('*') ? [] : [{ path: ['$.vct'], filter: { type: 'string', enum: r.attestation.acceptedVct } }]),
+          ...(r.anyVct || r.attestation.acceptedVct.includes('*') ? [] : [{ path: ['$.vct'], filter: { type: 'string', enum: r.attestation.acceptedVct } }]),
           ...r.minClaims.map((c) => ({ path: [`$.${c}`] })),
         ],
       },
