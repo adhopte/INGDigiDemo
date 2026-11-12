@@ -16,6 +16,7 @@
     <ul class="cards">
       <% rps.forEach(function (r) { %>
         <li class="card card-<%= r.id %>">
+          <img class="card-logo" src="/img/rp-<%= r.id %>.svg" alt="" width="56" height="56">
           <h3><a class="card-link" href="/<%= r.id %>/"><%= r.displayName %></a></h3>
           <p><%= t('rp.' + r.id + '.desc') %></p>
           <p class="card-meta"><%= t('rp.' + r.id + '.uses') %></p>

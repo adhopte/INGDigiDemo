@@ -63,6 +63,8 @@ Walk-through in mock mode (all in one browser, so the simulated wallet carries c
 4. **Trust the PID issuer** – `TRUSTED_ISSUERS=<IN Groupe Issuer URL>` (its keys are read from `<iss>/.well-known/jwt-vc-issuer`) and/or `TRUSTED_CA_PEM` for credentials that carry an `x5c` chain. The local demo issuer is always trusted.
 5. Get test credentials: PID from the IN Groupe Issuer (or a demo PID from `/demo-issuer`), birth certificate from `/demo-issuer`, bank attestations from the bank page.
 
+**HAIP wallets.** The defaults follow the OpenID4VC High Assurance Interoperability Profile: DCQL, signed request object with `x509_hash` client identifier, and an **encrypted** response (`direct_post.jwt`, ECDH-ES, A128GCM or A256GCM). A wallet that reports *"HAIP profile requires an encrypted response mode"* was talking to an older build with `direct_post`. The DC API (`dc_api`) transport is not implemented (redirect/QR/deeplink only). If the wallet shows *"Unknown relying party"*, the verifier certificate is not known to it: register it (see the verifier identity above) – a self-signed demo certificate is never recognised by a production wallet.
+
 > Interoperability with real wallets could not be tested in the build environment. The protocol layers are covered by automated tests that act as a wallet over HTTP, but expect some per-wallet tuning of `VP_RESPONSE_MODE`, `VP_QUERY_LANGUAGE`, `VP_CLIENT_ID_SCHEME` and `VP_DEEPLINK_BASE`.
 
 ## Configuration
@@ -76,8 +78,8 @@ Everything is configured with environment variables (see `.env.example`); creden
 | `SESSION_SECRET` | – | required in production |
 | `MOCK_MODE` | `false` | simulated wallet on/off |
 | `MULTI_CREDENTIAL` | `false` | university: one combined request vs two |
-| `VP_CLIENT_ID_SCHEME` | `x509_san_dns` | or `redirect_uri` (unsigned, by value) |
-| `VP_RESPONSE_MODE` | `direct_post` | or `direct_post.jwt` (encrypted) |
+| `VP_CLIENT_ID_SCHEME` | `x509_hash` | or `x509_san_dns`, `redirect_uri` (unsigned, by value) |
+| `VP_RESPONSE_MODE` | `direct_post.jwt` | encrypted response (HAIP); or `direct_post` |
 | `VP_QUERY_LANGUAGE` | `dcql` | or `pex` |
 | `VP_DEEPLINK_BASE` | `openid4vp://authorize` | wallet invocation scheme |
 | `TRUSTED_ISSUERS`, `TRUSTED_CA_PEM` | empty | who may issue credentials accepted by the verifier |
@@ -174,7 +176,7 @@ views/ public/     EJS templates, per-site CSS skins, placeholder logo
 tests/ scripts/    vitest suites; a11y walk-through, key generator, i18n check
 ```
 
-The IN Groupe logo and colours are **placeholders** (`public/img/in-groupe-logo.svg`, `config/brand.json`): replace them with the official assets.
+**Branding.** The dashboard uses the IN Groupe logo (`public/img/in-groupe-logo.svg`, taken from ingroupe.com), navy `#002F87` and red `#E4032E` (`config/brand.json`). IN Groupe's typeface is Avenir, a licensed font that is **not bundled**: it is used when installed locally or when `avenir-roman.woff2` / `avenir-heavy.woff2` are placed in `public/fonts/avenir/`; otherwise the bundled, free Nunito Sans is used. The four demo RPs are fictitious brands with their own identity (bank: emerald/Inter, eShop: indigo+coral/Inter, university: burgundy+gold/Source Serif 4, energy: green-black+yellow/Inter). Fonts are self-hosted (SIL OFL, Latin + Latin Extended for Maltese).
 
 ## What to configure on the SIGMA / IN Groupe side
 

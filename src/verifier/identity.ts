@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import * as x509 from '@peculiar/x509';
+import { createHash } from 'node:crypto';
 import { importJWK, type CryptoKey } from 'jose';
 import type { AppConfig } from '../config.js';
 import { log } from '../logger.js';
@@ -14,11 +15,15 @@ export interface VerifierIdentity {
   ephemeral: boolean;
 }
 
+/** Client Identifier for the chosen x509 scheme: x509_hash = base64url(SHA-256(leaf certificate DER)). */
+const x509ClientId = (scheme: string, leafB64: string, hostname: string) =>
+  scheme === 'x509_san_dns' ? `x509_san_dns:${hostname}` : `x509_hash:${createHash('sha256').update(Buffer.from(leafB64, 'base64')).digest('base64url')}`;
+
 const pemToDer = (pem: string): string[] =>
   [...pem.matchAll(/-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/g)].map((m) => m[1]!.replace(/\s+/g, ''));
 
 /**
- * Verifier identity used to sign OpenID4VP request objects (client_id scheme x509_san_dns).
+ * Verifier identity used to sign OpenID4VP request objects (client_id scheme x509_hash or x509_san_dns).
  * Production: supply VERIFIER_SIGNING_KEY_JWK + VERIFIER_CERT_CHAIN_PEM (a certificate whose SAN dNSName is this site's host,
  * chained to a root the wallets trust). Otherwise a self-signed demo certificate is generated at startup – fine for
  * wallets/test setups that are configured to trust it, NOT for production wallets.
@@ -34,7 +39,7 @@ export async function createVerifierIdentity(cfg: AppConfig): Promise<VerifierId
     const jwk = JSON.parse(cfg.verifier.signingKeyJwk);
     const x5c = pemToDer(cfg.verifier.certChainPem);
     if (x5c.length === 0) throw new Error('VERIFIER_CERT_CHAIN_PEM contains no certificate');
-    return { privateKey: await importJWK(jwk, 'ES256'), x5c, clientId: `x509_san_dns:${hostname}`, hostname, ephemeral: false };
+    return { privateKey: await importJWK(jwk, 'ES256'), x5c, clientId: x509ClientId(cfg.verifier.clientIdScheme, x5c[0]!, hostname), hostname, ephemeral: false };
   }
 
   if (cfg.isProduction) log.warn('Using a generated self-signed verifier certificate in production: set VERIFIER_SIGNING_KEY_JWK and VERIFIER_CERT_CHAIN_PEM');
@@ -49,5 +54,6 @@ export async function createVerifierIdentity(cfg: AppConfig): Promise<VerifierId
     keys,
     extensions: [new x509.BasicConstraintsExtension(false, undefined, true), new x509.SubjectAlternativeNameExtension([{ type: 'dns', value: hostname }], false)],
   });
-  return { privateKey: keys.privateKey as CryptoKey, x5c: [Buffer.from(cert.rawData).toString('base64')], clientId: `x509_san_dns:${hostname}`, hostname, ephemeral: true };
+  const leaf = Buffer.from(cert.rawData).toString('base64');
+  return { privateKey: keys.privateKey as CryptoKey, x5c: [leaf], clientId: x509ClientId(cfg.verifier.clientIdScheme, leaf, hostname), hostname, ephemeral: true };
 }

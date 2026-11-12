@@ -1,6 +1,12 @@
-:root { --primary: #7a1f3d; --primary-dark: #5a1229; --header-bg: #7a1f3d; --header-fg: #ffffff; --hero-bg: #f6ebee; --link: #7a1f3d; --font-head: Georgia, "Times New Roman", serif; }
-.skin-university .site-header { border-bottom: 5px solid #c9a227; }
-.skin-university h1, .skin-university h2, .skin-university h3 { color: #5a1229; }
-.skin-university .site-header .brand-name { font-family: Georgia, "Times New Roman", serif; }
-.skin-university .btn-secondary { color: #5a1229; border-color: #7a1f3d; }
-.skin-university .logo-mark { background: #fff; }
+/* Demo University: burgundy + gold, editorial serif */
+:root { --font: "Inter", system-ui, sans-serif; --font-head: "Source Serif 4", Georgia, "Times New Roman", serif; --primary: #7a1f3d; --primary-dark: #55122a; --link: #7a1f3d; --accent: #c9a227; --header-bg: #7a1f3d; --header-fg: #fff; --hero-bg: #fbf4ea; --bg: #faf7f2; --footer-bg: #3d0d1d; }
+.skin-university .site-header { border-bottom: 4px solid #c9a227; box-shadow: none; }
+.skin-university .brand-name { font-family: "Source Serif 4", Georgia, serif; font-size: 1.4rem; font-weight: 700; }
+.skin-university .hero { background: radial-gradient(500px 300px at 88% 0%, rgba(201, 162, 39, .22), transparent 70%), #fbf4ea; border-bottom: 1px solid #ead9bd; padding: 3rem 0; }
+.skin-university h1, .skin-university h2, .skin-university h3 { color: #55122a; font-weight: 700; letter-spacing: -.015em; }
+.skin-university h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); }
+.skin-university .btn-secondary { color: #55122a; border-color: #7a1f3d; }
+.skin-university .card, .skin-university .panel { border-color: #ead9bd; }
+.skin-university .card { border-top: 4px solid #c9a227; }
+.skin-university .lang summary { color: #fff; }
+.skin-university .btn-small { background: #fff; color: #55122a; }

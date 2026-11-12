@@ -61,7 +61,7 @@
     {
       "id": "bank",
       "displayName": "Demo Bank",
-      "themeColor": "#00508c",
+      "themeColor": "#00694e",
       "presentations": {
         "pid": {
           "types": [
@@ -86,7 +86,7 @@
     {
       "id": "eshop",
       "displayName": "Demo eShop",
-      "themeColor": "#b34700",
+      "themeColor": "#4338ca",
       "presentations": {
         "payment": {
           "types": [
@@ -154,7 +154,7 @@
     {
       "id": "electricity",
       "displayName": "Demo Power Co",
-      "themeColor": "#1b6e3c",
+      "themeColor": "#15803d",
       "presentations": {
         "pid": {
           "types": [

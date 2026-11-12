@@ -37,10 +37,10 @@ services:
         value: "false"
 
       # ---- OpenID4VP verifier ----
-      - key: VP_CLIENT_ID_SCHEME     # x509_san_dns (signed request object) | redirect_uri (unsigned, by value)
-        value: x509_san_dns
-      - key: VP_RESPONSE_MODE        # direct_post | direct_post.jwt (encrypted response)
-        value: direct_post
+      - key: VP_CLIENT_ID_SCHEME     # x509_hash (HAIP) | x509_san_dns | redirect_uri (unsigned, by value)
+        value: x509_hash
+      - key: VP_RESPONSE_MODE        # direct_post.jwt (encrypted, required by HAIP wallets) | direct_post
+        value: direct_post.jwt
       - key: VP_QUERY_LANGUAGE       # dcql | pex
         value: dcql
       - key: VP_DEEPLINK_BASE        # wallet invocation scheme

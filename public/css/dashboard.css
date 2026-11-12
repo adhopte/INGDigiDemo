@@ -1,5 +1,21 @@
-:root { --primary: #0a2a5e; --primary-dark: #061a3b; --header-bg: #0a2a5e; --hero-bg: #0a2a5e; --hero-fg: #ffffff; --link: #0a4fa3; --accent: #006d77; }
-.skin-dashboard .hero .chip { border-color: #fff; }
-.skin-dashboard .hero a { color: #fff; }
-.card-bank { --card-accent: #00508c; } .card-eshop { --card-accent: #b34700; } .card-university { --card-accent: #7a1f3d; } .card-electricity { --card-accent: #1b6e3c; }
-.skin-dashboard h2 { color: #0a2a5e; }
+/* IN Groupe: navy #002F87, red #E4032E, Avenir-style type (Nunito Sans fallback) */
+:root { --font: "IN Avenir", "Avenir Next", Avenir, "Nunito Sans", system-ui, sans-serif; --primary: #002f87; --primary-dark: #001f5c; --accent: #e4032e; --footer-bg: #001a4d; }
+.skin-dashboard .site-header { border-top: 5px solid #e4032e; }
+.skin-dashboard .hero { background: radial-gradient(900px 420px at 88% -10%, rgba(228, 3, 46, .35), transparent 60%), radial-gradient(700px 500px at 0% 120%, rgba(60, 120, 255, .35), transparent 60%), linear-gradient(135deg, #002f87 0%, #0a3a9e 55%, #001f5c 100%); color: #fff; padding: 3.2rem 0 3.6rem; }
+.skin-dashboard .hero h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); max-width: 18ch; }
+.skin-dashboard .hero .lead { max-width: 56ch; color: #e6edff; }
+.skin-dashboard .hero .chip { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.65); backdrop-filter: blur(4px); }
+.skin-dashboard .hero .chip-warn { background: #ffe066; color: #3d2c00; border-color: #ffe066; }
+.skin-dashboard .hero .chip-ok { background: #d6f6dd; color: #0b4a1c; border-color: #d6f6dd; }
+.skin-dashboard h2 { color: #001f5c; }
+.skin-dashboard .btn { background: #e4032e; border-color: #e4032e; }
+.skin-dashboard .btn:hover { background: #b80226; border-color: #b80226; }
+.skin-dashboard .btn-secondary { background: #fff; color: #002f87; border-color: #002f87; }
+.skin-dashboard .btn-secondary:hover { background: #eef3fb; color: #001f5c; }
+.skin-dashboard .card { border-top: 0; }
+.skin-dashboard .card::before { content: ""; position: absolute; left: 1.4rem; right: 1.4rem; top: 0; height: 4px; border-radius: 0 0 4px 4px; background: var(--card-accent, #002f87); }
+.card-bank { --card-accent: #00694e; } .card-eshop { --card-accent: #4338ca; } .card-university { --card-accent: #7a1f3d; } .card-electricity { --card-accent: #facc15; }
+.skin-dashboard .panel h2 { margin-top: 0; }
+
+.brand-group { display: flex; align-items: center; gap: 1.1rem; }
+.brand-in img { height: 54px; width: auto; }

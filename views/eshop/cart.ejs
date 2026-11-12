@@ -15,7 +15,7 @@
         <tbody>
         <% lines.forEach(function (l) { %>
           <tr>
-            <td><span aria-hidden="true"><%= l.icon %> </span><%= t('shop.' + l.id + '.name') %></td>
+            <td><img class="line-icon" src="/img/products/<%= l.id %>.svg" alt="" width="34" height="34"><%= t('shop.' + l.id + '.name') %></td>
             <td class="num"><%= l.qty %></td>
             <td class="num"><%= fmtMoney(l.line) %></td>
             <td><form method="post" action="/eshop/cart/remove"><input type="hidden" name="id" value="<%= l.id %>"><button class="link-btn" type="submit"><%= t('eshop.cart.remove') %><span class="sr-only"> – <%= t('shop.' + l.id + '.name') %></span></button></form></td>

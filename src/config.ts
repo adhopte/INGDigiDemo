@@ -51,8 +51,8 @@ export interface ExternalIssuerConfig {
 }
 
 export interface VerifierConfig {
-  /** x509_san_dns: signed request object with an X.509 chain. redirect_uri: unsigned, by value. */
-  clientIdScheme: 'x509_san_dns' | 'redirect_uri';
+  /** x509_hash (HAIP default) / x509_san_dns: signed request object with an X.509 chain. redirect_uri: unsigned, by value. */
+  clientIdScheme: 'x509_hash' | 'x509_san_dns' | 'redirect_uri';
   responseMode: 'direct_post' | 'direct_post.jwt';
   queryLanguage: 'dcql' | 'pex';
   /** Wallet invocation URL prefix, e.g. openid4vp://authorize or haip://authorize. */
@@ -193,8 +193,9 @@ export function loadConfig(
 
   const pems = (v: string | undefined) => (v ? v.replace(/\\n/g, '\n').split(/(?<=-----END CERTIFICATE-----)\s*/).map((x) => x.trim()).filter(Boolean) : []);
   const verifier: VerifierConfig = {
-    clientIdScheme: env.VP_CLIENT_ID_SCHEME === 'redirect_uri' ? 'redirect_uri' : 'x509_san_dns',
-    responseMode: env.VP_RESPONSE_MODE === 'direct_post.jwt' ? 'direct_post.jwt' : 'direct_post',
+    clientIdScheme: (['x509_san_dns', 'redirect_uri'] as const).find((s) => s === env.VP_CLIENT_ID_SCHEME) ?? 'x509_hash',
+    // HAIP wallets require an encrypted response, so direct_post.jwt is the default.
+    responseMode: env.VP_RESPONSE_MODE === 'direct_post' ? 'direct_post' : 'direct_post.jwt',
     queryLanguage: env.VP_QUERY_LANGUAGE === 'pex' ? 'pex' : 'dcql',
     deeplinkBase: env.VP_DEEPLINK_BASE || 'openid4vp://authorize',
     trustedIssuers: (env.TRUSTED_ISSUERS ?? '').split(',').map((x) => x.trim().replace(/\/+$/, '')).filter(Boolean),

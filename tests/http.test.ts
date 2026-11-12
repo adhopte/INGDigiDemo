@@ -186,8 +186,16 @@ describe('OpenID4VP verifier over HTTP (what a wallet calls)', () => {
     expect(tx.status).toBe('failed');
   });
 
+  it('encrypted wallet error response (HAIP default) marks the transaction as declined', async () => {
+    const { svc, cfg } = await boot();
+    const tx = await svc.verifier.createTransaction(cfg.rps[0]!, 'pid', '/');
+    const { respondToVerifier } = await import('../src/mock/wallet.js');
+    await expect(respondToVerifier(svc.verifier, tx, { error: 'access_denied' })).rejects.toThrow();
+    expect(tx.errorCode).toBe('wallet_declined');
+  });
+
   it('wallet error response (access_denied) marks the transaction as declined', async () => {
-    const { app, svc, cfg } = await boot();
+    const { app, svc, cfg } = await boot({ VP_RESPONSE_MODE: 'direct_post' });
     const tx = await svc.verifier.createTransaction(cfg.rps[0]!, 'pid', '/');
     const res = await request(app).post(`/vp/response/${tx.id}`).type('form').send({ error: 'access_denied', state: tx.state });
     expect(res.status).toBe(400);
@@ -205,7 +213,7 @@ describe('RP flows in the browser session', () => {
     expect(start.status).toBe(302);
     const verify = await a.get(start.headers.location!);
     expect(verify.status).toBe(200);
-    expect(verify.text).toContain('openid4vp://authorize?client_id=x509_san_dns%3Arp.example.test');
+    expect(verify.text).toContain('openid4vp://authorize?client_id=x509_hash%3A');
     expect(verify.text).toContain('data:image/png;base64');
     expect(verify.text).toContain('alt="QR code for the wallet presentation request');
     const id = /\/verify\/([0-9a-f-]{36})/.exec(start.headers.location!)![1]!;

@@ -97,7 +97,7 @@ describe('verifier rejects bad presentations', () => {
     const held = await addDemoCredential(svc.local, cfg, session, 'pid', 'mt');
     const { importJWK } = await import('jose');
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
-    const vp = await presentSdJwt({ credential: held.credential, reveal: ['given_name'], holderPrivateKey: await importJWK(held.holderPrivateJwk, 'ES256'), aud: 'x509_san_dns:other.example', nonce: tx.nonce });
+    const vp = await presentSdJwt({ credential: held.credential, reveal: ['given_name'], holderPrivateKey: await importJWK(held.holderPrivateJwk, 'ES256'), aud: 'x509_hash:other', nonce: tx.nonce });
     await expect(respondToVerifier(svc.verifier, tx, { vp_token: { pid: [vp] } })).rejects.toThrow(/key-binding/i);
   });
 
@@ -133,13 +133,16 @@ describe('verifier rejects bad presentations', () => {
 
 describe('request object', () => {
   it('is a signed JWT with x5c, DCQL query and client_id scheme', async () => {
-    const { cfg, svc } = await setup({ VP_RESPONSE_MODE: 'direct_post.jwt' });
+    const { cfg, svc } = await setup();
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'university')!, 'pid_bc', '/');
     const jwt = await svc.verifier.signedRequestObject(tx, 'wn');
     const [h, p] = jwt.split('.').slice(0, 2).map((x) => JSON.parse(Buffer.from(x!, 'base64url').toString()));
     expect(h.typ).toBe('oauth-authz-req+jwt');
     expect(h.x5c).toHaveLength(1);
-    expect(p.client_id).toBe('x509_san_dns:rp.example.test');
+    expect(p.client_id).toMatch(/^x509_hash:[A-Za-z0-9_-]{43}$/);
+    expect(p.client_metadata.encrypted_response_enc_values_supported).toEqual(['A128GCM', 'A256GCM']);
+    const san = await createServices(testConfig({ VP_CLIENT_ID_SCHEME: 'x509_san_dns' }));
+    expect(san.verifier.identity.clientId).toBe('x509_san_dns:rp.example.test');
     expect(p.response_uri).toBe(`https://rp.example.test/vp/response/${tx.id}`);
     expect(p.dcql_query.credentials.map((c: any) => c.id)).toEqual(['pid', 'birth_certificate']);
     expect(p.client_metadata.jwks.keys[0].use).toBe('enc');

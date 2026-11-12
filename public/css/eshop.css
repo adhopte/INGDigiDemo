@@ -1,7 +1,11 @@
-:root { --primary: #b34700; --primary-dark: #8a3700; --header-bg: #232f3e; --header-fg: #ffffff; --hero-bg: #fff1e6; --link: #8a3700; }
-.skin-eshop .site-header { border-bottom: 4px solid #b34700; }
-.skin-eshop .logo-mark { background: #b34700; color: #fff; }
+/* Demo eShop: indigo + coral, modern retail */
+:root { --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --primary: #4338ca; --primary-dark: #312e81; --link: #4338ca; --accent: #e11d48; --header-bg: #fff; --header-fg: #17143d; --hero-bg: #eef0ff; --footer-bg: #17143d; }
+.skin-eshop .site-header { border-bottom: 1px solid var(--border); }
+.skin-eshop .brand { font-size: 1.35rem; }
+.skin-eshop .hero { background: radial-gradient(420px 260px at 90% 10%, rgba(225, 29, 72, .14), transparent 70%), linear-gradient(135deg, #eef0ff 0%, #faf5ff 100%); padding-bottom: 2.4rem; }
+.skin-eshop h1 { color: #17143d; max-width: 20ch; }
+.skin-eshop .price { color: #312e81; }
 .skin-eshop .product .btn { width: 100%; }
-.skin-eshop .price { color: #8a3700; }
-.skin-eshop .hero h1 { color: #232f3e; }
-.skin-eshop .btn-secondary { color: #8a3700; border-color: #8a3700; }
+.skin-eshop .btn-secondary { color: #312e81; border-color: #4338ca; }
+.skin-eshop .cart-count { background: #e11d48; }
+.skin-eshop .site-footer { border-top-color: #e11d48; }

@@ -10,7 +10,7 @@
   <ul class="products">
     <% products.forEach(function (p) { %>
       <li class="product">
-        <div class="product-img" aria-hidden="true"><%= p.icon %></div>
+        <div class="product-img"><img src="/img/products/<%= p.id %>.svg" alt="" width="92" height="92"></div>
         <h3><%= t('shop.' + p.id + '.name') %></h3>
         <p class="price"><%= fmtMoney(p.price) %></p>
         <form method="post" action="/eshop/cart/add">

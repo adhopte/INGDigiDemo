@@ -114,7 +114,7 @@ export class Verifier {
     if (tx.enc) {
       Object.assign(clientMetadata, {
         jwks: { keys: [tx.enc.publicJwk] },
-        encrypted_response_enc_values_supported: ['A128GCM'],
+        encrypted_response_enc_values_supported: ['A128GCM', 'A256GCM'],
         authorization_encrypted_response_alg: 'ECDH-ES',
         authorization_encrypted_response_enc: 'A128GCM',
       });
@@ -146,7 +146,7 @@ export class Verifier {
   walletLink(tx: Transaction): string {
     const base = this.cfg.verifier.deeplinkBase;
     const q = new URLSearchParams({ client_id: this.identity.clientId });
-    if (this.cfg.verifier.clientIdScheme === 'x509_san_dns') {
+    if (this.cfg.verifier.clientIdScheme !== 'redirect_uri') {
       q.set('request_uri', this.requestUri(tx));
       q.set('request_uri_method', 'post');
     } else {
