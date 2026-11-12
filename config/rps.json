@@ -1,0 +1,174 @@
+{
+  "_comment": "Attestation catalogue + RP definitions. 'vct' is the SD-JWT VC type; 'acceptedVct' lists extra vct values a verifier accepts for that type (e.g. the real IN Groupe PID vct). Everything can be overridden by env vars (see .env.example).",
+  "attestations": {
+    "pid": {
+      "credentialConfigurationId": "demo_pid",
+      "vct": "urn:eudi:pid:1",
+      "acceptedVct": [
+        "urn:eudi:pid:1"
+      ],
+      "claims": [
+        "family_name",
+        "given_name",
+        "birthdate",
+        "place_of_birth",
+        "nationalities",
+        "address",
+        "issuing_authority",
+        "issuing_country",
+        "age_over_18"
+      ]
+    },
+    "account": {
+      "credentialConfigurationId": "demo_bank_account",
+      "vct": "urn:eudi:demo:bank-account:1",
+      "claims": [
+        "given_name",
+        "family_name",
+        "birthdate",
+        "nationalities",
+        "account_number",
+        "account_opened",
+        "bank_name"
+      ]
+    },
+    "payment": {
+      "credentialConfigurationId": "demo_bank_payment",
+      "vct": "urn:eudi:demo:payment-attestation:1",
+      "claims": [
+        "account_holder_name",
+        "iban",
+        "bic",
+        "bank_name",
+        "valid_until"
+      ]
+    },
+    "birth_certificate": {
+      "credentialConfigurationId": "demo_birth_certificate",
+      "vct": "urn:eudi:demo:birth-certificate:1",
+      "claims": [
+        "given_name",
+        "family_name",
+        "birthdate",
+        "place_of_birth",
+        "parent_names",
+        "certificate_number",
+        "issuing_authority"
+      ]
+    }
+  },
+  "rps": [
+    {
+      "id": "bank",
+      "displayName": "Demo Bank",
+      "themeColor": "#00508c",
+      "presentations": {
+        "pid": {
+          "types": [
+            "pid"
+          ],
+          "claims": [
+            "given_name",
+            "family_name",
+            "birthdate",
+            "place_of_birth",
+            "nationalities",
+            "address",
+            "issuing_country"
+          ]
+        }
+      },
+      "attestations": [
+        "account",
+        "payment"
+      ]
+    },
+    {
+      "id": "eshop",
+      "displayName": "Demo eShop",
+      "themeColor": "#b34700",
+      "presentations": {
+        "payment": {
+          "types": [
+            "payment"
+          ],
+          "claims": [
+            "account_holder_name",
+            "iban",
+            "bic",
+            "bank_name",
+            "valid_until"
+          ]
+        }
+      },
+      "attestations": []
+    },
+    {
+      "id": "university",
+      "displayName": "Demo University",
+      "themeColor": "#7a1f3d",
+      "presentations": {
+        "pid": {
+          "types": [
+            "pid"
+          ],
+          "claims": [
+            "given_name",
+            "family_name",
+            "birthdate",
+            "nationalities",
+            "place_of_birth"
+          ]
+        },
+        "bc": {
+          "types": [
+            "birth_certificate"
+          ],
+          "claims": [
+            "given_name",
+            "family_name",
+            "birthdate",
+            "place_of_birth",
+            "parent_names",
+            "certificate_number"
+          ]
+        },
+        "pid_bc": {
+          "types": [
+            "pid",
+            "birth_certificate"
+          ],
+          "claims": [
+            "given_name",
+            "family_name",
+            "birthdate",
+            "nationalities",
+            "place_of_birth",
+            "parent_names",
+            "certificate_number"
+          ]
+        }
+      },
+      "attestations": []
+    },
+    {
+      "id": "electricity",
+      "displayName": "Demo Power Co",
+      "themeColor": "#1b6e3c",
+      "presentations": {
+        "pid": {
+          "types": [
+            "pid"
+          ],
+          "claims": [
+            "given_name",
+            "family_name",
+            "birthdate",
+            "address"
+          ]
+        }
+      },
+      "attestations": []
+    }
+  ]
+}
