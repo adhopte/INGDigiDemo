@@ -3,7 +3,7 @@ import { log } from '../logger.js';
 import { VpError, type Verifier } from './service.js';
 
 /** OpenID4VP endpoints the WALLET calls: request object (request_uri) and response_uri. */
-export function vpRouter(verifier: Verifier): Router {
+export function vpRouter(verifier: Verifier, diagnosticsEnabled = false): Router {
   const r = Router();
   r.use(express.urlencoded({ extended: false, limit: '512kb' }));
   r.use(express.json({ limit: '512kb' }));
@@ -19,9 +19,11 @@ export function vpRouter(verifier: Verifier): Router {
     try {
       wm = typeof req.body?.wallet_metadata === 'string' ? JSON.parse(req.body.wallet_metadata) : req.body?.wallet_metadata;
     } catch { /* ignore */ }
+    verifier.record({ event: 'wallet_fetched_request', rp: tx.rpId, presentation: tx.presentationKey, method: req.method, userAgent: String(req.headers['user-agent'] ?? '').slice(0, 160), walletMetadata: wm ? JSON.stringify(wm).slice(0, 1500) : undefined });
     log.info('wallet fetched request', { rp: tx.rpId, method: req.method, userAgent: String(req.headers['user-agent'] ?? '').slice(0, 120), walletFormats: wm?.vp_formats_supported ? JSON.stringify(wm.vp_formats_supported).slice(0, 400) : undefined, walletResponseModes: wm?.response_modes_supported, walletClientIdPrefixes: wm?.client_id_prefixes_supported ?? wm?.client_id_schemes_supported });
     res.type('application/oauth-authz-req+jwt').send(await verifier.signedRequestObject(tx, walletNonce));
   };
+  if (diagnosticsEnabled) r.get('/diagnostics', (_req, res) => void res.json({ note: 'Recent verifier events. No claim values or tokens.', events: verifier.diagnostics() }));
   r.get('/request/:id', requestObject);
   r.post('/request/:id', requestObject);
 

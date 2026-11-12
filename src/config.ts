@@ -89,6 +89,8 @@ export interface AppConfig {
   port: number;
   publicBaseUrl: string;
   mockMode: boolean;
+  /** Expose GET /vp/diagnostics (recent verifier events, no personal data). */
+  diagnostics: boolean;
   multiCredential: boolean;
   sessionSecret: string;
   verifier: VerifierConfig;
@@ -237,6 +239,7 @@ export function loadConfig(
     port,
     publicBaseUrl,
     mockMode,
+    diagnostics: parseBool(env.DIAGNOSTICS_ENDPOINT, false),
     multiCredential: parseBool(env.MULTI_CREDENTIAL, false),
     sessionSecret,
     verifier,

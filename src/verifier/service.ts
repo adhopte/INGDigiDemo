@@ -11,6 +11,8 @@ import { createMdocChainValidator, TrustError } from './trust.js';
 const TX_TTL_MS = 10 * 60 * 1000;
 const MAX_TRANSACTIONS = 5000; // in-memory store: bound memory under load
 const SD_JWT_ALGS = { 'sd-jwt_alg_values': ['ES256'], 'kb-jwt_alg_values': ['ES256'] };
+/** mdoc: COSE alg -7 = ES256 (`alg` is the pre-1.0 draft spelling). */
+const MDOC_ALGS = { issuerauth_alg_values: [-7], deviceauth_alg_values: [-7], alg: ['ES256'] };
 
 export type TxStatus = 'pending' | 'complete' | 'failed' | 'expired';
 export type VerifyErrorCode = 'wallet_declined' | 'untrusted_issuer' | 'invalid_presentation' | 'missing_credential' | 'bad_response';
@@ -46,8 +48,26 @@ export class VpError extends Error {
   }
 }
 
+export interface DiagnosticEvent {
+  t: string;
+  event: 'wallet_fetched_request' | 'response_rejected' | 'response_accepted';
+  rp?: string;
+  presentation?: string;
+  [k: string]: unknown;
+}
+
 export class Verifier {
   private txs = new Map<string, Transaction>();
+  private events: DiagnosticEvent[] = [];
+
+  /** Recent protocol events (no claim values, no tokens) for integrators. */
+  record(e: { event: DiagnosticEvent['event']; rp?: string; presentation?: string; [k: string]: unknown }): void {
+    this.events.push({ t: new Date(this.now()).toISOString(), ...e });
+    if (this.events.length > 60) this.events.shift();
+  }
+  diagnostics(): DiagnosticEvent[] {
+    return [...this.events].reverse();
+  }
 
   constructor(
     private readonly cfg: AppConfig,
@@ -109,11 +129,14 @@ export class Verifier {
   /** Authorization Request parameters (the content of the request object). */
   requestParams(tx: Transaction, walletNonce?: string): Record<string, unknown> {
     const v = this.cfg.verifier;
+    // Every format a request may be answered with must be declared here, or wallets answer "no matching documents".
+    const wantsMdoc = tx.reqs.some((r) => r.attestation.mdoc && r.attestation.formats.includes('mso_mdoc'));
+    const formats: Record<string, unknown> = { 'dc+sd-jwt': SD_JWT_ALGS, 'vc+sd-jwt': SD_JWT_ALGS, ...(wantsMdoc ? { mso_mdoc: MDOC_ALGS } : {}) };
     const clientMetadata: Record<string, unknown> = {
       client_name: `${tx.rpName} – ${this.cfg.brand.name} ${this.cfg.brand.product} demo`,
       logo_uri: `${this.cfg.publicBaseUrl}/img/rp-${tx.rpId}.png`,
-      vp_formats: { 'dc+sd-jwt': SD_JWT_ALGS, 'vc+sd-jwt': SD_JWT_ALGS },
-      vp_formats_supported: { 'dc+sd-jwt': SD_JWT_ALGS, 'vc+sd-jwt': SD_JWT_ALGS },
+      vp_formats: formats,
+      vp_formats_supported: formats,
     };
     if (tx.enc) {
       Object.assign(clientMetadata, {
@@ -170,6 +193,7 @@ export class Verifier {
     tx.errorCode = code;
     tx.errorDetail = detail;
     log.warn('vp response rejected', { rp: tx.rpId, code, detail });
+    this.record({ event: 'response_rejected', rp: tx.rpId, presentation: tx.presentationKey, code, detail });
     throw new VpError(400, code === 'wallet_declined' ? 'access_denied' : 'invalid_request', detail);
   }
 
@@ -247,6 +271,7 @@ export class Verifier {
     }
     tx.result = { byType, issuers: [...issuers] };
     tx.status = 'complete';
+    this.record({ event: 'response_accepted', rp: tx.rpId, presentation: tx.presentationKey, types: Object.keys(byType), issuers: tx.result.issuers });
     log.info('vp response accepted', { rp: tx.rpId, presentation: tx.presentationKey, types: Object.keys(byType), issuers: tx.result.issuers });
     return { redirect_uri: `${this.cfg.publicBaseUrl}/${tx.rpId}/verify/finish/${tx.id}?response_code=${tx.responseCode}` };
   }

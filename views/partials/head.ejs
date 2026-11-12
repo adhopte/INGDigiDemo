@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><%= title %> – <%= rp ? rp.displayName : brand.name + ' ' + t('dash.short') %></title>
-<link rel="stylesheet" href="/css/fonts.css">
-<link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/<%= skin %>.css">
-<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/fonts.css?v=<%= v %>">
+<link rel="stylesheet" href="/css/base.css?v=<%= v %>">
+<link rel="stylesheet" href="/css/<%= skin %>.css?v=<%= v %>">
+<link rel="icon" href="/img/favicon.svg?v=<%= v %>" type="image/svg+xml">
 </head>
 <body class="skin-<%= skin %>">
 <a class="skip-link" href="#main"><%= t('skip') %></a>

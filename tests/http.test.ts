@@ -66,6 +66,31 @@ describe('platform basics', () => {
   });
 });
 
+describe('diagnostics and caching', () => {
+  it('/vp/diagnostics exists only when enabled and records wallet metadata and rejections without claim values', async () => {
+    const off = await boot();
+    expect((await request(off.app).get('/vp/diagnostics')).status).toBe(404);
+    const { app, svc, cfg } = await boot({ DIAGNOSTICS_ENDPOINT: 'true' });
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
+    await request(app).post(`/vp/request/${tx.id}`).type('form').send({ wallet_metadata: JSON.stringify({ vp_formats_supported: { mso_mdoc: {} } }) });
+    await request(app).post(`/vp/response/${tx.id}`).type('form').send({ vp_token: 'junk', state: 'x' });
+    const d = (await request(app).get('/vp/diagnostics')).body.events;
+    expect(d.map((e: any) => e.event)).toEqual(['response_rejected', 'wallet_fetched_request']);
+    expect(d[1].walletMetadata).toContain('mso_mdoc');
+    expect(d[0].detail).toBeTruthy();
+  });
+
+  it('static assets are revalidated and asset URLs carry a build version', async () => {
+    const { app } = await boot();
+    const css = await request(app).get('/css/base.css');
+    expect(css.headers['cache-control']).toBe('public, max-age=0, must-revalidate');
+    expect((await request(app).get('/fonts/inter-latin-wght-normal.woff2')).headers['cache-control']).toContain('max-age=604800');
+    const home = (await request(app).get('/')).text;
+    expect(home).toMatch(/\/css\/base\.css\?v=[A-Za-z0-9]+/);
+    expect(home).toMatch(/\/img\/in-groupe-logo\.svg\?v=[A-Za-z0-9]+/);
+  });
+});
+
 describe('OpenID4VCI issuer over HTTP', () => {
   it('serves issuer, authorization-server and JWT VC issuer metadata', async () => {
     const { app, cfg } = await boot();

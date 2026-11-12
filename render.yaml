@@ -43,6 +43,8 @@ services:
         value: direct_post.jwt
       - key: VP_QUERY_LANGUAGE       # dcql | pex
         value: dcql
+      - key: DIAGNOSTICS_ENDPOINT    # exposes GET /vp/diagnostics: recent protocol events (no claim values / tokens). Disable when done.
+        value: "true"
       - key: VP_DEEPLINK_BASE        # wallet invocation scheme
         value: openid4vp://authorize
       # DEMO PLAYGROUND SWITCH: accept credentials from ANY issuer (signature is still checked against the credential's own key /

@@ -14,6 +14,9 @@ import { vpRouter } from './verifier/routes.js';
 import { VpError } from './verifier/service.js';
 import './session.js';
 
+/** Build identifier for cache-busting static URLs (Render exposes the commit). */
+const ASSET_VERSION = (process.env.RENDER_GIT_COMMIT ?? String(Date.now())).slice(0, 8);
+
 export function createApp(cfg: AppConfig, svc: Services) {
   const app = express();
   const ctx = { cfg, svc };
@@ -40,10 +43,13 @@ export function createApp(cfg: AppConfig, svc: Services) {
     }),
   );
 
-  app.use(express.static(path.join(ROOT_DIR, 'public'), { maxAge: cfg.isProduction ? '1h' : 0 }));
+  // Assets are revalidated (ETag) on every load, except fonts. URLs also carry ?v=<build> so a new deploy is never masked by a cached copy.
+  app.use(express.static(path.join(ROOT_DIR, 'public'), {
+    setHeaders: (res, file) => res.setHeader('Cache-Control', file.includes(`${path.sep}fonts${path.sep}`) ? 'public, max-age=604800' : 'public, max-age=0, must-revalidate'),
+  }));
 
   // Wallet-facing protocol endpoints: no browser session, no i18n.
-  app.use('/vp', vpRouter(svc.verifier));
+  app.use('/vp', vpRouter(svc.verifier, cfg.diagnostics));
   const issuer = issuerRouters(svc.local);
   app.use(issuer.wellKnown);
   app.use('/issuer', issuer.main);
@@ -65,6 +71,7 @@ export function createApp(cfg: AppConfig, svc: Services) {
   );
   app.use(i18nMiddleware(cfg.isProduction));
   app.use((req: Request, res: Response, next: NextFunction) => {
+    res.locals.v = ASSET_VERSION;
     res.locals.brand = cfg.brand;
     res.locals.mockMode = cfg.mockMode;
     res.locals.issuerMode = cfg.issuer.mode;

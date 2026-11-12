@@ -102,6 +102,16 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     expect((wild.verifier.requestParams(tx2) as any).dcql_query.credentials[0].meta).toEqual({});
   });
 
+  it('declares mso_mdoc in client_metadata only when an mdoc answer is acceptable', async () => {
+    const { cfg, svc } = await setup();
+    const bank = (svc.verifier.requestParams(await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/')) as any).client_metadata;
+    expect(bank.vp_formats_supported.mso_mdoc).toEqual({ issuerauth_alg_values: [-7], deviceauth_alg_values: [-7], alg: ['ES256'] });
+    expect(bank.vp_formats).toEqual(bank.vp_formats_supported);
+    expect(bank.vp_formats_supported['dc+sd-jwt']).toBeTruthy();
+    const shop = (svc.verifier.requestParams(await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'eshop')!, 'payment', '/')) as any).client_metadata;
+    expect(shop.vp_formats_supported.mso_mdoc).toBeUndefined();
+  });
+
   it('unit: chain validator and primitives', async () => {
     const ca = await makeCa(); const dsc = await makeDsc(ca);
     const leaf = Buffer.from(dsc.cert.rawData);
