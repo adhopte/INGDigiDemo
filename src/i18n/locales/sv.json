@@ -26,7 +26,6 @@
   "form.err.required": "Välj ett alternativ.",
   "form.err.email": "Ange en giltig e-postadress.",
   "form.err.consent": "Du måste godkänna för att fortsätta.",
-
   "dash.short": "Demopanel för EU Wallet",
   "dash.title": "Demopanel för EU Wallet",
   "dash.subtitle": "Testa den europeiska digitala identitetsplånboken från början till slut: verifiera ett PID, ta emot intyg och visa upp dem för fyra förlitande parter.",
@@ -56,7 +55,6 @@
   "rp.university.uses": "Verifierar: PID, födelsebevis",
   "rp.electricity.desc": "Logga in på ditt elkonto med ditt PID.",
   "rp.electricity.uses": "Verifierar: PID",
-
   "att.pid.name": "Personuppgifter (PID)",
   "att.account.name": "Bankkontointyg",
   "att.payment.name": "Betalningsintyg",
@@ -79,7 +77,6 @@
   "claim.valid_until": "Giltigt till",
   "claim.parent_names": "Föräldrar",
   "claim.certificate_number": "Intygsnummer",
-
   "verify.title": "Visa upp dina EU Wallet-uppgifter",
   "verify.intro": "{rp} ber dig dela uppgifter från din EU Wallet.",
   "verify.requested": "Begärda uppgifter",
@@ -106,7 +103,6 @@
   "verify.err.missing_credential": "Plånboken lämnade inte alla begärda bevis.",
   "verify.err.bad_response": "Plånbokens svar var ogiltigt.",
   "verify.err.expired": "Begäran har gått ut. Börja om.",
-
   "offer.title": "Lägg till ”{name}” i din plånbok",
   "offer.intro": "Din plånbok hämtar intyget från utfärdaren med en engångskod (OpenID4VCI, pre-authorised code flow).",
   "offer.get": "Hämta intyget",
@@ -120,7 +116,6 @@
   "offer.sim_btn": "Ta emot i simulerad plånbok",
   "offer.simulated_done": "Beviset har sparats i den simulerade plånboken.",
   "offer.simulated_failed": "Den simulerade plånboken kunde inte ta emot beviset (erbjudandet har gått ut eller redan använts).",
-
   "mockw.badge": "SIMULERAD PLÅNBOK",
   "mockw.title": "Simulerad EU Wallet",
   "mockw.intro": "{rp} begär följande bevis. Den här sidan ersätter en riktig plånboksapp.",
@@ -145,7 +140,6 @@
   "issuer.console.birth_certificate": "Ett demo-födelsebevis för universitetsanmälan.",
   "issuer.console.create": "Skapa erbjudande",
   "issuer.console.note": "Bankintygen utfärdas av banken efter en PID-kontroll.",
-
   "bank.util.private": "Privat",
   "bank.util.business": "Företag",
   "bank.nav.account": "Mitt konto",
@@ -194,7 +188,6 @@
   "bank.att.payment.btn": "Hämta betalningsintyg",
   "bank.att.eshop_hint": "Betala sedan med det hos",
   "bank.att.eshop_link": "Demo eShop",
-
   "eshop.nav.products": "Produkter",
   "eshop.nav.cart": "Varukorg",
   "eshop.nav.items": "Varor i varukorgen",
@@ -235,7 +228,6 @@
   "shop.p4.name": "Resryggsäck",
   "shop.p5.name": "Kaffebönor, 1 kg",
   "shop.p6.name": "Löparskor",
-
   "uni.hero.title": "Börja dina studier",
   "uni.hero.sub": "Anmäl dig online med ditt PID och ditt födelsebevis från din EU Wallet.",
   "uni.hero.cta": "Starta anmälan",
@@ -272,7 +264,6 @@
   "prog.law": "Juridik",
   "prog.bio": "Biologi",
   "prog.art": "Konst",
-
   "el.nav.account": "Mitt konto",
   "el.nav.login": "Logga in",
   "el.hero.title": "Grön el, enkel åtkomst",
@@ -295,5 +286,7 @@
   "el.account.tariff_val": "Green Flex – 100 % förnybart",
   "el.account.invoice": "Senaste faktura",
   "el.account.invoice_note": "Fiktivt belopp, inget att betala.",
-  "el.account.usage": "Förbrukning (senaste 6 månaderna)"
+  "el.account.usage": "Förbrukning (senaste 6 månaderna)",
+  "verify.failed.details": "Tekniska detaljer",
+  "dash.trust.any": "Förtroendekontroll av utfärdare avstängd (demo)"
 }

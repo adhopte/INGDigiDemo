@@ -1,11 +1,12 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import { SignJWT, compactDecrypt, exportJWK, generateKeyPair, type CryptoKey, type JWK } from 'jose';
+import { SignJWT, calculateJwkThumbprint, compactDecrypt, exportJWK, generateKeyPair, type CryptoKey, type JWK } from 'jose';
+import { looksLikeDeviceResponse, normalizeMdocClaims, openId4VpSessionTranscripts, verifyDeviceResponse } from '../mdoc/index.js';
 import type { AppConfig, RpConfig } from '../config.js';
 import { log } from '../logger.js';
 import { SdJwtError, verifySdJwtPresentation, type Claims, type IssuerKeyResolver } from '../sdjwt/index.js';
 import type { VerifierIdentity } from './identity.js';
 import { buildDcql, buildPresentationDefinition, requestedCredentials, type RequestedCredential } from './query.js';
-import { TrustError } from './trust.js';
+import { createMdocChainValidator, TrustError } from './trust.js';
 
 const TX_TTL_MS = 10 * 60 * 1000;
 const MAX_TRANSACTIONS = 5000; // in-memory store: bound memory under load
@@ -32,6 +33,8 @@ export interface Transaction {
   expiresAt: number;
   status: TxStatus;
   errorCode?: VerifyErrorCode;
+  /** Technical reason (never contains claim values); shown to help integrators. */
+  errorDetail?: string;
   result?: TxResult;
   consumed: boolean;
   enc?: { privateKey: CryptoKey; publicJwk: JWK };
@@ -107,7 +110,8 @@ export class Verifier {
   requestParams(tx: Transaction, walletNonce?: string): Record<string, unknown> {
     const v = this.cfg.verifier;
     const clientMetadata: Record<string, unknown> = {
-      client_name: tx.rpName,
+      client_name: `${tx.rpName} – ${this.cfg.brand.name} ${this.cfg.brand.product} demo`,
+      logo_uri: `${this.cfg.publicBaseUrl}/img/rp-${tx.rpId}.png`,
       vp_formats: { 'dc+sd-jwt': SD_JWT_ALGS, 'vc+sd-jwt': SD_JWT_ALGS },
       vp_formats_supported: { 'dc+sd-jwt': SD_JWT_ALGS, 'vc+sd-jwt': SD_JWT_ALGS },
     };
@@ -164,6 +168,7 @@ export class Verifier {
   private fail(tx: Transaction, code: VerifyErrorCode, detail: string): never {
     tx.status = 'failed';
     tx.errorCode = code;
+    tx.errorDetail = detail;
     log.warn('vp response rejected', { rp: tx.rpId, code, detail });
     throw new VpError(400, code === 'wallet_declined' ? 'access_denied' : 'invalid_request', detail);
   }
@@ -196,11 +201,34 @@ export class Verifier {
       this.fail(tx, 'bad_response', (e as Error).message);
     }
 
-    const verified: { iss: string; vct: string; claims: Claims }[] = [];
+    type Verified = { iss: string; vct?: string; docType?: string; claims: Claims };
+    const verified: Verified[] = [];
     const acceptedVcts = [...new Set(tx.reqs.flatMap((r) => r.attestation.acceptedVct))];
+    const mdocReqs = tx.reqs.filter((r) => r.attestation.mdoc && r.attestation.formats.includes('mso_mdoc'));
     for (const p of presented) {
       try {
-        verified.push(await verifySdJwtPresentation(p, { resolveIssuerKey: this.resolveIssuerKey, acceptedVcts, aud: this.audiences(), nonce: tx.nonce, now: Math.floor(this.now() / 1000) }));
+        if (!p.includes('~') && looksLikeDeviceResponse(p)) {
+          if (mdocReqs.length === 0) throw new SdJwtError('mdoc presentations are not accepted for this request');
+          const thumb = tx.enc ? Buffer.from(await calculateJwkThumbprint(tx.enc.publicJwk, 'sha256'), 'base64url') : undefined;
+          const transcripts = openId4VpSessionTranscripts({ clientId: this.identity.clientId, nonce: tx.nonce, responseUri: this.responseUri(tx), ...(thumb ? { jwkThumbprint: thumb } : {}) });
+          let ok = false;
+          let lastErr: unknown;
+          for (const r of mdocReqs) {
+            try {
+              const v = verifyDeviceResponse(p, { docType: r.attestation.mdoc!.docType, validateChain: createMdocChainValidator(this.cfg), sessionTranscripts: transcripts, now: new Date(this.now()) });
+              verified.push({ iss: v.issuerSubject, docType: v.docType, claims: normalizeMdocClaims(v.elements, r.attestation.mdoc!.namespace, r.attestation.mdoc!.elements) });
+              ok = true;
+              break;
+            } catch (e) {
+              lastErr = e;
+              if (e instanceof TrustError) throw e;
+            }
+          }
+          if (!ok) throw lastErr;
+        } else {
+          const v = await verifySdJwtPresentation(p, { resolveIssuerKey: this.resolveIssuerKey, acceptedVcts, aud: this.audiences(), nonce: tx.nonce, now: Math.floor(this.now() / 1000) });
+          verified.push({ iss: v.iss, vct: v.vct, claims: v.claims });
+        }
       } catch (e) {
         this.fail(tx, e instanceof TrustError ? 'untrusted_issuer' : e instanceof SdJwtError ? 'invalid_presentation' : 'bad_response', (e as Error).message);
       }
@@ -209,8 +237,10 @@ export class Verifier {
     const byType: Record<string, Claims> = {};
     const issuers = new Set<string>();
     for (const req of tx.reqs) {
-      const match = verified.find((v) => req.attestation.acceptedVct.includes(v.vct));
+      const match = verified.find((v) => (v.vct !== undefined && (req.attestation.acceptedVct.includes('*') || req.attestation.acceptedVct.includes(v.vct))) || (v.docType !== undefined && v.docType === req.attestation.mdoc?.docType));
       if (!match) this.fail(tx, 'missing_credential', `No credential for type ${req.type}`);
+      const absent = req.minClaims.filter((c) => match.claims[c] === undefined);
+      if (absent.length) this.fail(tx, 'missing_credential', `Credential lacks required claims: ${absent.join(', ')}`);
       // Data minimisation: keep only what was asked for, even if the wallet disclosed more.
       byType[req.type] = Object.fromEntries(Object.entries(match.claims).filter(([k]) => req.claims.includes(k)));
       issuers.add(match.iss);
@@ -239,6 +269,6 @@ export function extractPresentations(vpToken: unknown): string[] {
     else if (x && typeof x === 'object') Object.values(x).forEach(walk);
   };
   walk(v);
-  if (out.length === 0 || out.some((s) => !s.includes('~'))) throw new Error('vp_token carries no SD-JWT presentation');
+  if (out.length === 0 || out.some((s) => !s.includes('~') && !looksLikeDeviceResponse(s))) throw new Error('vp_token carries no SD-JWT or mdoc presentation');
   return out;
 }

@@ -7,6 +7,7 @@
       <li class="chip <%= mockMode ? 'chip-warn' : 'chip-ok' %>"><%= mockMode ? t('dash.mode.mock') : t('dash.mode.live') %></li>
       <li class="chip"><%= issuerMode === 'local' ? t('dash.issuer.local') : t('dash.issuer.external') %></li>
       <li class="chip"><%= multiCredential ? t('dash.multi.on') : t('dash.multi.off') %></li>
+      <% if (trustAny) { %><li class="chip chip-warn"><%= t('dash.trust.any') %></li><% } %>
     </ul>
   </div>
 </section>

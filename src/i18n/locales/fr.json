@@ -26,7 +26,6 @@
   "form.err.required": "Veuillez choisir une option.",
   "form.err.email": "Saisissez une adresse e-mail valide.",
   "form.err.consent": "Vous devez accepter pour continuer.",
-
   "dash.short": "Tableau de bord de démo EU Wallet",
   "dash.title": "Tableau de bord de démo EU Wallet",
   "dash.subtitle": "Essayez le portefeuille d’identité numérique européen de bout en bout : vérifiez un PID, recevez des attestations et présentez-les à quatre parties utilisatrices.",
@@ -56,7 +55,6 @@
   "rp.university.uses": "Vérifie : PID, acte de naissance",
   "rp.electricity.desc": "Connectez-vous à votre compte d’électricité avec votre PID.",
   "rp.electricity.uses": "Vérifie : PID",
-
   "att.pid.name": "Identité numérique (PID)",
   "att.account.name": "Attestation de compte bancaire",
   "att.payment.name": "Attestation de paiement",
@@ -79,7 +77,6 @@
   "claim.valid_until": "Valable jusqu’au",
   "claim.parent_names": "Parents",
   "claim.certificate_number": "Numéro d’acte",
-
   "verify.title": "Présentez vos justificatifs EU Wallet",
   "verify.intro": "{rp} vous demande de partager des données de votre EU Wallet.",
   "verify.requested": "Données demandées",
@@ -106,7 +103,6 @@
   "verify.err.missing_credential": "Le portefeuille n’a pas fourni tous les justificatifs demandés.",
   "verify.err.bad_response": "La réponse du portefeuille n’était pas valide.",
   "verify.err.expired": "La demande a expiré. Veuillez recommencer.",
-
   "offer.title": "Ajouter « {name} » à votre portefeuille",
   "offer.intro": "Votre portefeuille récupérera l’attestation auprès de l’émetteur avec un code à usage unique (OpenID4VCI, flux à code pré-autorisé).",
   "offer.get": "Obtenir l’attestation",
@@ -120,7 +116,6 @@
   "offer.sim_btn": "Recevoir dans le portefeuille simulé",
   "offer.simulated_done": "Le justificatif a été enregistré dans le portefeuille simulé.",
   "offer.simulated_failed": "Le portefeuille simulé n’a pas pu recevoir le justificatif (offre expirée ou déjà utilisée).",
-
   "mockw.badge": "PORTEFEUILLE SIMULÉ",
   "mockw.title": "EU Wallet simulé",
   "mockw.intro": "{rp} demande les justificatifs suivants. Cette page remplace une vraie application de portefeuille.",
@@ -145,7 +140,6 @@
   "issuer.console.birth_certificate": "Un acte de naissance de démo pour l’inscription à l’université.",
   "issuer.console.create": "Créer l’offre",
   "issuer.console.note": "Les attestations bancaires sont émises depuis la banque après vérification du PID.",
-
   "bank.util.private": "Particuliers",
   "bank.util.business": "Entreprises",
   "bank.nav.account": "Mon compte",
@@ -194,7 +188,6 @@
   "bank.att.payment.btn": "Obtenir l’attestation de paiement",
   "bank.att.eshop_hint": "Payez ensuite avec elle chez",
   "bank.att.eshop_link": "Demo eShop",
-
   "eshop.nav.products": "Produits",
   "eshop.nav.cart": "Panier",
   "eshop.nav.items": "Articles dans le panier",
@@ -235,7 +228,6 @@
   "shop.p4.name": "Sac à dos de voyage",
   "shop.p5.name": "Café en grains, 1 kg",
   "shop.p6.name": "Chaussures de course",
-
   "uni.hero.title": "Commencez vos études",
   "uni.hero.sub": "Inscrivez-vous en ligne avec votre PID et votre acte de naissance depuis votre EU Wallet.",
   "uni.hero.cta": "Commencer l’inscription",
@@ -272,7 +264,6 @@
   "prog.law": "Droit",
   "prog.bio": "Biologie",
   "prog.art": "Beaux-arts",
-
   "el.nav.account": "Mon compte",
   "el.nav.login": "Se connecter",
   "el.hero.title": "Électricité verte, accès simple",
@@ -295,5 +286,7 @@
   "el.account.tariff_val": "Green Flex – 100 % renouvelable",
   "el.account.invoice": "Dernière facture",
   "el.account.invoice_note": "Montant fictif, aucun paiement dû.",
-  "el.account.usage": "Consommation (6 derniers mois)"
+  "el.account.usage": "Consommation (6 derniers mois)",
+  "verify.failed.details": "Détails techniques",
+  "dash.trust.any": "Contrôle de confiance des émetteurs désactivé (démo)"
 }

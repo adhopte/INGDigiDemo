@@ -1,11 +1,12 @@
 {
-  "_comment": "Attestation catalogue + RP definitions. 'vct' is the SD-JWT VC type; 'acceptedVct' lists extra vct values a verifier accepts for that type (e.g. the real IN Groupe PID vct). Everything can be overridden by env vars (see .env.example).",
+  "_comment": "Attestation catalogue + RP definitions. 'vct' / 'acceptedVct' = SD-JWT VC types ('*' = any); 'formats' = credential formats requested for that type; 'mdoc' maps claim names to ISO mdoc elements. 'minClaims' = fallback set when the wallet's credential lacks optional claims. Everything can be overridden by env vars (see .env.example).",
   "attestations": {
     "pid": {
       "credentialConfigurationId": "demo_pid",
       "vct": "urn:eudi:pid:1",
       "acceptedVct": [
-        "urn:eudi:pid:1"
+        "urn:eudi:pid:1",
+        "urn:eu.europa.ec.eudi:pid:1"
       ],
       "claims": [
         "family_name",
@@ -17,7 +18,26 @@
         "issuing_authority",
         "issuing_country",
         "age_over_18"
-      ]
+      ],
+      "formats": [
+        "dc+sd-jwt",
+        "mso_mdoc"
+      ],
+      "mdoc": {
+        "docType": "eu.europa.ec.eudi.pid.1",
+        "namespace": "eu.europa.ec.eudi.pid.1",
+        "elements": {
+          "given_name": "given_name",
+          "family_name": "family_name",
+          "birthdate": "birth_date",
+          "place_of_birth": "birth_place",
+          "nationalities": "nationality",
+          "address": "resident_address",
+          "issuing_country": "issuing_country",
+          "issuing_authority": "issuing_authority",
+          "age_over_18": "age_over_18"
+        }
+      }
     },
     "account": {
       "credentialConfigurationId": "demo_bank_account",
@@ -75,6 +95,11 @@
             "nationalities",
             "address",
             "issuing_country"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name",
+            "birthdate"
           ]
         }
       },
@@ -118,6 +143,11 @@
             "birthdate",
             "nationalities",
             "place_of_birth"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name",
+            "birthdate"
           ]
         },
         "bc": {
@@ -146,6 +176,11 @@
             "place_of_birth",
             "parent_names",
             "certificate_number"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name",
+            "birthdate"
           ]
         }
       },
@@ -165,6 +200,11 @@
             "family_name",
             "birthdate",
             "address"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name",
+            "birthdate"
           ]
         }
       },

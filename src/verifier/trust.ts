@@ -22,7 +22,7 @@ export function validateX5cChain(x5c: string[], trustedPem: string[], now = new 
   return chain[0]!;
 }
 
-const isTrustedIssuer = (iss: string, trusted: string[]) => trusted.includes('*') || trusted.some((t) => iss === t || iss.startsWith(`${t}/`));
+const isTrustedIssuer = (iss: string, trusted: string[], any = false) => any || trusted.includes('*') || trusted.some((t) => iss === t || iss.startsWith(`${t}/`));
 
 /** JWT VC Issuer Metadata URL: well-known segment inserted between host and path (SD-JWT VC spec). */
 export function jwtVcIssuerMetadataUrls(iss: string): string[] {
@@ -47,11 +47,11 @@ export function createIssuerKeyResolver(cfg: AppConfig, local: LocalIssuer | und
     if (local && iss === local.issuerUrl) return (await importJWK(local.publicJwk, 'ES256')) as CryptoKey;
 
     if (header.x5c?.length) {
-      const leaf = validateX5cChain(header.x5c, cfg.verifier.trustedCaPem);
+      const leaf = cfg.verifier.trustAnyIssuer ? new X509Certificate(Buffer.from(header.x5c[0]!, 'base64')) : validateX5cChain(header.x5c, cfg.verifier.trustedCaPem);
       return (await importJWK(leaf.publicKey.export({ format: 'jwk' }) as JWK, 'ES256')) as CryptoKey;
     }
 
-    if (!isTrustedIssuer(iss, cfg.verifier.trustedIssuers)) throw new TrustError(`Issuer ${new URL(iss).host} is not trusted`);
+    if (!isTrustedIssuer(iss, cfg.verifier.trustedIssuers, cfg.verifier.trustAnyIssuer)) throw new TrustError(`Issuer ${new URL(iss).host} is not trusted`);
     const u = new URL(iss);
     if (u.protocol !== 'https:' && !(u.protocol === 'http:' && !cfg.isProduction)) throw new TrustError('Issuer URL must be https');
 
@@ -73,5 +73,16 @@ export function createIssuerKeyResolver(cfg: AppConfig, local: LocalIssuer | und
     const jwk = header.kid ? entry.jwks.find((k) => k.kid === header.kid) : entry.jwks.length === 1 ? entry.jwks[0] : undefined;
     if (!jwk) throw new TrustError('No matching issuer key');
     return (await importJWK(jwk, 'ES256')) as CryptoKey;
+  };
+}
+
+/** Chain validation for mdoc issuerAuth (x5chain, DER, leaf first). With TRUST_ANY_ISSUER only the leaf's validity period is checked. */
+export function createMdocChainValidator(cfg: AppConfig) {
+  return (chain: Buffer[]): X509Certificate => {
+    if (!cfg.verifier.trustAnyIssuer) return validateX5cChain(chain.map((c) => c.toString('base64')), cfg.verifier.trustedCaPem);
+    const leaf = new X509Certificate(chain[0]!);
+    const now = new Date();
+    if (now < new Date(leaf.validFrom) || now > new Date(leaf.validTo)) throw new TrustError('Certificate outside its validity period');
+    return leaf;
   };
 }

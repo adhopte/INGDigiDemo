@@ -69,6 +69,7 @@ export function createApp(cfg: AppConfig, svc: Services) {
     res.locals.mockMode = cfg.mockMode;
     res.locals.issuerMode = cfg.issuer.mode;
     res.locals.multiCredential = cfg.multiCredential;
+    res.locals.trustAny = cfg.verifier.trustAnyIssuer;
     res.locals.rps = cfg.rps;
     res.locals.rp = undefined;
     res.locals.skin = 'dashboard';

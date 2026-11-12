@@ -26,7 +26,6 @@
   "form.err.required": "Please choose an option.",
   "form.err.email": "Enter a valid e-mail address.",
   "form.err.consent": "You must accept to continue.",
-
   "dash.short": "EU Wallet Demo Dashboard",
   "dash.title": "EU Wallet Demo Dashboard",
   "dash.subtitle": "Try the EU Digital Identity Wallet end to end: verify a PID, receive attestations and present them to four relying parties.",
@@ -56,7 +55,6 @@
   "rp.university.uses": "Verifies: PID, birth certificate",
   "rp.electricity.desc": "Sign in to your electricity account with your PID.",
   "rp.electricity.uses": "Verifies: PID",
-
   "att.pid.name": "Personal ID (PID)",
   "att.account.name": "Bank account attestation",
   "att.payment.name": "Payment attestation",
@@ -79,7 +77,6 @@
   "claim.valid_until": "Valid until",
   "claim.parent_names": "Parents",
   "claim.certificate_number": "Certificate number",
-
   "verify.title": "Present your EU Wallet credentials",
   "verify.intro": "{rp} asks you to share data from your EU Wallet.",
   "verify.requested": "Requested data",
@@ -106,7 +103,6 @@
   "verify.err.missing_credential": "The wallet did not provide all requested credentials.",
   "verify.err.bad_response": "The wallet response was invalid.",
   "verify.err.expired": "The request expired. Please start again.",
-
   "offer.title": "Add “{name}” to your wallet",
   "offer.intro": "Your wallet will fetch the attestation from the issuer using a one-time code (OpenID4VCI, pre-authorised code flow).",
   "offer.get": "Get the attestation",
@@ -120,7 +116,6 @@
   "offer.sim_btn": "Receive in simulated wallet",
   "offer.simulated_done": "The credential was stored in the simulated wallet.",
   "offer.simulated_failed": "The simulated wallet could not receive the credential (offer expired or already used).",
-
   "mockw.badge": "SIMULATED WALLET",
   "mockw.title": "Simulated EU Wallet",
   "mockw.intro": "{rp} requests the following credentials. This page stands in for a real wallet app.",
@@ -145,7 +140,6 @@
   "issuer.console.birth_certificate": "A demo birth certificate for the university enrolment.",
   "issuer.console.create": "Create offer",
   "issuer.console.note": "The bank attestations are issued from inside the bank after a PID check.",
-
   "bank.util.private": "Personal",
   "bank.util.business": "Business",
   "bank.nav.account": "My account",
@@ -194,7 +188,6 @@
   "bank.att.payment.btn": "Get payment attestation",
   "bank.att.eshop_hint": "Then pay with it at",
   "bank.att.eshop_link": "Demo eShop",
-
   "eshop.nav.products": "Products",
   "eshop.nav.cart": "Cart",
   "eshop.nav.items": "Items in cart",
@@ -235,7 +228,6 @@
   "shop.p4.name": "Travel backpack",
   "shop.p5.name": "Coffee beans, 1 kg",
   "shop.p6.name": "Running shoes",
-
   "uni.hero.title": "Start your studies",
   "uni.hero.sub": "Enrol online with your PID and your birth certificate from your EU Wallet.",
   "uni.hero.cta": "Start enrolment",
@@ -272,7 +264,6 @@
   "prog.law": "Law",
   "prog.bio": "Biology",
   "prog.art": "Fine Arts",
-
   "el.nav.account": "My account",
   "el.nav.login": "Sign in",
   "el.hero.title": "Green electricity, simple access",
@@ -295,5 +286,7 @@
   "el.account.tariff_val": "Green Flex – 100 % renewable",
   "el.account.invoice": "Last invoice",
   "el.account.invoice_note": "Demo amount, no payment due.",
-  "el.account.usage": "Consumption (last 6 months)"
+  "el.account.usage": "Consumption (last 6 months)",
+  "verify.failed.details": "Technical details",
+  "dash.trust.any": "Issuer trust check disabled (demo)"
 }

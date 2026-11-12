@@ -26,7 +26,6 @@
   "form.err.required": "Vælg en mulighed.",
   "form.err.email": "Angiv en gyldig e-mailadresse.",
   "form.err.consent": "Du skal acceptere for at fortsætte.",
-
   "dash.short": "EU Wallet-demodashboard",
   "dash.title": "EU Wallet-demodashboard",
   "dash.subtitle": "Prøv den europæiske digitale identitetswallet fra start til slut: verificér et PID, modtag attester og fremvis dem for fire betroede parter.",
@@ -56,7 +55,6 @@
   "rp.university.uses": "Verificerer: PID, fødselsattest",
   "rp.electricity.desc": "Log ind på din elkonto med dit PID.",
   "rp.electricity.uses": "Verificerer: PID",
-
   "att.pid.name": "Personlig identitet (PID)",
   "att.account.name": "Bankkontoattest",
   "att.payment.name": "Betalingsattest",
@@ -79,7 +77,6 @@
   "claim.valid_until": "Gyldig til",
   "claim.parent_names": "Forældre",
   "claim.certificate_number": "Attestnummer",
-
   "verify.title": "Fremvis dine EU Wallet-beviser",
   "verify.intro": "{rp} beder dig dele data fra din EU Wallet.",
   "verify.requested": "Anmodede data",
@@ -106,7 +103,6 @@
   "verify.err.missing_credential": "Walletten leverede ikke alle de anmodede beviser.",
   "verify.err.bad_response": "Walletens svar var ugyldigt.",
   "verify.err.expired": "Anmodningen er udløbet. Start forfra.",
-
   "offer.title": "Føj “{name}” til din wallet",
   "offer.intro": "Din wallet henter attesten hos udstederen med en engangskode (OpenID4VCI, pre-authorised code flow).",
   "offer.get": "Hent attesten",
@@ -120,7 +116,6 @@
   "offer.sim_btn": "Modtag i simuleret wallet",
   "offer.simulated_done": "Beviset er gemt i den simulerede wallet.",
   "offer.simulated_failed": "Den simulerede wallet kunne ikke modtage beviset (tilbuddet er udløbet eller allerede brugt).",
-
   "mockw.badge": "SIMULERET WALLET",
   "mockw.title": "Simuleret EU Wallet",
   "mockw.intro": "{rp} anmoder om følgende beviser. Denne side erstatter en rigtig wallet-app.",
@@ -145,7 +140,6 @@
   "issuer.console.birth_certificate": "En demo-fødselsattest til universitetsindskrivningen.",
   "issuer.console.create": "Opret tilbud",
   "issuer.console.note": "Bankattesterne udstedes af banken efter en PID-kontrol.",
-
   "bank.util.private": "Privat",
   "bank.util.business": "Erhverv",
   "bank.nav.account": "Min konto",
@@ -194,7 +188,6 @@
   "bank.att.payment.btn": "Hent betalingsattest",
   "bank.att.eshop_hint": "Betal derefter med den hos",
   "bank.att.eshop_link": "Demo eShop",
-
   "eshop.nav.products": "Produkter",
   "eshop.nav.cart": "Kurv",
   "eshop.nav.items": "Varer i kurven",
@@ -235,7 +228,6 @@
   "shop.p4.name": "Rygsæk til rejser",
   "shop.p5.name": "Kaffebønner, 1 kg",
   "shop.p6.name": "Løbesko",
-
   "uni.hero.title": "Start dit studie",
   "uni.hero.sub": "Indskriv dig online med dit PID og din fødselsattest fra din EU Wallet.",
   "uni.hero.cta": "Start indskrivning",
@@ -272,7 +264,6 @@
   "prog.law": "Jura",
   "prog.bio": "Biologi",
   "prog.art": "Billedkunst",
-
   "el.nav.account": "Min konto",
   "el.nav.login": "Log ind",
   "el.hero.title": "Grøn strøm, nem adgang",
@@ -295,5 +286,7 @@
   "el.account.tariff_val": "Green Flex – 100 % vedvarende",
   "el.account.invoice": "Seneste faktura",
   "el.account.invoice_note": "Fiktivt beløb, intet at betale.",
-  "el.account.usage": "Forbrug (seneste 6 måneder)"
+  "el.account.usage": "Forbrug (seneste 6 måneder)",
+  "verify.failed.details": "Tekniske detaljer",
+  "dash.trust.any": "Tillidskontrol af udstedere slået fra (demo)"
 }

@@ -4,6 +4,7 @@
     <h1><%= t('verify.failed.title') %></h1>
     <p><%= t('verify.err.' + code) %></p>
   </div>
+  <% if (detail) { %><details class="raw"><summary><%= t('verify.failed.details') %></summary><p><code class="break"><%= detail %></code></p></details><% } %>
   <p><a class="btn" href="<%= retryHref %>"><%= t('btn.retry') %></a> <a class="btn btn-secondary" href="/<%= rp.id %>/"><%= t('btn.cancel') %></a></p>
 </div>
 <%- include('partials/foot') %>

@@ -26,7 +26,6 @@
   "form.err.required": "Kies een optie.",
   "form.err.email": "Voer een geldig e-mailadres in.",
   "form.err.consent": "U moet akkoord gaan om verder te gaan.",
-
   "dash.short": "EU Wallet-demodashboard",
   "dash.title": "EU Wallet-demodashboard",
   "dash.subtitle": "Probeer de Europese digitale identiteitswallet van begin tot eind: verifieer een PID, ontvang attesten en toon ze aan vier vertrouwende partijen.",
@@ -56,7 +55,6 @@
   "rp.university.uses": "Verifieert: PID, geboorteakte",
   "rp.electricity.desc": "Log in op uw energieaccount met uw PID.",
   "rp.electricity.uses": "Verifieert: PID",
-
   "att.pid.name": "Persoonlijke identiteit (PID)",
   "att.account.name": "Bankrekeningattest",
   "att.payment.name": "Betaalattest",
@@ -79,7 +77,6 @@
   "claim.valid_until": "Geldig tot",
   "claim.parent_names": "Ouders",
   "claim.certificate_number": "Aktenummer",
-
   "verify.title": "Toon uw EU Wallet-gegevens",
   "verify.intro": "{rp} vraagt u gegevens uit uw EU Wallet te delen.",
   "verify.requested": "Gevraagde gegevens",
@@ -106,7 +103,6 @@
   "verify.err.missing_credential": "De wallet heeft niet alle gevraagde bewijzen geleverd.",
   "verify.err.bad_response": "Het antwoord van de wallet was ongeldig.",
   "verify.err.expired": "Het verzoek is verlopen. Begin opnieuw.",
-
   "offer.title": "“{name}” aan uw wallet toevoegen",
   "offer.intro": "Uw wallet haalt het attest bij de uitgever op met een eenmalige code (OpenID4VCI, pre-authorised code flow).",
   "offer.get": "Attest ophalen",
@@ -120,7 +116,6 @@
   "offer.sim_btn": "Ontvangen in gesimuleerde wallet",
   "offer.simulated_done": "Het bewijs is opgeslagen in de gesimuleerde wallet.",
   "offer.simulated_failed": "De gesimuleerde wallet kon het bewijs niet ontvangen (aanbod verlopen of al gebruikt).",
-
   "mockw.badge": "GESIMULEERDE WALLET",
   "mockw.title": "Gesimuleerde EU Wallet",
   "mockw.intro": "{rp} vraagt de volgende bewijzen. Deze pagina vervangt een echte wallet-app.",
@@ -145,7 +140,6 @@
   "issuer.console.birth_certificate": "Een demo-geboorteakte voor de inschrijving bij de universiteit.",
   "issuer.console.create": "Aanbod maken",
   "issuer.console.note": "De bankattesten worden door de bank uitgegeven na een PID-controle.",
-
   "bank.util.private": "Particulieren",
   "bank.util.business": "Zakelijk",
   "bank.nav.account": "Mijn rekening",
@@ -194,7 +188,6 @@
   "bank.att.payment.btn": "Betaalattest ophalen",
   "bank.att.eshop_hint": "Betaal er daarna mee bij",
   "bank.att.eshop_link": "Demo eShop",
-
   "eshop.nav.products": "Producten",
   "eshop.nav.cart": "Winkelwagen",
   "eshop.nav.items": "Artikelen in winkelwagen",
@@ -235,7 +228,6 @@
   "shop.p4.name": "Reisrugzak",
   "shop.p5.name": "Koffiebonen, 1 kg",
   "shop.p6.name": "Hardloopschoenen",
-
   "uni.hero.title": "Begin aan uw studie",
   "uni.hero.sub": "Schrijf u online in met uw PID en geboorteakte uit uw EU Wallet.",
   "uni.hero.cta": "Inschrijving starten",
@@ -272,7 +264,6 @@
   "prog.law": "Rechten",
   "prog.bio": "Biologie",
   "prog.art": "Beeldende kunst",
-
   "el.nav.account": "Mijn account",
   "el.nav.login": "Inloggen",
   "el.hero.title": "Groene stroom, eenvoudige toegang",
@@ -295,5 +286,7 @@
   "el.account.tariff_val": "Green Flex – 100 % hernieuwbaar",
   "el.account.invoice": "Laatste factuur",
   "el.account.invoice_note": "Fictief bedrag, niets te betalen.",
-  "el.account.usage": "Verbruik (laatste 6 maanden)"
+  "el.account.usage": "Verbruik (laatste 6 maanden)",
+  "verify.failed.details": "Technische details",
+  "dash.trust.any": "Vertrouwenscontrole uitgevers uitgeschakeld (demo)"
 }

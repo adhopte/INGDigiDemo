@@ -195,7 +195,7 @@ export async function verifySdJwtPresentation(compact: string, o: VerifyOptions)
     throw new SdJwtError(`Issuer signature / validity check failed: ${(e as Error).message}`);
   }
   if (typeof payload.iss !== 'string') throw new SdJwtError('Missing iss');
-  if (typeof payload.vct !== 'string' || !o.acceptedVcts.includes(payload.vct)) throw new SdJwtError(`Credential type "${String(payload.vct)}" is not accepted`);
+  if (typeof payload.vct !== 'string' || !(o.acceptedVcts.includes('*') || o.acceptedVcts.includes(payload.vct))) throw new SdJwtError(`Credential type "${String(payload.vct)}" is not accepted`);
 
   const claims = resolveDisclosures(payload as Claims, disclosures);
 

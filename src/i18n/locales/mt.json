@@ -26,7 +26,6 @@
   "form.err.required": "Jekk jogħġbok agħżel għażla.",
   "form.err.email": "Daħħal indirizz elettroniku validu.",
   "form.err.consent": "Għandek taċċetta biex tkompli.",
-
   "dash.short": "Dashboard tad-demo tal-EU Wallet",
   "dash.title": "Dashboard tad-demo tal-EU Wallet",
   "dash.subtitle": "Ipprova l-Kartiera Ewropea tal-Identità Diġitali mill-bidu sal-aħħar: ivverifika PID, irċievi attestazzjonijiet u ippreżentahom lil erba’ partijiet li jistrieħu fuqhom.",
@@ -56,7 +55,6 @@
   "rp.university.uses": "Jivverifika: PID, ċertifikat tat-twelid",
   "rp.electricity.desc": "Idħol fil-kont tal-elettriku tiegħek bil-PID tiegħek.",
   "rp.electricity.uses": "Jivverifika: PID",
-
   "att.pid.name": "Identità personali (PID)",
   "att.account.name": "Attestazzjoni tal-kont bankarju",
   "att.payment.name": "Attestazzjoni tal-ħlas",
@@ -79,7 +77,6 @@
   "claim.valid_until": "Validu sa",
   "claim.parent_names": "Ġenituri",
   "claim.certificate_number": "Numru taċ-ċertifikat",
-
   "verify.title": "Ippreżenta l-kredenzjali tal-EU Wallet tiegħek",
   "verify.intro": "{rp} qed jitlobkom taqsmu data mill-EU Wallet tiegħek.",
   "verify.requested": "Data mitluba",
@@ -106,7 +103,6 @@
   "verify.err.missing_credential": "Il-kartiera ma pprovdietx il-kredenzjali kollha mitluba.",
   "verify.err.bad_response": "It-tweġiba tal-kartiera ma kinitx valida.",
   "verify.err.expired": "It-talba skadiet. Jekk jogħġbok ibda mill-ġdid.",
-
   "offer.title": "Żid “{name}” mal-kartiera tiegħek",
   "offer.intro": "Il-kartiera tiegħek se tikseb l-attestazzjoni mingħand l-emittent b’kodiċi ta’ darba (OpenID4VCI, fluss b’kodiċi pre-awtorizzat).",
   "offer.get": "Ikseb l-attestazzjoni",
@@ -120,7 +116,6 @@
   "offer.sim_btn": "Irċievi fil-kartiera simulata",
   "offer.simulated_done": "Il-kredenzjal inħażen fil-kartiera simulata.",
   "offer.simulated_failed": "Il-kartiera simulata ma setgħetx tirċievi l-kredenzjal (l-offerta skadiet jew intużat diġà).",
-
   "mockw.badge": "KARTIERA SIMULATA",
   "mockw.title": "EU Wallet simulata",
   "mockw.intro": "{rp} qed jitlob il-kredenzjali li ġejjin. Din il-paġna tieħu post applikazzjoni ta’ kartiera reali.",
@@ -145,7 +140,6 @@
   "issuer.console.birth_certificate": "Ċertifikat tat-twelid tad-demo għar-reġistrazzjoni fl-università.",
   "issuer.console.create": "Oħloq offerta",
   "issuer.console.note": "L-attestazzjonijiet tal-bank joħorġu mill-bank wara kontroll tal-PID.",
-
   "bank.util.private": "Individwi",
   "bank.util.business": "Negozju",
   "bank.nav.account": "Il-kont tiegħi",
@@ -194,7 +188,6 @@
   "bank.att.payment.btn": "Ikseb l-attestazzjoni tal-ħlas",
   "bank.att.eshop_hint": "Imbagħad ħallas biha f’",
   "bank.att.eshop_link": "Demo eShop",
-
   "eshop.nav.products": "Prodotti",
   "eshop.nav.cart": "Karrettun",
   "eshop.nav.items": "Oġġetti fil-karrettun",
@@ -235,7 +228,6 @@
   "shop.p4.name": "Backpack tal-ivvjaġġar",
   "shop.p5.name": "Pjanti tal-kafè, 1 kg",
   "shop.p6.name": "Żraben tal-ġiri",
-
   "uni.hero.title": "Ibda l-istudji tiegħek",
   "uni.hero.sub": "Irreġistra online bil-PID u ċ-ċertifikat tat-twelid tiegħek mill-EU Wallet.",
   "uni.hero.cta": "Ibda r-reġistrazzjoni",
@@ -272,7 +264,6 @@
   "prog.law": "Liġi",
   "prog.bio": "Bijoloġija",
   "prog.art": "Arti Sbiħa",
-
   "el.nav.account": "Il-kont tiegħi",
   "el.nav.login": "Idħol",
   "el.hero.title": "Elettriku aħdar, aċċess sempliċi",
@@ -295,5 +286,7 @@
   "el.account.tariff_val": "Green Flex – 100 % rinnovabbli",
   "el.account.invoice": "L-aħħar fattura",
   "el.account.invoice_note": "Ammont fittizju, m’hemm xejn x’tħallas.",
-  "el.account.usage": "Konsum (l-aħħar 6 xhur)"
+  "el.account.usage": "Konsum (l-aħħar 6 xhur)",
+  "verify.failed.details": "Dettalji tekniċi",
+  "dash.trust.any": "Il-kontroll tal-fiduċja tal-emittenti mitfi (demo)"
 }

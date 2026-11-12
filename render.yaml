@@ -45,6 +45,11 @@ services:
         value: dcql
       - key: VP_DEEPLINK_BASE        # wallet invocation scheme
         value: openid4vp://authorize
+      # DEMO PLAYGROUND SWITCH: accept credentials from ANY issuer (signature is still checked against the credential's own key /
+      # certificate, so a real IN Groupe PID verifies without its CA being configured). A warning chip is shown on the dashboard.
+      # Set to "false" and configure TRUSTED_CA_PEM / TRUSTED_ISSUERS for anything stricter.
+      - key: TRUST_ANY_ISSUER
+        value: "true"
       - key: TRUSTED_ISSUERS         # comma list of credential-issuer URLs to trust for PID, e.g. the IN Groupe Issuer
         sync: false
       - key: TRUSTED_CA_PEM          # PEM trust anchor(s) for credentials carrying an x5c chain (use \n for newlines)
@@ -80,6 +85,8 @@ services:
 
       # ---- credential configuration ids / vct (override rps.json when the external issuer uses other values) ----
       - key: ATTESTATION_PID_CONFIG_ID
+        sync: false
+      - key: ATTESTATION_PID_FORMATS      # formats requested for the PID: dc+sd-jwt,mso_mdoc (default both)
         sync: false
       - key: ATTESTATION_PID_ACCEPTED_VCT
         sync: false

@@ -26,7 +26,6 @@
   "form.err.required": "Bitte wählen Sie eine Option.",
   "form.err.email": "Geben Sie eine gültige E-Mail-Adresse ein.",
   "form.err.consent": "Sie müssen zustimmen, um fortzufahren.",
-
   "dash.short": "EU-Wallet-Demo-Dashboard",
   "dash.title": "EU-Wallet-Demo-Dashboard",
   "dash.subtitle": "Testen Sie die Europäische Brieftasche für die Digitale Identität durchgängig: PID prüfen, Nachweise erhalten und vier vertrauenden Beteiligten vorlegen.",
@@ -56,7 +55,6 @@
   "rp.university.uses": "Prüft: PID, Geburtsurkunde",
   "rp.electricity.desc": "Melden Sie sich mit Ihrer PID bei Ihrem Stromkonto an.",
   "rp.electricity.uses": "Prüft: PID",
-
   "att.pid.name": "Personenidentifizierungsdaten (PID)",
   "att.account.name": "Bankkontonachweis",
   "att.payment.name": "Zahlungsnachweis",
@@ -79,7 +77,6 @@
   "claim.valid_until": "Gültig bis",
   "claim.parent_names": "Eltern",
   "claim.certificate_number": "Urkundennummer",
-
   "verify.title": "Legen Sie Ihre EU-Wallet-Nachweise vor",
   "verify.intro": "{rp} bittet Sie, Daten aus Ihrer EU Wallet zu teilen.",
   "verify.requested": "Angeforderte Daten",
@@ -106,7 +103,6 @@
   "verify.err.missing_credential": "Die Wallet hat nicht alle angeforderten Nachweise geliefert.",
   "verify.err.bad_response": "Die Antwort der Wallet war ungültig.",
   "verify.err.expired": "Die Anfrage ist abgelaufen. Bitte beginnen Sie von vorn.",
-
   "offer.title": "„{name}“ zu Ihrer Wallet hinzufügen",
   "offer.intro": "Ihre Wallet holt den Nachweis mit einem Einmalcode beim Aussteller ab (OpenID4VCI, Pre-Authorized-Code-Flow).",
   "offer.get": "Nachweis abrufen",
@@ -120,7 +116,6 @@
   "offer.sim_btn": "In simulierter Wallet empfangen",
   "offer.simulated_done": "Der Nachweis wurde in der simulierten Wallet gespeichert.",
   "offer.simulated_failed": "Die simulierte Wallet konnte den Nachweis nicht empfangen (Angebot abgelaufen oder bereits verwendet).",
-
   "mockw.badge": "SIMULIERTE WALLET",
   "mockw.title": "Simulierte EU Wallet",
   "mockw.intro": "{rp} fordert die folgenden Nachweise an. Diese Seite ersetzt eine echte Wallet-App.",
@@ -145,7 +140,6 @@
   "issuer.console.birth_certificate": "Eine Demo-Geburtsurkunde für die Immatrikulation an der Universität.",
   "issuer.console.create": "Angebot erstellen",
   "issuer.console.note": "Die Banknachweise stellt die Bank nach einer PID-Prüfung aus.",
-
   "bank.util.private": "Privatkunden",
   "bank.util.business": "Firmenkunden",
   "bank.nav.account": "Mein Konto",
@@ -194,7 +188,6 @@
   "bank.att.payment.btn": "Zahlungsnachweis abrufen",
   "bank.att.eshop_hint": "Bezahlen Sie anschließend damit im",
   "bank.att.eshop_link": "Demo eShop",
-
   "eshop.nav.products": "Produkte",
   "eshop.nav.cart": "Warenkorb",
   "eshop.nav.items": "Artikel im Warenkorb",
@@ -235,7 +228,6 @@
   "shop.p4.name": "Reiserucksack",
   "shop.p5.name": "Kaffeebohnen, 1 kg",
   "shop.p6.name": "Laufschuhe",
-
   "uni.hero.title": "Starten Sie Ihr Studium",
   "uni.hero.sub": "Schreiben Sie sich online mit Ihrer PID und Geburtsurkunde aus Ihrer EU Wallet ein.",
   "uni.hero.cta": "Immatrikulation starten",
@@ -272,7 +264,6 @@
   "prog.law": "Rechtswissenschaft",
   "prog.bio": "Biologie",
   "prog.art": "Bildende Kunst",
-
   "el.nav.account": "Mein Konto",
   "el.nav.login": "Anmelden",
   "el.hero.title": "Grüner Strom, einfacher Zugang",
@@ -295,5 +286,7 @@
   "el.account.tariff_val": "Green Flex – 100 % erneuerbar",
   "el.account.invoice": "Letzte Rechnung",
   "el.account.invoice_note": "Fiktiver Betrag, keine Zahlung fällig.",
-  "el.account.usage": "Verbrauch (letzte 6 Monate)"
+  "el.account.usage": "Verbrauch (letzte 6 Monate)",
+  "verify.failed.details": "Technische Details",
+  "dash.trust.any": "Aussteller-Vertrauensprüfung deaktiviert (Demo)"
 }

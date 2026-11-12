@@ -49,6 +49,7 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
       return void res.status(200).render('verify-failed', {
         title: res.locals.t('verify.failed.title'),
         code: tx.status === 'expired' ? 'expired' : tx.errorCode ?? 'bad_response',
+        detail: tx.errorDetail,
         retryHref: `/${rp.id}/verify?p=${encodeURIComponent(tx.presentationKey)}&returnTo=${encodeURIComponent(tx.returnTo)}`,
       });
     }

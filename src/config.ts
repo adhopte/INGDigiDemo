@@ -7,6 +7,8 @@ export const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)
 export interface PresentationConfig {
   /** Logical credential types requested, e.g. ["pid"], ["payment"], ["pid","birth_certificate"]. */
   types: string[];
+  /** Fallback claim set accepted when the wallet's credential lacks some of `claims` (DCQL claim_sets). */
+  minClaims: string[];
   /** Claims requested from the wallet (and shown to the user). */
   claims: string[];
 }
@@ -17,6 +19,10 @@ export interface AttestationConfig {
   vct: string;
   /** Extra vct values the verifier accepts for this credential type. */
   acceptedVct: string[];
+  /** Credential formats requested for this type: dc+sd-jwt and/or mso_mdoc. */
+  formats: string[];
+  /** ISO mdoc description (docType, namespace, internal claim → mdoc element). */
+  mdoc: { docType: string; namespace: string; elements: Record<string, string> } | undefined;
   claims: string[];
 }
 
@@ -61,6 +67,8 @@ export interface VerifierConfig {
   trustedIssuers: string[];
   /** PEM trust anchors for x5c credential chains. */
   trustedCaPem: string[];
+  /** DEMO ONLY: accept credentials from any issuer (signature still checked against the credential's own key/certificate). */
+  trustAnyIssuer: boolean;
   /** Verifier identity (secrets, env only). When absent a self-signed demo identity is generated at startup. */
   signingKeyJwk: string | undefined;
   certChainPem: string | undefined;
@@ -116,6 +124,8 @@ export function buildAttestations(raw: unknown, env: Env): Record<string, Attest
       credentialConfigurationId: env[`ATTESTATION_${upper(key)}_CONFIG_ID`] ?? str(a.credentialConfigurationId, `attestations.${key}.credentialConfigurationId`),
       vct,
       acceptedVct: env[`ATTESTATION_${upper(key)}_ACCEPTED_VCT`] ? env[`ATTESTATION_${upper(key)}_ACCEPTED_VCT`]!.split(',').map((x) => x.trim()).filter(Boolean) : [...new Set([vct, ...strList(a.acceptedVct)])],
+      formats: env[`ATTESTATION_${upper(key)}_FORMATS`] ? env[`ATTESTATION_${upper(key)}_FORMATS`]!.split(',').map((x) => x.trim()).filter(Boolean) : strList(a.formats).length ? strList(a.formats) : ['dc+sd-jwt'],
+      mdoc: a.mdoc && typeof a.mdoc === 'object' ? { docType: str(a.mdoc.docType, `attestations.${key}.mdoc.docType`), namespace: str(a.mdoc.namespace, `attestations.${key}.mdoc.namespace`), elements: { ...(a.mdoc.elements as Record<string, string>) } } : undefined,
       claims: strList(a.claims),
     };
   }
@@ -144,7 +154,8 @@ export function buildRpConfigs(raw: unknown, attestations: Record<string, Attest
     for (const [pk, p] of Object.entries((e.presentations ?? {}) as Record<string, any>)) {
         presentations[pk] = {
         types: strList(p.types),
-        claims: strList(p.claims),
+        minClaims: env[`${P}_${upper(pk)}_MIN_CLAIMS`] ? env[`${P}_${upper(pk)}_MIN_CLAIMS`]!.split(',').map((x) => x.trim()).filter(Boolean) : strList(p.minClaims),
+        claims: env[`${P}_${upper(pk)}_CLAIMS`] ? env[`${P}_${upper(pk)}_CLAIMS`]!.split(',').map((x) => x.trim()).filter(Boolean) : strList(p.claims),
       };
     }
 
@@ -200,6 +211,7 @@ export function loadConfig(
     deeplinkBase: env.VP_DEEPLINK_BASE || 'openid4vp://authorize',
     trustedIssuers: (env.TRUSTED_ISSUERS ?? '').split(',').map((x) => x.trim().replace(/\/+$/, '')).filter(Boolean),
     trustedCaPem: pems(env.TRUSTED_CA_PEM),
+    trustAnyIssuer: parseBool(env.TRUST_ANY_ISSUER, false),
     signingKeyJwk: env.VERIFIER_SIGNING_KEY_JWK || undefined,
     certChainPem: env.VERIFIER_CERT_CHAIN_PEM ? env.VERIFIER_CERT_CHAIN_PEM.replace(/\\n/g, '\n') : undefined,
   };

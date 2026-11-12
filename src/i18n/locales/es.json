@@ -26,7 +26,6 @@
   "form.err.required": "Elija una opción.",
   "form.err.email": "Introduzca una dirección de correo válida.",
   "form.err.consent": "Debe aceptar para continuar.",
-
   "dash.short": "Panel de demostración EU Wallet",
   "dash.title": "Panel de demostración EU Wallet",
   "dash.subtitle": "Pruebe la cartera de identidad digital europea de principio a fin: verifique un PID, reciba atestaciones y preséntelas a cuatro partes usuarias.",
@@ -56,7 +55,6 @@
   "rp.university.uses": "Verifica: PID, certificado de nacimiento",
   "rp.electricity.desc": "Acceda a su cuenta de electricidad con su PID.",
   "rp.electricity.uses": "Verifica: PID",
-
   "att.pid.name": "Identidad personal (PID)",
   "att.account.name": "Atestación de cuenta bancaria",
   "att.payment.name": "Atestación de pago",
@@ -79,7 +77,6 @@
   "claim.valid_until": "Válido hasta",
   "claim.parent_names": "Progenitores",
   "claim.certificate_number": "Número de certificado",
-
   "verify.title": "Presente las credenciales de su EU Wallet",
   "verify.intro": "{rp} le pide que comparta datos de su EU Wallet.",
   "verify.requested": "Datos solicitados",
@@ -106,7 +103,6 @@
   "verify.err.missing_credential": "La cartera no aportó todas las credenciales solicitadas.",
   "verify.err.bad_response": "La respuesta de la cartera no era válida.",
   "verify.err.expired": "La solicitud ha caducado. Empiece de nuevo.",
-
   "offer.title": "Añadir «{name}» a su cartera",
   "offer.intro": "Su cartera obtendrá la atestación del emisor con un código de un solo uso (OpenID4VCI, flujo de código preautorizado).",
   "offer.get": "Obtener la atestación",
@@ -120,7 +116,6 @@
   "offer.sim_btn": "Recibir en la cartera simulada",
   "offer.simulated_done": "La credencial se ha guardado en la cartera simulada.",
   "offer.simulated_failed": "La cartera simulada no pudo recibir la credencial (oferta caducada o ya utilizada).",
-
   "mockw.badge": "CARTERA SIMULADA",
   "mockw.title": "EU Wallet simulada",
   "mockw.intro": "{rp} solicita las siguientes credenciales. Esta página sustituye a una aplicación de cartera real.",
@@ -145,7 +140,6 @@
   "issuer.console.birth_certificate": "Un certificado de nacimiento de demostración para la matrícula universitaria.",
   "issuer.console.create": "Crear oferta",
   "issuer.console.note": "Las atestaciones bancarias se emiten desde el banco tras comprobar el PID.",
-
   "bank.util.private": "Particulares",
   "bank.util.business": "Empresas",
   "bank.nav.account": "Mi cuenta",
@@ -194,7 +188,6 @@
   "bank.att.payment.btn": "Obtener atestación de pago",
   "bank.att.eshop_hint": "Después, pague con ella en",
   "bank.att.eshop_link": "Demo eShop",
-
   "eshop.nav.products": "Productos",
   "eshop.nav.cart": "Carrito",
   "eshop.nav.items": "Artículos en el carrito",
@@ -235,7 +228,6 @@
   "shop.p4.name": "Mochila de viaje",
   "shop.p5.name": "Café en grano, 1 kg",
   "shop.p6.name": "Zapatillas de correr",
-
   "uni.hero.title": "Empiece sus estudios",
   "uni.hero.sub": "Matricúlese en línea con su PID y su certificado de nacimiento desde su EU Wallet.",
   "uni.hero.cta": "Iniciar la matrícula",
@@ -272,7 +264,6 @@
   "prog.law": "Derecho",
   "prog.bio": "Biología",
   "prog.art": "Bellas Artes",
-
   "el.nav.account": "Mi cuenta",
   "el.nav.login": "Acceder",
   "el.hero.title": "Electricidad verde, acceso sencillo",
@@ -295,5 +286,7 @@
   "el.account.tariff_val": "Green Flex – 100 % renovable",
   "el.account.invoice": "Última factura",
   "el.account.invoice_note": "Importe ficticio, sin pago pendiente.",
-  "el.account.usage": "Consumo (últimos 6 meses)"
+  "el.account.usage": "Consumo (últimos 6 meses)",
+  "verify.failed.details": "Detalles técnicos",
+  "dash.trust.any": "Comprobación de confianza del emisor desactivada (demo)"
 }
