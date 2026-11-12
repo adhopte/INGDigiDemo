@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <div class="alert alert-success" role="status"><strong><%= t('uni.done.banner') %></strong></div>
+  <h1><%= t('uni.done.title') %></h1>
+  <p class="lead"><%= t('uni.done.text', { name: p.given_name + ' ' + p.family_name, programme: t('prog.' + e.programme) }) %></p>
+  <dl class="meta">
+    <dt><%= t('uni.done.number') %></dt><dd><strong class="mono"><%= e.studentNumber %></strong></dd>
+    <dt><%= t('uni.enrol.programme') %></dt><dd><%= t('prog.' + e.programme) %></dd>
+    <dt><%= t('uni.enrol.email') %></dt><dd><%= e.email %></dd>
+    <dt><%= t('eshop.order.date') %></dt><dd><%= fmtDate(e.at) %></dd>
+  </dl>
+  <p><a class="btn" href="/university/"><%= t('btn.back') %></a></p>
+</div>
+<%- include('../partials/foot') %>

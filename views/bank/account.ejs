@@ -1,0 +1,43 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <h1><%= t('bank.account.hello', { name: c.given }) %></h1>
+  <div class="account-grid">
+    <section class="panel" aria-labelledby="bal-h">
+      <h2 id="bal-h"><%= t('bank.account.current') %></h2>
+      <p class="balance"><%= fmtMoney(2450.75) %></p>
+      <p class="mono"><%= ibanMasked %></p>
+      <p class="note"><%= t('bank.demo_iban') %></p>
+    </section>
+    <section class="panel" aria-labelledby="tx-h">
+      <h2 id="tx-h"><%= t('bank.account.recent') %></h2>
+      <table class="table">
+        <caption class="sr-only"><%= t('bank.account.recent') %></caption>
+        <thead><tr><th scope="col"><%= t('bank.tx.date') %></th><th scope="col"><%= t('bank.tx.desc') %></th><th scope="col" class="num"><%= t('bank.tx.amount') %></th></tr></thead>
+        <tbody>
+          <tr><td><%= fmtDate('2026-11-02') %></td><td><%= t('bank.tx.salary') %></td><td class="num"><%= fmtMoney(2850) %></td></tr>
+          <tr><td><%= fmtDate('2026-11-04') %></td><td><%= t('bank.tx.rent') %></td><td class="num"><%= fmtMoney(-980) %></td></tr>
+          <tr><td><%= fmtDate('2026-11-08') %></td><td><%= t('bank.tx.groceries') %></td><td class="num"><%= fmtMoney(-64.3) %></td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <section aria-labelledby="att-h" class="panel">
+    <h2 id="att-h"><%= t('bank.att.title') %></h2>
+    <p><%= t('bank.att.intro') %></p>
+    <div class="att-grid">
+      <form method="post" action="/bank/attestation/account" class="att-card">
+        <h3><%= t('att.account.name') %></h3>
+        <p><%= t('bank.att.account.desc') %></p>
+        <button class="btn" type="submit"><%= t('bank.att.account.btn') %></button>
+      </form>
+      <form method="post" action="/bank/attestation/payment" class="att-card">
+        <h3><%= t('att.payment.name') %></h3>
+        <p><%= t('bank.att.payment.desc') %></p>
+        <button class="btn" type="submit"><%= t('bank.att.payment.btn') %></button>
+      </form>
+    </div>
+    <p class="note"><%= t('bank.att.eshop_hint') %> <a href="/eshop/"><%= t('bank.att.eshop_link') %></a></p>
+  </section>
+</div>
+<%- include('../partials/foot') %>

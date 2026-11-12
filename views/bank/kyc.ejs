@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <div class="alert alert-success" role="status"><strong><%= t('bank.kyc.verified') %></strong></div>
+  <h1><%= t('bank.kyc.title') %></h1>
+  <p class="lead"><%= t('bank.kyc.welcome', { name: c.given }) %></p>
+  <section class="panel" aria-labelledby="kyc-h">
+    <h2 id="kyc-h"><%= t('bank.kyc.data') %></h2>
+    <%- include('../partials/claims', { rows: Object.entries(c.claims).map(function (e) { return { name: e[0], value: e[1] }; }) }) %>
+    <% issuers.forEach(function (i) { %><p class="note"><%= t('bank.kyc.issuer') %> <code class="break"><%= i %></code></p><% }) %>
+    <% if (mockData) { %><p class="note"><%= t('mock.data') %></p><% } %>
+  </section>
+  <section class="panel" aria-labelledby="acc-h">
+    <h2 id="acc-h"><%= t('bank.kyc.account') %></h2>
+    <p><%= t('bank.kyc.account_opened') %> <strong class="mono"><%= c.iban %></strong></p>
+    <p class="note"><%= t('bank.demo_iban') %></p>
+  </section>
+  <p><a class="btn btn-large" href="/bank/account"><%= t('bank.kyc.continue') %></a></p>
+</div>
+<%- include('../partials/foot') %>

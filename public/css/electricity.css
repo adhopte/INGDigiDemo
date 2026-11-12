@@ -1,0 +1,7 @@
+:root { --primary: #1b6e3c; --primary-dark: #0f4d27; --header-bg: #1b6e3c; --header-fg: #ffffff; --hero-bg: #e6f4ea; --link: #0f4d27; }
+.skin-electricity .site-header { border-bottom: 5px solid #ffd23f; }
+.skin-electricity h1, .skin-electricity h2 { color: #0f4d27; }
+.skin-electricity .hero { border-bottom: 6px solid #ffd23f; }
+.skin-electricity .btn-secondary { color: #0f4d27; border-color: #1b6e3c; }
+.skin-electricity meter { accent-color: #1b6e3c; }
+.skin-electricity .balance { color: #1b6e3c; }

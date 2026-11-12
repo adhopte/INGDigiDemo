@@ -1,0 +1,99 @@
+# Render Blueprint – https://render.com/docs/blueprint-spec
+# One web service. State (sessions, offers, verifier transactions) is in memory, so keep it at ONE instance.
+services:
+  - type: web
+    name: eu-wallet-rp-playground
+    runtime: node
+    plan: starter            # always-on: no free-tier sleep during demos
+    region: frankfurt        # EU
+    numInstances: 1
+    # --include=dev: the TypeScript compiler is a devDependency and Render may set NODE_ENV=production during the build.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: node dist/server.js
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      # ---- runtime ----
+      - key: NODE_VERSION
+        value: 20
+      - key: NODE_ENV
+        value: production
+      # PORT is injected by Render (10000); the app reads it.
+
+      # ---- public URL ----
+      # Optional. Defaults to RENDER_EXTERNAL_URL (https://<service>.onrender.com). Set it when you add a custom domain.
+      # All wallet-facing URLs (request_uri, response_uri, issuer identifier, credential endpoint) are built from it.
+      - key: PUBLIC_BASE_URL
+        sync: false
+
+      # ---- session ----
+      - key: SESSION_SECRET
+        generateValue: true          # random, kept by Render
+
+      # ---- demo modes ----
+      - key: MOCK_MODE               # true = simulated wallet (no real wallet needed). Set to false to use a real EU Wallet.
+        value: "true"
+      - key: MULTI_CREDENTIAL        # university: true = one PID+BC request, false = two requests in a row
+        value: "false"
+
+      # ---- OpenID4VP verifier ----
+      - key: VP_CLIENT_ID_SCHEME     # x509_san_dns (signed request object) | redirect_uri (unsigned, by value)
+        value: x509_san_dns
+      - key: VP_RESPONSE_MODE        # direct_post | direct_post.jwt (encrypted response)
+        value: direct_post
+      - key: VP_QUERY_LANGUAGE       # dcql | pex
+        value: dcql
+      - key: VP_DEEPLINK_BASE        # wallet invocation scheme
+        value: openid4vp://authorize
+      - key: TRUSTED_ISSUERS         # comma list of credential-issuer URLs to trust for PID, e.g. the IN Groupe Issuer
+        sync: false
+      - key: TRUSTED_CA_PEM          # PEM trust anchor(s) for credentials carrying an x5c chain (use \n for newlines)
+        sync: false
+      - key: VERIFIER_SIGNING_KEY_JWK    # SECRET: private ES256 JWK of the verifier certificate (npm run keygen)
+        sync: false
+      - key: VERIFIER_CERT_CHAIN_PEM     # certificate chain for that key, SAN dNSName = this host (use \n for newlines)
+        sync: false
+
+      # ---- attestation issuer ----
+      - key: ISSUER_MODE             # local | external
+        value: local
+      - key: ISSUER_TX_CODE          # local issuer: require a 4-digit transaction code
+        value: "false"
+      - key: ISSUER_SIGNING_KEY_JWK  # SECRET: private ES256 JWK of the local issuer. Without it the key changes at each restart.
+        sync: false
+      - key: ISSUER_API_BASE_URL     # external issuer only
+        sync: false
+      - key: ISSUER_EXTERNAL_OFFER_PATH
+        value: /credential-offers
+      - key: ISSUER_EXTERNAL_AUTH    # none | bearer | client_credentials
+        value: none
+      - key: ISSUER_EXTERNAL_TOKEN_URL
+        sync: false
+      - key: ISSUER_EXTERNAL_RESPONSE_URI_FIELD
+        value: credential_offer_uri
+      - key: ISSUER_API_TOKEN        # SECRET
+        sync: false
+      - key: ISSUER_CLIENT_ID
+        sync: false
+      - key: ISSUER_CLIENT_SECRET    # SECRET
+        sync: false
+
+      # ---- credential configuration ids / vct (override rps.json when the external issuer uses other values) ----
+      - key: ATTESTATION_PID_CONFIG_ID
+        sync: false
+      - key: ATTESTATION_PID_ACCEPTED_VCT
+        sync: false
+      - key: ATTESTATION_ACCOUNT_CONFIG_ID
+        sync: false
+      - key: ATTESTATION_PAYMENT_CONFIG_ID
+        sync: false
+      - key: ATTESTATION_BIRTH_CERTIFICATE_CONFIG_ID
+        sync: false
+      - key: ATTESTATION_BIRTH_CERTIFICATE_ACCEPTED_VCT
+        sync: false
+
+      # ---- branding ----
+      - key: BRAND_PRIMARY
+        sync: false
+      - key: BRAND_ACCENT
+        sync: false

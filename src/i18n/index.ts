@@ -105,6 +105,30 @@ export function i18nMiddleware(isProduction: boolean) {
         return code;
       }
     };
+    const t = res.locals.t as Translator;
+    const region = res.locals.regionName as (c: string) => string;
+    const DATE_CLAIMS = new Set(['birthdate', 'valid_until', 'account_opened']);
+    const COUNTRY_CLAIMS = new Set(['issuing_country', 'nationalities', 'nationality']);
+    /** Human-readable rendering of a verified claim value (dates, countries, addresses, lists). */
+    const fmtClaim = (name: string, v: unknown): string => {
+      if (v === undefined || v === null || v === '') return '—';
+      if (typeof v === 'boolean') return v ? t('common.yes') : t('common.no');
+      if (Array.isArray(v)) return v.map((x) => fmtClaim(name, x)).join(', ');
+      if (typeof v === 'object') {
+        const o = v as Record<string, unknown>;
+        if (name === 'address') {
+          if (typeof o.formatted === 'string') return o.formatted;
+          return [o.street_address, [o.postal_code, o.locality].filter(Boolean).join(' '), typeof o.country === 'string' ? region(o.country) : '']
+            .filter(Boolean).join(', ');
+        }
+        return [o.locality, o.region, typeof o.country === 'string' ? region(o.country) : undefined].filter(Boolean).join(', ');
+      }
+      const sv = String(v);
+      if (DATE_CLAIMS.has(name) && /^\d{4}-\d{2}-\d{2}/.test(sv)) return res.locals.fmtDate(sv) as string;
+      if (COUNTRY_CLAIMS.has(name) && /^[A-Za-z]{2}$/.test(sv)) return region(sv);
+      return sv;
+    };
+    res.locals.fmtClaim = fmtClaim;
     next();
   };
 }

@@ -1,0 +1,48 @@
+<%- include('partials/head') %>
+<section class="hero">
+  <div class="wrap">
+    <h1><%= t('dash.title') %></h1>
+    <p class="lead"><%= t('dash.subtitle') %></p>
+    <ul class="chips" aria-label="<%= t('dash.status') %>">
+      <li class="chip <%= mockMode ? 'chip-warn' : 'chip-ok' %>"><%= mockMode ? t('dash.mode.mock') : t('dash.mode.live') %></li>
+      <li class="chip"><%= issuerMode === 'local' ? t('dash.issuer.local') : t('dash.issuer.external') %></li>
+      <li class="chip"><%= multiCredential ? t('dash.multi.on') : t('dash.multi.off') %></li>
+    </ul>
+  </div>
+</section>
+<div class="wrap">
+  <section aria-labelledby="rps-h">
+    <h2 id="rps-h"><%= t('dash.rps') %></h2>
+    <ul class="cards">
+      <% rps.forEach(function (r) { %>
+        <li class="card card-<%= r.id %>">
+          <h3><a class="card-link" href="/<%= r.id %>/"><%= r.displayName %></a></h3>
+          <p><%= t('rp.' + r.id + '.desc') %></p>
+          <p class="card-meta"><%= t('rp.' + r.id + '.uses') %></p>
+          <span class="card-cta" aria-hidden="true"><%= t('dash.open') %> →</span>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+
+  <section aria-labelledby="how-h" class="panel">
+    <h2 id="how-h"><%= t('dash.how.title') %></h2>
+    <ol class="steps">
+      <li><%= t('dash.how.1') %></li>
+      <li><%= t('dash.how.2') %></li>
+      <li><%= t('dash.how.3') %></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="iss-h" class="panel">
+    <h2 id="iss-h"><%= t('dash.issuer.title') %></h2>
+    <p><%= t('dash.issuer.desc') %></p>
+    <dl class="meta">
+      <dt><%= t('dash.issuer.id') %></dt><dd><code><%= issuerUrl %></code></dd>
+      <dt><%= t('dash.issuer.metadata') %></dt><dd><a href="/.well-known/openid-credential-issuer/issuer"><code>/.well-known/openid-credential-issuer/issuer</code></a></dd>
+    </dl>
+    <p><a class="btn" href="/demo-issuer"><%= t('dash.issuer.cta') %></a>
+    <% if (mockMode) { %> <a class="btn btn-secondary" href="/wallet"><%= t('nav.wallet') %></a><% } %></p>
+  </section>
+</div>
+<%- include('partials/foot') %>

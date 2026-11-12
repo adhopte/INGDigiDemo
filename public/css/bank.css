@@ -1,0 +1,15 @@
+:root { --primary: #00508c; --primary-dark: #003b66; --header-bg: #ffffff; --header-fg: #00508c; --hero-bg: #e3effa; --link: #00508c; }
+.skin-bank .utility-bar { background: #003b66; color: #ffffff; font-size: .9rem; }
+.skin-bank .utility-bar a { color: #ffffff; }
+.skin-bank .utility-inner { display: flex; align-items: center; gap: 1.25rem; min-height: 44px; flex-wrap: wrap; }
+.skin-bank .spacer { flex: 1; }
+.skin-bank .site-header { border-bottom: 4px solid #00508c; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+.skin-bank .site-header a, .skin-bank .link-btn { color: #00508c; }
+.skin-bank .logo-mark { background: #00508c; color: #ffffff; }
+.skin-bank .brand-name { letter-spacing: .02em; }
+.skin-bank .site-header a.btn-small, .skin-bank .site-header a.btn-small:hover { background: #00508c; color: #ffffff; border-color: #00508c; }
+.skin-bank .lang summary { color: #ffffff; }
+.skin-bank .lang ul { color: #1a2233; }
+.skin-bank .hero { background: linear-gradient(135deg, #e3effa 0%, #f6faff 100%); }
+.skin-bank h1, .skin-bank h2 { color: #003b66; }
+.skin-bank .balance { color: #00508c; }

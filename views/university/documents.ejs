@@ -1,0 +1,22 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <h1><%= t('uni.docs.title') %></h1>
+  <p class="lead"><%= t('uni.docs.intro') %></p>
+  <% if (mismatch) { %><div class="alert alert-error" role="alert"><%= t('uni.docs.mismatch') %></div><% } %>
+  <ol class="stepper">
+    <li class="<%= hasPid ? 'done' : 'todo' %>">
+      <h2><span class="step-state"><%= hasPid ? '✔' : '1' %><span class="sr-only"> (<%= hasPid ? t('uni.step.done') : t('uni.step.todo') %>)</span></span> <%= t('att.pid.name') %></h2>
+      <% if (!hasPid) { %><% if (multi) { %><p><a class="btn" href="/university/verify?p=pid_bc&amp;returnTo=%2Funiversity%2Fdocuments"><%= t('uni.docs.present_both') %></a></p><% } else { %><p><a class="btn" href="/university/verify?p=pid&amp;returnTo=%2Funiversity%2Fdocuments"><%= t('uni.docs.present_pid') %></a></p><% } %><% } %>
+    </li>
+    <li class="<%= hasBc ? 'done' : 'todo' %>">
+      <h2><span class="step-state"><%= hasBc ? '✔' : '2' %><span class="sr-only"> (<%= hasBc ? t('uni.step.done') : t('uni.step.todo') %>)</span></span> <%= t('att.birth_certificate.name') %></h2>
+      <% if (!hasBc && !multi) { %><p><a class="btn" href="/university/verify?p=bc&amp;returnTo=%2Funiversity%2Fdocuments"><%= t('uni.docs.present_bc') %></a></p><% } %>
+      <% if (!hasBc && multi && hasPid) { %><p><a class="btn" href="/university/verify?p=pid_bc&amp;returnTo=%2Funiversity%2Fdocuments"><%= t('uni.docs.present_both') %></a></p><% } %>
+    </li>
+  </ol>
+  <% if (hasPid && hasBc && !mismatch) { %>
+    <p class="alert alert-success" role="status"><%= t('uni.docs.match') %></p>
+    <p><a class="btn btn-large" href="/university/enrol"><%= t('uni.docs.continue') %></a></p>
+  <% } %>
+</div>
+<%- include('../partials/foot') %>

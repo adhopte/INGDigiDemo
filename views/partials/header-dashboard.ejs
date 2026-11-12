@@ -1,0 +1,14 @@
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/"><img src="/img/in-groupe-logo.svg" alt="<%= brand.name %>" width="150" height="40"><span class="brand-sub"><%= t('dash.short') %></span></a>
+    <div class="header-tools">
+      <nav aria-label="<%= t('nav.main') %>">
+        <ul class="nav-list">
+          <li><a href="/demo-issuer"><%= t('nav.issuer') %></a></li>
+          <% if (mockMode) { %><li><a href="/wallet"><%= t('nav.wallet') %></a></li><% } %>
+        </ul>
+      </nav>
+      <%- include('lang') %>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,43 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <h1><%= t('uni.enrol.title') %></h1>
+  <p class="lead"><%= t('uni.enrol.intro') %></p>
+  <% if (Object.keys(errors).length) { %>
+    <div class="alert alert-error" role="alert" id="err-summary">
+      <p><strong><%= t('form.err.summary') %></strong></p>
+      <ul><% Object.keys(errors).forEach(function (k) { %><li><a href="#f-<%= k %>"><%= t(errors[k]) %></a></li><% }) %></ul>
+    </div>
+  <% } %>
+  <form method="post" action="/university/enrol" novalidate>
+    <fieldset>
+      <legend><%= t('uni.enrol.verified') %></legend>
+      <%- include('../partials/claims', { rows: [
+        { name: 'given_name', value: p.given_name }, { name: 'family_name', value: p.family_name },
+        { name: 'birthdate', value: p.birthdate }, { name: 'nationalities', value: p.nationalities },
+        { name: 'place_of_birth', value: b.place_of_birth || p.place_of_birth }, { name: 'parent_names', value: b.parent_names },
+        { name: 'certificate_number', value: b.certificate_number } ] }) %>
+    </fieldset>
+    <fieldset>
+      <legend><%= t('uni.enrol.your_choice') %></legend>
+      <div class="field<%= errors.programme ? ' has-error' : '' %>">
+        <label for="f-programme"><%= t('uni.enrol.programme') %> <span aria-hidden="true">*</span></label>
+        <select id="f-programme" name="programme" required<% if (errors.programme) { %> aria-invalid="true" aria-describedby="e-programme"<% } %>>
+          <option value=""><%= t('form.choose') %></option>
+          <% programmes.forEach(function (pr) { %><option value="<%= pr %>"<%= values.programme === pr ? ' selected' : '' %>><%= t('prog.' + pr) %></option><% }) %>
+        </select>
+        <% if (errors.programme) { %><p class="field-error" id="e-programme"><%= t(errors.programme) %></p><% } %>
+      </div>
+      <div class="field<%= errors.email ? ' has-error' : '' %>">
+        <label for="f-email"><%= t('uni.enrol.email') %> <span aria-hidden="true">*</span></label>
+        <input id="f-email" name="email" type="email" autocomplete="email" required value="<%= values.email || '' %>"<% if (errors.email) { %> aria-invalid="true" aria-describedby="e-email"<% } %>>
+        <% if (errors.email) { %><p class="field-error" id="e-email"><%= t(errors.email) %></p><% } %>
+      </div>
+      <div class="field<%= errors.consent ? ' has-error' : '' %>">
+        <label class="checkbox" for="f-consent"><input id="f-consent" name="consent" type="checkbox" value="yes" required<% if (errors.consent) { %> aria-invalid="true" aria-describedby="e-consent"<% } %>> <%= t('uni.enrol.consent') %></label>
+        <% if (errors.consent) { %><p class="field-error" id="e-consent"><%= t(errors.consent) %></p><% } %>
+      </div>
+    </fieldset>
+    <p><button class="btn btn-large" type="submit"><%= t('uni.enrol.submit') %></button></p>
+  </form>
+</div>
+<%- include('../partials/foot') %>

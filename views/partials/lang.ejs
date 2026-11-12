@@ -1,0 +1,11 @@
+<% const cur = locales.find(function (l) { return l.code === locale; }); %>
+<nav class="lang" aria-label="<%= t('lang.label') %>">
+  <details>
+    <summary><span class="sr-only"><%= t('lang.label') %>: </span><span aria-hidden="true">🌐 </span><span lang="<%= cur.code %>"><%= cur.native %></span></summary>
+    <ul>
+      <% locales.forEach(function (l) { %>
+        <li><a href="<%= langUrl(l.code) %>" lang="<%= l.code %>" hreflang="<%= l.code %>"<% if (l.code === locale) { %> aria-current="true"<% } %>><%= l.native %></a></li>
+      <% }) %>
+    </ul>
+  </details>
+</nav>

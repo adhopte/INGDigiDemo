@@ -14,6 +14,7 @@ export function issuerRouters(issuer: LocalIssuer): { main: Router; wellKnown: R
     next();
   });
   main.use(express.json({ limit: '64kb' }));
+  main.use(express.urlencoded({ extended: false, limit: '64kb' })); // the token endpoint is application/x-www-form-urlencoded (RFC 6749)
 
   const asyncRoute = (fn: (req: Request, res: Response) => Promise<void> | void) => async (req: Request, res: Response, next: NextFunction) => {
     try {

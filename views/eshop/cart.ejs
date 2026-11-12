@@ -1,0 +1,45 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <h1><%= t('eshop.cart.title') %></h1>
+  <% if (lines.length === 0) { %>
+    <p class="lead"><%= t('eshop.cart.empty') %></p>
+    <p><a class="btn" href="/eshop/#products"><%= t('eshop.cart.continue') %></a></p>
+  <% } else { %>
+  <div class="alert alert-info" role="note"><%= t('eshop.sca_banner') %></div>
+  <div class="cart-grid">
+    <section aria-labelledby="items-h">
+      <h2 id="items-h" class="sr-only"><%= t('eshop.cart.items') %></h2>
+      <table class="table">
+        <caption class="sr-only"><%= t('eshop.cart.items') %></caption>
+        <thead><tr><th scope="col"><%= t('eshop.cart.product') %></th><th scope="col" class="num"><%= t('eshop.cart.qty') %></th><th scope="col" class="num"><%= t('eshop.cart.price') %></th><th scope="col"><span class="sr-only"><%= t('eshop.cart.remove') %></span></th></tr></thead>
+        <tbody>
+        <% lines.forEach(function (l) { %>
+          <tr>
+            <td><span aria-hidden="true"><%= l.icon %> </span><%= t('shop.' + l.id + '.name') %></td>
+            <td class="num"><%= l.qty %></td>
+            <td class="num"><%= fmtMoney(l.line) %></td>
+            <td><form method="post" action="/eshop/cart/remove"><input type="hidden" name="id" value="<%= l.id %>"><button class="link-btn" type="submit"><%= t('eshop.cart.remove') %><span class="sr-only"> – <%= t('shop.' + l.id + '.name') %></span></button></form></td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    </section>
+    <section class="panel" aria-labelledby="sum-h">
+      <h2 id="sum-h"><%= t('eshop.cart.summary') %></h2>
+      <dl class="sum">
+        <div><dt><%= t('eshop.cart.subtotal') %></dt><dd><%= fmtMoney(sub) %></dd></div>
+        <div><dt><%= t('eshop.cart.shipping') %></dt><dd><%= fmtMoney(shipping) %></dd></div>
+        <div class="total"><dt><%= t('eshop.cart.total') %></dt><dd><%= fmtMoney(total) %></dd></div>
+      </dl>
+      <fieldset class="pay-methods">
+        <legend><%= t('eshop.pay.method') %></legend>
+        <label class="radio"><input type="radio" name="method" value="wallet" checked> <%= t('eshop.pay.wallet') %></label>
+        <label class="radio is-disabled"><input type="radio" name="method" value="age" disabled aria-describedby="age-soon"> <%= t('eshop.pay.age') %> <span id="age-soon" class="badge"><%= t('eshop.coming_soon') %></span></label>
+      </fieldset>
+      <p><a class="btn btn-large btn-block" href="/eshop/pay"><%= t('eshop.pay.btn') %></a></p>
+      <p class="note"><%= t('eshop.pay.hint') %></p>
+    </section>
+  </div>
+  <% } %>
+</div>
+<%- include('../partials/foot') %>

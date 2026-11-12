@@ -1,0 +1,33 @@
+<%- include('../partials/head') %>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1><%= t('bank.hero.title') %></h1>
+      <p class="lead"><%= t('bank.hero.sub') %></p>
+      <% if (loggedIn) { %>
+        <p><a class="btn btn-large" href="/bank/account"><%= t('bank.hero.goto') %></a></p>
+      <% } else { %>
+        <p><a class="btn btn-large" href="/bank/login"><%= t('bank.hero.cta') %></a></p>
+        <p class="note"><%= t('bank.hero.note') %></p>
+      <% } %>
+    </div>
+    <div class="hero-card" role="note">
+      <h2><%= t('bank.how.title') %></h2>
+      <ol class="steps">
+        <li><%= t('bank.how.1') %></li>
+        <li><%= t('bank.how.2') %></li>
+        <li><%= t('bank.how.3') %></li>
+      </ol>
+    </div>
+  </div>
+</section>
+<div class="wrap">
+  <h2><%= t('bank.products') %></h2>
+  <ul class="cards cards-3">
+    <li class="card"><h3><%= t('bank.p1.t') %></h3><p><%= t('bank.p1.d') %></p></li>
+    <li class="card"><h3><%= t('bank.p2.t') %></h3><p><%= t('bank.p2.d') %></p></li>
+    <li class="card"><h3><%= t('bank.p3.t') %></h3><p><%= t('bank.p3.d') %></p></li>
+  </ul>
+  <p class="trust"><span aria-hidden="true">🔒 </span><%= t('bank.trust') %></p>
+</div>
+<%- include('../partials/foot') %>

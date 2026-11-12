@@ -1,0 +1,8 @@
+<dl class="claims">
+  <% rows.forEach(function (r) { %>
+    <div class="claim-row">
+      <dt><%= t('claim.' + r.name) %></dt>
+      <dd><%= r.value === undefined ? '—' : fmtClaim(r.name, r.value) %></dd>
+    </div>
+  <% }) %>
+</dl>

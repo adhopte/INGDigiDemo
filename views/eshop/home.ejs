@@ -1,0 +1,24 @@
+<%- include('../partials/head') %>
+<section class="hero"><div class="wrap">
+  <h1><%= t('eshop.hero.title') %></h1>
+  <p class="lead"><%= t('eshop.hero.sub') %></p>
+</div></section>
+<div class="wrap">
+  <div class="alert alert-info" role="note"><%= t('eshop.sca_banner') %></div>
+  <p class="note"><%= t('eshop.need_attestation') %> <a href="/bank/"><%= t('eshop.get_attestation') %></a></p>
+  <h2 id="products"><%= t('eshop.products') %></h2>
+  <ul class="products">
+    <% products.forEach(function (p) { %>
+      <li class="product">
+        <div class="product-img" aria-hidden="true"><%= p.icon %></div>
+        <h3><%= t('shop.' + p.id + '.name') %></h3>
+        <p class="price"><%= fmtMoney(p.price) %></p>
+        <form method="post" action="/eshop/cart/add">
+          <input type="hidden" name="id" value="<%= p.id %>">
+          <button class="btn" type="submit"><%= t('eshop.add') %><span class="sr-only"> – <%= t('shop.' + p.id + '.name') %></span></button>
+        </form>
+      </li>
+    <% }) %>
+  </ul>
+</div>
+<%- include('../partials/foot') %>

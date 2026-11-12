@@ -1,0 +1,23 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <h1><%= t('issuer.console.title') %></h1>
+  <p class="lead"><%= t('issuer.console.intro') %></p>
+  <% types.forEach(function (type) { %>
+  <section class="panel" aria-labelledby="t-<%= type %>">
+    <h2 id="t-<%= type %>"><%= t('att.' + type + '.name') %></h2>
+    <p><%= t('issuer.console.' + type) %></p>
+    <form method="post" action="/demo-issuer/offer" class="inline-form">
+      <input type="hidden" name="type" value="<%= type %>">
+      <div class="field">
+        <label for="persona-<%= type %>"><%= t('mockw.persona') %></label>
+        <select id="persona-<%= type %>" name="persona">
+          <% personas.forEach(function (p) { %><option value="<%= p.id %>"<% if (p.id === locales.find(function (l) { return l.code === locale; }).country) { %> selected<% } %>><%= p.given %> <%= p.family %> – <%= regionName(p.id) %></option><% }) %>
+        </select>
+      </div>
+      <button class="btn" type="submit"><%= t('issuer.console.create') %></button>
+    </form>
+  </section>
+  <% }) %>
+  <p class="note"><%= t('issuer.console.note') %></p>
+</div>
+<%- include('../partials/foot') %>

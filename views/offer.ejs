@@ -1,0 +1,44 @@
+<%- include('partials/head') %>
+<div class="wrap narrow">
+  <h1><%= t('offer.title', { name: t('att.' + attestationKey + '.name') }) %></h1>
+  <p class="lead"><%= t('offer.intro') %></p>
+  <ul class="chips"><li class="chip"><%= offer.provider === 'local' ? t('dash.issuer.local') : t('dash.issuer.external') %></li></ul>
+
+  <section class="panel handoff" aria-labelledby="offer-h">
+    <h2 id="offer-h"><%= t('offer.get') %></h2>
+    <div class="handoff-grid">
+      <div class="handoff-mobile">
+        <p><%= t('offer.mobile') %></p>
+        <p><a class="btn btn-large" href="<%= offer.deeplink %>"><%= t('offer.open_wallet') %></a></p>
+      </div>
+      <div class="handoff-desktop">
+        <p><%= t('offer.desktop') %></p>
+        <img class="qr" src="<%= offer.qr %>" width="260" height="260" alt="<%= t('offer.qr_alt', { name: t('att.' + attestationKey + '.name') }) %>">
+      </div>
+    </div>
+    <% if (offer.txCode) { %>
+      <p class="alert alert-info" role="note"><%= t('offer.txcode') %> <strong class="txcode"><%= offer.txCode %></strong></p>
+    <% } %>
+    <details class="raw">
+      <summary><%= t('verify.show_link') %></summary>
+      <p><code class="break"><%= offer.deeplink %></code></p>
+    </details>
+    <p class="note"><%= t('offer.expires', { time: new Intl.DateTimeFormat(locale, { timeStyle: 'short' }).format(offer.expiresAt) }) %></p>
+  </section>
+
+  <% if (canSimulate) { %>
+  <section class="panel panel-mock" aria-labelledby="sim-h">
+    <h2 id="sim-h"><%= t('mockw.badge') %></h2>
+    <p><%= t('offer.sim_intro') %></p>
+    <form method="post" action="/wallet-sim/redeem">
+      <input type="hidden" name="offerId" value="<%= offer.id %>">
+      <input type="hidden" name="returnTo" value="<%= returnTo %>">
+      <% if (offer.txCode) { %><input type="hidden" name="txCode" value="<%= offer.txCode %>"><% } %>
+      <button class="btn btn-secondary" type="submit"><%= t('offer.sim_btn') %></button>
+    </form>
+  </section>
+  <% } %>
+
+  <p><a class="btn btn-secondary" href="<%= returnTo %>"><%= t('btn.back') %></a></p>
+</div>
+<%- include('partials/foot') %>

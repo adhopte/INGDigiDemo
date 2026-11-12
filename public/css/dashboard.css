@@ -1,0 +1,5 @@
+:root { --primary: #0a2a5e; --primary-dark: #061a3b; --header-bg: #0a2a5e; --hero-bg: #0a2a5e; --hero-fg: #ffffff; --link: #0a4fa3; --accent: #006d77; }
+.skin-dashboard .hero .chip { border-color: #fff; }
+.skin-dashboard .hero a { color: #fff; }
+.card-bank { --card-accent: #00508c; } .card-eshop { --card-accent: #b34700; } .card-university { --card-accent: #7a1f3d; } .card-electricity { --card-accent: #1b6e3c; }
+.skin-dashboard h2 { color: #0a2a5e; }

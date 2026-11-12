@@ -8,6 +8,7 @@ import { buildDcql, buildPresentationDefinition, requestedCredentials, type Requ
 import { TrustError } from './trust.js';
 
 const TX_TTL_MS = 10 * 60 * 1000;
+const MAX_TRANSACTIONS = 5000; // in-memory store: bound memory under load
 const SD_JWT_ALGS = { 'sd-jwt_alg_values': ['ES256'], 'kb-jwt_alg_values': ['ES256'] };
 
 export type TxStatus = 'pending' | 'complete' | 'failed' | 'expired';
@@ -69,6 +70,7 @@ export class Verifier {
     const presentation = rp.presentations[presentationKey];
     if (!presentation) throw new VpError(400, 'invalid_request', `Unknown presentation "${presentationKey}"`);
     this.sweep();
+    if (this.txs.size >= MAX_TRANSACTIONS) throw new VpError(503, 'temporarily_unavailable', 'Too many open requests, please retry shortly');
     const tx: Transaction = {
       id: randomUUID(),
       rpId: rp.id,

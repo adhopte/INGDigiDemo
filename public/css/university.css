@@ -1,0 +1,6 @@
+:root { --primary: #7a1f3d; --primary-dark: #5a1229; --header-bg: #7a1f3d; --header-fg: #ffffff; --hero-bg: #f6ebee; --link: #7a1f3d; --font-head: Georgia, "Times New Roman", serif; }
+.skin-university .site-header { border-bottom: 5px solid #c9a227; }
+.skin-university h1, .skin-university h2, .skin-university h3 { color: #5a1229; }
+.skin-university .site-header .brand-name { font-family: Georgia, "Times New Roman", serif; }
+.skin-university .btn-secondary { color: #5a1229; border-color: #7a1f3d; }
+.skin-university .logo-mark { background: #fff; }

@@ -1,0 +1,18 @@
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/electricity/"><span class="logo-mark" aria-hidden="true">⚡</span><span class="brand-name">Demo Power Co</span></a>
+    <nav aria-label="<%= t('nav.main') %>">
+      <ul class="nav-list">
+        <li><a href="/electricity/"><%= t('nav.home') %></a></li>
+        <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
+          <li><a href="/electricity/account"><%= t('el.nav.account') %></a></li>
+          <li><form method="post" action="/electricity/signout"><button class="link-btn" type="submit"><%= t('btn.signout') %></button></form></li>
+        <% } else { %>
+          <li><a class="btn btn-small" href="/electricity/login"><%= t('el.nav.login') %></a></li>
+        <% } %>
+        <li><a href="/"><%= t('nav.all_demos') %></a></li>
+      </ul>
+    </nav>
+    <%- include('lang') %>
+  </div>
+</header>

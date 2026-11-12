@@ -1,0 +1,20 @@
+<%- include('../partials/head') %>
+<section class="hero"><div class="wrap">
+  <h1><%= t('uni.hero.title') %></h1>
+  <p class="lead"><%= t('uni.hero.sub') %></p>
+  <% if (enrolled) { %>
+    <p><a class="btn btn-large" href="/university/confirmation"><%= t('uni.hero.enrolled') %></a></p>
+  <% } else { %>
+    <p><a class="btn btn-large" href="/university/start"><%= t('uni.hero.cta') %></a></p>
+  <% } %>
+</div></section>
+<div class="wrap">
+  <h2><%= t('uni.need.title') %></h2>
+  <ul class="cards cards-2">
+    <li class="card"><h3><%= t('att.pid.name') %></h3><p><%= t('uni.need.pid') %></p></li>
+    <li class="card"><h3><%= t('att.birth_certificate.name') %></h3><p><%= t('uni.need.bc') %></p></li>
+  </ul>
+  <p class="note"><%= multiCredential ? t('uni.mode.multi') : t('uni.mode.two') %></p>
+  <p class="note"><%= t('uni.need.get') %> <a href="/demo-issuer"><%= t('nav.issuer') %></a></p>
+</div>
+<%- include('../partials/foot') %>

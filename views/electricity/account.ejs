@@ -1,0 +1,32 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <div class="alert alert-success" role="status"><strong><%= t('el.account.granted') %></strong></div>
+  <h1><%= t('el.account.hello', { name: c.given_name }) %></h1>
+  <div class="account-grid">
+    <section class="panel" aria-labelledby="ct-h">
+      <h2 id="ct-h"><%= t('el.account.contract') %></h2>
+      <dl class="meta">
+        <dt><%= t('el.account.number') %></dt><dd class="mono"><%= contract %></dd>
+        <dt><%= t('el.account.holder') %></dt><dd><%= c.given_name %> <%= c.family_name %></dd>
+        <dt><%= t('claim.address') %></dt><dd><%= fmtClaim('address', c.address) %></dd>
+        <dt><%= t('el.account.meter') %></dt><dd class="mono"><%= meter %></dd>
+        <dt><%= t('el.account.tariff') %></dt><dd><%= t('el.account.tariff_val') %></dd>
+      </dl>
+    </section>
+    <section class="panel" aria-labelledby="inv-h">
+      <h2 id="inv-h"><%= t('el.account.invoice') %></h2>
+      <p class="balance"><%= fmtMoney(invoice) %></p>
+      <p class="note"><%= t('el.account.invoice_note') %></p>
+    </section>
+  </div>
+  <section class="panel" aria-labelledby="use-h">
+    <h2 id="use-h"><%= t('el.account.usage') %></h2>
+    <ul class="usage">
+      <% usage.forEach(function (v, i) { %>
+        <li><label for="m<%= i %>"><%= new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(2026, 5 + i, 1)) %></label>
+        <meter id="m<%= i %>" min="0" max="400" value="<%= v %>"><%= v %> kWh</meter> <span class="num"><%= v %> kWh</span></li>
+      <% }) %>
+    </ul>
+  </section>
+</div>
+<%- include('../partials/foot') %>

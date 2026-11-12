@@ -1,5 +1,5 @@
 /** Minimal structured logger. Never pass ID tokens, credentials or personal claims to it; sensitive keys are redacted in production as a safety net. */
-const SENSITIVE = /token|secret|password|authorization|cookie|claims|verifier|code|given_name|family_name|birth|address|iban|nationality|credential/i;
+const SENSITIVE = /token|secret|password|authorization|cookie|claims|code_verifier|^code$|pre-authorized_code|tx_code|given_name|family_name|birth|address|iban|nationalit|^credential$|^vp_/i;
 
 function scrub(value: unknown, depth = 0): unknown {
   if (depth > 4 || value === null || typeof value !== 'object') return value;

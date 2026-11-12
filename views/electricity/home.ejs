@@ -1,0 +1,18 @@
+<%- include('../partials/head') %>
+<section class="hero"><div class="wrap hero-grid">
+  <div>
+    <h1><%= t('el.hero.title') %></h1>
+    <p class="lead"><%= t('el.hero.sub') %></p>
+    <% if (loggedIn) { %>
+      <p><a class="btn btn-large" href="/electricity/account"><%= t('el.hero.goto') %></a></p>
+    <% } else { %>
+      <p><a class="btn btn-large" href="/electricity/login"><%= t('el.hero.cta') %></a></p>
+      <p class="note"><%= t('el.hero.note') %></p>
+    <% } %>
+  </div>
+  <div class="hero-card" role="note">
+    <h2><%= t('el.why.title') %></h2>
+    <ul class="plain"><li><%= t('el.why.1') %></li><li><%= t('el.why.2') %></li><li><%= t('el.why.3') %></li></ul>
+  </div>
+</div></section>
+<%- include('../partials/foot') %>

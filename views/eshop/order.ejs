@@ -1,0 +1,17 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <div class="alert alert-success" role="status"><strong><%= t('eshop.order.thanks') %></strong></div>
+  <h1><%= t('eshop.order.title') %></h1>
+  <dl class="meta">
+    <dt><%= t('eshop.order.number') %></dt><dd><strong class="mono"><%= order.number %></strong></dd>
+    <dt><%= t('eshop.order.paid_by') %></dt><dd><%= order.holder %> · <span class="mono"><%= order.ibanMasked %></span> (<%= bank %>)</dd>
+    <dt><%= t('eshop.cart.total') %></dt><dd><%= fmtMoney(order.total) %></dd>
+    <dt><%= t('eshop.order.date') %></dt><dd><%= fmtDate(order.at) %></dd>
+  </dl>
+  <ul class="plain">
+    <% order.items.forEach(function (i) { %><li><%= i.qty %> × <%= t('shop.' + i.id + '.name') %> – <%= fmtMoney(i.unit * i.qty) %></li><% }) %>
+  </ul>
+  <div class="alert alert-info" role="note"><%= t('eshop.sca_banner') %></div>
+  <p><a class="btn" href="/eshop/"><%= t('eshop.cart.continue') %></a></p>
+</div>
+<%- include('../partials/foot') %>

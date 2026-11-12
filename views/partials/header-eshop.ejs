@@ -1,0 +1,13 @@
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/eshop/"><span class="logo-mark" aria-hidden="true">🛍</span><span class="brand-name">Demo eShop</span></a>
+    <nav aria-label="<%= t('nav.main') %>">
+      <ul class="nav-list">
+        <li><a href="/eshop/#products"><%= t('eshop.nav.products') %></a></li>
+        <li><a href="/eshop/cart"><%= t('eshop.nav.cart') %> <span class="cart-count"><span class="sr-only"><%= t('eshop.nav.items') %>: </span><%= typeof cartCount === 'undefined' ? 0 : cartCount %></span></a></li>
+        <li><a href="/"><%= t('nav.all_demos') %></a></li>
+      </ul>
+    </nav>
+    <%- include('lang') %>
+  </div>
+</header>

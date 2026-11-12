@@ -1,0 +1,7 @@
+:root { --primary: #b34700; --primary-dark: #8a3700; --header-bg: #232f3e; --header-fg: #ffffff; --hero-bg: #fff1e6; --link: #8a3700; }
+.skin-eshop .site-header { border-bottom: 4px solid #b34700; }
+.skin-eshop .logo-mark { background: #b34700; color: #fff; }
+.skin-eshop .product .btn { width: 100%; }
+.skin-eshop .price { color: #8a3700; }
+.skin-eshop .hero h1 { color: #232f3e; }
+.skin-eshop .btn-secondary { color: #8a3700; border-color: #8a3700; }

@@ -1,0 +1,20 @@
+<%- include('partials/head') %>
+<div class="wrap narrow">
+  <p class="badge"><%= t('mockw.badge') %></p>
+  <h1><%= t('wallet.title') %></h1>
+  <p class="lead"><%= t('wallet.intro') %></p>
+  <% if (items.length === 0) { %>
+    <p class="alert alert-info" role="note"><%= t('wallet.empty') %></p>
+  <% } %>
+  <% items.forEach(function (it) { %>
+    <section class="panel" aria-labelledby="w-<%= it.c.id %>">
+      <h2 id="w-<%= it.c.id %>"><%= t('att.' + it.c.typeKey + '.name') %></h2>
+      <p class="note"><code class="break"><%= it.c.vct %></code> · <%= fmtDate(it.c.issuedAt) %></p>
+      <%- include('partials/claims', { rows: Object.entries(it.claims).map(function (e) { return { name: e[0], value: e[1] }; }) }) %>
+    </section>
+  <% }) %>
+  <% if (items.length) { %>
+    <form method="post" action="/wallet/clear"><button class="btn btn-secondary" type="submit"><%= t('wallet.clear') %></button></form>
+  <% } %>
+</div>
+<%- include('partials/foot') %>

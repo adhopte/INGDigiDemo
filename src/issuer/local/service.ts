@@ -10,6 +10,7 @@ const OFFER_TTL_MS = 10 * 60 * 1000;
 const TOKEN_TTL_S = 300;
 const NONCE_TTL_MS = 5 * 60 * 1000;
 const MAX_TX_ATTEMPTS = 5;
+const MAX_OFFERS = 5000; // in-memory store: bound memory under load
 
 export class IssuerError extends Error {
   constructor(
@@ -78,6 +79,7 @@ export class LocalIssuer {
 
   createOffer(attestationKey: string, claims: Claims): CreatedOffer {
     this.sweep();
+    if (this.offers.size >= MAX_OFFERS) throw new IssuerError(503, 'temporarily_unavailable', 'Too many open offers');
     const attestation = this.cfg.attestations[attestationKey];
     if (!attestation) throw new Error(`Unknown attestation "${attestationKey}"`);
     const id = randomUUID();

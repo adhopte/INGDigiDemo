@@ -1,0 +1,43 @@
+<%- include('partials/head') %>
+<div class="wrap narrow">
+  <p class="badge"><%= t('mockw.badge') %></p>
+  <h1><%= t('mockw.title') %></h1>
+  <p class="lead"><%= t('mockw.intro', { rp: tx.rpName }) %></p>
+
+  <% items.forEach(function (it) { %>
+  <section class="panel" aria-labelledby="c-<%= it.type %>">
+    <h2 id="c-<%= it.type %>"><%= t('att.' + it.type + '.name') %></h2>
+    <% if (it.held) { %>
+      <p class="ok-text"><span aria-hidden="true">✔ </span><%= t('mockw.held') %></p>
+      <p><%= t('mockw.will_share') %></p>
+      <%- include('partials/claims', { rows: it.claims }) %>
+    <% } else if (it.type === 'payment') { %>
+      <p class="alert alert-warn" role="note"><%= t('mockw.no_payment') %></p>
+      <p><a class="btn btn-secondary" href="/bank/"><%= t('mockw.go_bank') %></a></p>
+    <% } else { %>
+      <p class="alert alert-warn" role="note"><%= t('mockw.missing') %></p>
+      <form method="post" action="<%= basePath %>/verify/wallet/<%= tx.id %>/add" class="inline-form">
+        <input type="hidden" name="type" value="<%= it.type %>">
+        <div class="field">
+          <label for="persona-<%= it.type %>"><%= t('mockw.persona') %></label>
+          <select id="persona-<%= it.type %>" name="persona">
+            <% personas.forEach(function (p) { %><option value="<%= p.id %>"<% if (p.id === locales.find(function (l) { return l.code === locale; }).country) { %> selected<% } %>><%= p.given %> <%= p.family %> – <%= regionName(p.id) %></option><% }) %>
+          </select>
+        </div>
+        <button class="btn" type="submit"><%= t('mockw.add_' + it.type) %></button>
+      </form>
+    <% } %>
+  </section>
+  <% }) %>
+
+  <div class="actions">
+    <form method="post" action="<%= basePath %>/verify/wallet/<%= tx.id %>/share">
+      <button class="btn btn-large" type="submit"<% if (!ready) { %> disabled<% } %>><%= t('mockw.approve') %></button>
+    </form>
+    <form method="post" action="<%= basePath %>/verify/wallet/<%= tx.id %>/decline">
+      <button class="btn btn-secondary btn-large" type="submit"><%= t('mockw.decline') %></button>
+    </form>
+  </div>
+  <% if (!ready) { %><p class="note"><%= t('mockw.not_ready') %></p><% } %>
+</div>
+<%- include('partials/foot') %>
