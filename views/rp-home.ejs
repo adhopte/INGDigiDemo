@@ -1,0 +1,16 @@
+<%- include('partials/header') %>
+<section class="hero">
+  <h1><%= rp.displayName %></h1>
+  <p><%= rp.tagline %></p>
+</section>
+<section class="panel">
+  <h2>Scaffold ready</h2>
+  <p>The use-case flow for this RP is implemented in a later step.</p>
+  <dl class="meta">
+    <dt>OIDC client_id</dt><dd><code><%= rp.clientId %></code></dd>
+    <dt>Redirect URI</dt><dd><code><%= redirectUri %></code></dd>
+    <dt>Presentations</dt><dd><%= Object.keys(rp.presentations).join(', ') || '–' %></dd>
+    <dt>Attestations</dt><dd><%= Object.keys(rp.attestations).join(', ') || '–' %></dd>
+  </dl>
+</section>
+<%- include('partials/footer') %>

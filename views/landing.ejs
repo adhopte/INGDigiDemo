@@ -1,0 +1,16 @@
+<%- include('partials/header') %>
+<section class="hero">
+  <h1>EUDI Wallet – Relying Party demos</h1>
+  <p>Four demo relying parties showing presentation and issuance with the SIGMA Wallet Intermediary and Issuer.</p>
+</section>
+<section class="cards">
+  <% rps.forEach(function (r) { %>
+    <a class="card" href="/<%= r.id %>/" style="--theme: <%= r.themeColor %>;">
+      <span class="logo" aria-hidden="true"><%= r.displayName.replace(/^Demo /, '').charAt(0) %></span>
+      <h2><%= r.displayName %></h2>
+      <p><%= r.tagline %></p>
+      <span class="cta">Open demo →</span>
+    </a>
+  <% }) %>
+</section>
+<%- include('partials/footer') %>

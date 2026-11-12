@@ -1,0 +1,90 @@
+{
+  "_comment": "Scope / acr_values / credential_configuration_id values below are PLACEHOLDERS. Replace them with the values configured for each RP client on the SIGMA Intermediary / Issuer. Every field can be overridden by env vars (see .env.example).",
+  "rps": [
+    {
+      "id": "bank",
+      "displayName": "Demo Bank",
+      "tagline": "Open an account in minutes with your EU Digital Identity Wallet.",
+      "themeColor": "#0b5fff",
+      "clientId": "demo-bank",
+      "clientSecretEnv": "RP_BANK_CLIENT_SECRET",
+      "presentations": {
+        "pid": {
+          "label": "Personal ID (PID)",
+          "scope": "openid pid",
+          "acrValues": "pid",
+          "claims": ["given_name", "family_name", "birthdate", "nationality", "place_of_birth", "address"]
+        }
+      },
+      "attestations": {
+        "account": { "label": "Account attestation", "credentialConfigurationId": "demo_bank_account" },
+        "payment": { "label": "Payment attestation", "credentialConfigurationId": "demo_bank_payment" }
+      }
+    },
+    {
+      "id": "eshop",
+      "displayName": "Demo eShop",
+      "tagline": "Check out with a payment attestation from your EU Wallet.",
+      "themeColor": "#e8590c",
+      "clientId": "demo-eshop",
+      "clientSecretEnv": "RP_ESHOP_CLIENT_SECRET",
+      "presentations": {
+        "payment": {
+          "label": "Payment attestation",
+          "scope": "openid payment_attestation",
+          "acrValues": "payment",
+          "claims": ["account_holder_name", "iban", "bank_name"]
+        }
+      },
+      "attestations": {}
+    },
+    {
+      "id": "university",
+      "displayName": "Demo University",
+      "tagline": "Register with your PID and birth certificate, collect your diploma in your wallet.",
+      "themeColor": "#7048e8",
+      "clientId": "demo-university",
+      "clientSecretEnv": "RP_UNIVERSITY_CLIENT_SECRET",
+      "presentations": {
+        "pid": {
+          "label": "Personal ID (PID)",
+          "scope": "openid pid",
+          "acrValues": "pid",
+          "claims": ["given_name", "family_name", "birthdate", "nationality"]
+        },
+        "bc": {
+          "label": "Birth Certificate",
+          "scope": "openid birth_certificate",
+          "acrValues": "birth_certificate",
+          "claims": ["given_name", "family_name", "birthdate", "place_of_birth", "parent_names"]
+        },
+        "pid_bc": {
+          "label": "PID + Birth Certificate",
+          "scope": "openid pid birth_certificate",
+          "acrValues": "pid_birth_certificate",
+          "claims": ["given_name", "family_name", "birthdate", "nationality", "place_of_birth", "parent_names"]
+        }
+      },
+      "attestations": {
+        "diploma": { "label": "Diploma attestation", "credentialConfigurationId": "demo_university_diploma" }
+      }
+    },
+    {
+      "id": "electricity",
+      "displayName": "Demo Power Co",
+      "tagline": "Subscribe to an electricity contract, pre-filled from your EU Wallet.",
+      "themeColor": "#2b8a3e",
+      "clientId": "demo-electricity",
+      "clientSecretEnv": "RP_ELECTRICITY_CLIENT_SECRET",
+      "presentations": {
+        "pid": {
+          "label": "Personal ID (PID)",
+          "scope": "openid pid",
+          "acrValues": "pid",
+          "claims": ["given_name", "family_name", "birthdate", "address"]
+        }
+      },
+      "attestations": {}
+    }
+  ]
+}
