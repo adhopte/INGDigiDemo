@@ -17,7 +17,7 @@ export function universityRouter(ctx: Ctx, rp: RpConfig): Router {
   /** PID and birth certificate must describe the same person. */
   const identityMatches = (req: Request) => {
     const p = pid(req), b = bc(req);
-    return !!p && !!b && norm(p.given_name) === norm(b.given_name) && norm(p.family_name) === norm(b.family_name) && str(p.birthdate) === str(b.birthdate);
+    return !!p && !!b && norm(p.given_name) === norm(b.given_name) && norm(p.family_name) === norm(b.family_name) && str(p.birth_date) === str(b.birth_date);
   };
 
   router.get('/', (req, res) => res.render('university/home', { title: 'Demo University', enrolled: !!req.session.enrolment }));

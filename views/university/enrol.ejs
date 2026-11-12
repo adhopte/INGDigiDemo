@@ -13,9 +13,11 @@
       <legend><%= t('uni.enrol.verified') %></legend>
       <%- include('../partials/claims', { rows: [
         { name: 'given_name', value: p.given_name }, { name: 'family_name', value: p.family_name },
-        { name: 'birthdate', value: p.birthdate }, { name: 'nationalities', value: p.nationalities },
-        { name: 'place_of_birth', value: b.place_of_birth || p.place_of_birth }, { name: 'parent_names', value: b.parent_names },
-        { name: 'certificate_number', value: b.certificate_number } ] }) %>
+        { name: 'birth_date', value: p.birth_date }, { name: 'nationality', value: p.nationality },
+        { name: 'birth_place', value: b.birth_place || p.birth_place },
+        { name: 'mother_family_name', value: b.mother_family_name }, { name: 'mother_given_name', value: b.mother_given_name },
+        { name: 'father_family_name', value: b.father_family_name }, { name: 'father_given_name', value: b.father_given_name },
+        { name: 'birth_record_reference', value: b.birth_record_reference } ] }) %>
     </fieldset>
     <fieldset>
       <legend><%= t('uni.enrol.your_choice') %></legend>

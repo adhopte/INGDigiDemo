@@ -25,7 +25,7 @@ export function requestedCredentials(presentation: PresentationConfig, attestati
 }
 
 /** Wallets (e.g. kotlinx-based DCQL parsers) REQUIRE vct_values for dc+sd-jwt, so a wildcard is expressed as a list of well-known PID types. */
-export const PROBE_VCTS = ['urn:eudi:pid:1', 'urn:eu.europa.ec.eudi:pid:1', 'eu.europa.ec.eudi.pid.1', 'urn:eudi:pid:de:1', 'urn:eudi:pid:fr:1'];
+export const PROBE_VCTS = ['https://credentials.benin.example/pid', 'urn:eudi:pid:1', 'urn:eu.europa.ec.eudi:pid:1', 'eu.europa.ec.eudi.pid.1', 'urn:eudi:pid:de:1', 'urn:eudi:pid:fr:1'];
 
 export const mdocQueryId = (type: string) => `${type}_mdoc`;
 const claimId = (s: string) => s.replace(/[^A-Za-z0-9_-]/g, '_');

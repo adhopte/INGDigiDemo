@@ -135,7 +135,7 @@ describe('issuer trust', () => {
     for (const [trusted, shouldPass] of [[[issuerUrl], true], [[], false], [['https://other.example'], false], [['*'], true]] as const) {
       const cfg = testConfig({ TRUSTED_ISSUERS: trusted.join(',') });
       const svc = await createServices(cfg, fakeFetch);
-      const cred = await issueSdJwt({ privateKey: ext.privateKey, kid: 'k1', iss: issuerUrl, vct: 'urn:eudi:pid:1', claims: { given_name: 'Ext', family_name: 'Person', birthdate: '1990-01-01', place_of_birth: { country: 'FR' }, nationalities: ['FR'], address: { country: 'FR' }, issuing_country: 'FR' }, holderJwk: await exportJWK(holder.publicKey) });
+      const cred = await issueSdJwt({ privateKey: ext.privateKey, kid: 'k1', iss: issuerUrl, vct: 'urn:eudi:pid:1', claims: { given_name: 'Ext', family_name: 'Person', birth_date: '1990-01-01', birth_place: 'Paris', nationality: 'FR', resident_address: 'x', issuing_country: 'FR' }, holderJwk: await exportJWK(holder.publicKey) });
       const session: Record<string, any> = { wallet: [{ id: '1', typeKey: 'pid', vct: 'urn:eudi:pid:1', credential: cred, holderPrivateJwk: await exportJWK(holder.privateKey), issuedAt: '' }] };
       const tx = await svc.verifier.createTransaction(cfg.rps[0]!, 'pid', '/bank/');
       const vp = await buildVpToken(session, tx, svc.verifier);
@@ -145,6 +145,32 @@ describe('issuer trust', () => {
     }
     expect(jwtVcIssuerMetadataUrls('https://x.example/tenant/a')[0]).toBe('https://x.example/.well-known/jwt-vc-issuer/tenant/a');
     void createIssuerKeyResolver; void addDemoCredential;
+  });
+});
+
+describe('Benin PID rulebook v2.0 shapes', () => {
+  it('requests and verifies a Benin SD-JWT PID (vct https://credentials.benin.example/pid, rulebook claim names)', async () => {
+    const issuerUrl = 'https://issuer.example.bj';
+    const ext = await generateKeyPair('ES256', { extractable: true });
+    const holder = await generateKeyPair('ES256', { extractable: true });
+    const pub = { ...(await exportJWK(ext.publicKey)), kid: 'k1', alg: 'ES256' };
+    const fakeFetch = (async (url: string) => (url === `${issuerUrl}/.well-known/jwt-vc-issuer` ? new Response(JSON.stringify({ issuer: issuerUrl, jwks: { keys: [pub] } })) : new Response('nope', { status: 404 }))) as unknown as typeof fetch;
+    const cfg = testConfig({ TRUSTED_ISSUERS: issuerUrl });
+    const svc = await createServices(cfg, fakeFetch);
+    // payload from the rulebook's Examples sheet
+    const cred = await issueSdJwt({ privateKey: ext.privateKey, kid: 'k1', iss: issuerUrl, vct: 'https://credentials.benin.example/pid', holderJwk: await exportJWK(holder.publicKey),
+      claims: { given_name: 'Jean', family_name: 'KOSSI', birth_date: '1990-04-15', age_over_18: true, birth_place: 'Cotonou', birth_state: 'Littoral', birth_city: 'Cotonou', birth_country: 'BJ', nationality: 'BJ', gender: 1, document_number: 'CNIB123456789', issuance_date: '2026-01-10', expiry_date: '2031-01-10', issuing_authority: 'ANIP', issuing_country: 'BJ', personal_administrative_number: '1234567890123' } });
+    const session: Record<string, any> = { wallet: [{ id: '1', typeKey: 'pid', vct: 'https://credentials.benin.example/pid', credential: cred, holderPrivateJwk: await exportJWK(holder.privateKey), issuedAt: '' }] };
+    for (const [rpId, pres] of [['bank', 'pid'], ['electricity', 'pid'], ['bank', 'pid_any_sd']] as const) {
+      const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rpId)!, pres, '/');
+      const q = (svc.verifier.requestParams(tx) as any).dcql_query;
+      expect(q.credentials[0].meta.vct_values).toContain('https://credentials.benin.example/pid');
+      await respondToVerifier(svc.verifier, tx, { vp_token: await buildVpToken(session, tx, svc.verifier) });
+      const pid = tx.result!.byType.pid!;
+      expect(pid).toMatchObject({ given_name: 'Jean', family_name: 'KOSSI', ...(pres === 'pid_any_sd' ? {} : { birth_date: '1990-04-15' }) });
+      expect(pid.personal_administrative_number).toBeUndefined(); // sensitive and never requested
+      expect(pid.gender).toBeUndefined();
+    }
   });
 });
 

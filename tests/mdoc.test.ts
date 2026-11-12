@@ -7,7 +7,7 @@ import { createMdocChainValidator, validateX5cChain } from '../src/verifier/trus
 import { buildDeviceResponse, makeCa, makeDsc } from './mdoc-helper.js';
 import { testConfig } from './helpers.js';
 
-const PID = { family_name: 'Muster', given_name: 'Erika', birth_date: '1985-03-04', nationality: 'DE', resident_address: 'Heidestrasse 17, 51147 Köln', issuing_country: 'DE', issuing_authority: 'IN Groupe Issuer (test)', age_over_18: true };
+const PID = { family_name: 'KOSSI', given_name: 'Jean', birth_date: '1990-04-15', birth_place: 'Cotonou', birth_country: 'BJ', nationality: 'BJ', resident_address: 'Rue 12, Cotonou', document_number: 'CNIB123456789', issuance_date: '2026-01-10', expiry_date: '2031-01-10', issuing_authority: 'ANIP', issuing_country: 'BJ', age_over_18: true };
 
 async function setup(env: Record<string, string> = {}, mode = 'direct_post.jwt') {
   const ca = await makeCa();
@@ -30,8 +30,8 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     await respondToVerifier(svc.verifier, tx, { vp_token: { pid_mdoc: [dr] } });
     expect(tx.status).toBe('complete');
     const pid = tx.result!.byType.pid!;
-    expect(pid).toMatchObject({ given_name: 'Erika', family_name: 'Muster', birthdate: '1985-03-04', nationalities: ['DE'], issuing_country: 'DE' });
-    expect(pid.address).toEqual({ formatted: 'Heidestrasse 17, 51147 Köln' });
+    expect(pid).toMatchObject({ given_name: 'Jean', family_name: 'KOSSI', birth_date: '1990-04-15', nationality: 'BJ', birth_place: 'Cotonou', issuing_country: 'BJ', resident_address: 'Rue 12, Cotonou' });
+    expect(pid.document_number).toBeUndefined(); // not requested -> dropped (data minimisation)
     expect(tx.result!.issuers[0]).toContain('Test DS');
   });
 
@@ -40,18 +40,18 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'electricity')!, 'pid', '/');
     const dr = buildDeviceResponse({ elements: PID, dsc, sessionTranscript: await transcriptFor(svc, tx, 1) });
     await respondToVerifier(svc.verifier, tx, { vp_token: { pid_mdoc: [dr] } });
-    expect(tx.result!.byType.pid!.given_name).toBe('Erika');
+    expect(tx.result!.byType.pid!.given_name).toBe('Jean');
   });
 
   it('accepts a PID that has only the minimum claims (claim_sets fallback)', async () => {
     const { dsc, cfg, svc } = await setup();
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
-    const dr = buildDeviceResponse({ elements: { family_name: 'Muster', given_name: 'Erika', birth_date: '1985-03-04' }, dsc, sessionTranscript: await transcriptFor(svc, tx) });
+    const dr = buildDeviceResponse({ elements: { family_name: 'KOSSI', given_name: 'Jean', birth_date: '1990-04-15' }, dsc, sessionTranscript: await transcriptFor(svc, tx) });
     await respondToVerifier(svc.verifier, tx, { vp_token: { pid_mdoc: [dr] } });
-    expect(Object.keys(tx.result!.byType.pid!).sort()).toEqual(['birthdate', 'family_name', 'given_name']);
+    expect(Object.keys(tx.result!.byType.pid!).sort()).toEqual(['birth_date', 'family_name', 'given_name']);
     // …but not a PID lacking the minimum
     const tx2 = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
-    const bad = buildDeviceResponse({ elements: { family_name: 'Muster' }, dsc, sessionTranscript: await transcriptFor(svc, tx2) });
+    const bad = buildDeviceResponse({ elements: { family_name: 'KOSSI' }, dsc, sessionTranscript: await transcriptFor(svc, tx2) });
     await expect(respondToVerifier(svc.verifier, tx2, { vp_token: { pid_mdoc: [bad] } })).rejects.toThrow(/lacks required claims/);
     expect(tx2.errorCode).toBe('missing_credential');
   });
@@ -91,12 +91,14 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     const { cfg, svc } = await setup();
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'university')!, 'pid_bc', '/');
     const q = (svc.verifier.requestParams(tx) as any).dcql_query;
-    expect(q.credentials.map((c: any) => c.id)).toEqual(['pid', 'pid_mdoc', 'birth_certificate']);
-    expect(q.credentials[0].meta.vct_values).toEqual(['urn:eudi:pid:1', 'urn:eu.europa.ec.eudi:pid:1']);
+    expect(q.credentials.map((c: any) => c.id)).toEqual(['pid', 'pid_mdoc', 'birth_certificate', 'birth_certificate_mdoc']);
+    expect(q.credentials[0].meta.vct_values).toEqual(['https://credentials.benin.example/pid', 'urn:eudi:pid:1', 'urn:eu.europa.ec.eudi:pid:1']);
+    expect(q.credentials[2].meta.vct_values).toEqual(['https://credentials.benin.example/birth-certificate']);
+    expect(q.credentials[3].meta.doctype_value).toBe('eu.europa.ec.eudi.birth_certificate.1');
     expect(q.credentials[1]).toMatchObject({ format: 'mso_mdoc', meta: { doctype_value: 'eu.europa.ec.eudi.pid.1' } });
     expect(q.credentials[1].claims[0].path).toEqual(['eu.europa.ec.eudi.pid.1', 'given_name']);
     expect(q.credentials[1].claim_sets).toHaveLength(2);
-    expect(q.credential_sets).toEqual([{ options: [['pid'], ['pid_mdoc']] }, { options: [['birth_certificate']] }]);
+    expect(q.credential_sets).toEqual([{ options: [['pid'], ['pid_mdoc']] }, { options: [['birth_certificate'], ['birth_certificate_mdoc']] }]);
     const wild = await createServices(testConfig({ ATTESTATION_PID_ACCEPTED_VCT: '*' }));
     const tx2 = await wild.verifier.createTransaction(cfg.rps[0]!, 'pid', '/');
     expect((wild.verifier.requestParams(tx2) as any).dcql_query.credentials[0].meta.vct_values.length).toBeGreaterThan(1); // never empty: wallets require vct_values
@@ -117,7 +119,7 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     const { cfg, svc } = await setup();
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid_any', '/');
     const q = (svc.verifier.requestParams(tx) as any).dcql_query;
-    expect(q.credentials[0].meta.vct_values).toEqual(expect.arrayContaining(['urn:eudi:pid:1', 'urn:eu.europa.ec.eudi:pid:1', 'eu.europa.ec.eudi.pid.1']));
+    expect(q.credentials[0].meta.vct_values).toEqual(expect.arrayContaining(['https://credentials.benin.example/pid', 'urn:eudi:pid:1', 'eu.europa.ec.eudi.pid.1']));
     expect(q.credentials[0].claims).toEqual([{ path: ['given_name'] }, { path: ['family_name'] }]);
     expect(q.credentials[1].claims.map((c: any) => c.path[1])).toEqual(['given_name', 'family_name']);
     expect(q.credentials[1].claim_sets).toBeUndefined();

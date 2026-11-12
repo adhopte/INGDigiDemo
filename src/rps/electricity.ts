@@ -15,7 +15,7 @@ export function electricityRouter(ctx: Ctx, rp: RpConfig): Router {
 
   router.get('/account', guard, (req, res) => {
     const c = pid(req)!;
-    const seed = (str(c.family_name) + str(c.birthdate)).split('').reduce((a, ch) => (a * 33 + ch.charCodeAt(0)) >>> 0, 7);
+    const seed = (str(c.family_name) + str(c.birth_date)).split('').reduce((a, ch) => (a * 33 + ch.charCodeAt(0)) >>> 0, 7);
     res.render('electricity/account', {
       title: res.locals.t('el.account.title'),
       c,

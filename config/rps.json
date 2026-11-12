@@ -1,23 +1,13 @@
 {
-  "_comment": "Attestation catalogue + RP definitions. 'vct' / 'acceptedVct' = SD-JWT VC types ('*' = any); 'formats' = credential formats requested for that type; 'mdoc' maps claim names to ISO mdoc elements. 'minClaims' = fallback set when the wallet's credential lacks optional claims. Everything can be overridden by env vars (see .env.example).",
+  "_comment": "Attestation catalogue + RP definitions. Claim names, vct and docType follow the Benin PID / Birth Certificate Rulebook v2.0 (standard EUDI namespace). 'acceptedVct' = SD-JWT VC types accepted ('*' = any); 'formats' = formats requested; 'mdoc' maps claim names to ISO mdoc elements; 'minClaims' = fallback set when the wallet's credential lacks optional claims. Everything can be overridden by env vars (see .env.example).",
   "attestations": {
     "pid": {
       "credentialConfigurationId": "demo_pid",
-      "vct": "urn:eudi:pid:1",
+      "vct": "https://credentials.benin.example/pid",
       "acceptedVct": [
+        "https://credentials.benin.example/pid",
         "urn:eudi:pid:1",
         "urn:eu.europa.ec.eudi:pid:1"
-      ],
-      "claims": [
-        "family_name",
-        "given_name",
-        "birthdate",
-        "place_of_birth",
-        "nationalities",
-        "address",
-        "issuing_authority",
-        "issuing_country",
-        "age_over_18"
       ],
       "formats": [
         "dc+sd-jwt",
@@ -27,17 +17,36 @@
         "docType": "eu.europa.ec.eudi.pid.1",
         "namespace": "eu.europa.ec.eudi.pid.1",
         "elements": {
-          "given_name": "given_name",
           "family_name": "family_name",
-          "birthdate": "birth_date",
-          "place_of_birth": "birth_place",
-          "nationalities": "nationality",
-          "address": "resident_address",
-          "issuing_country": "issuing_country",
+          "given_name": "given_name",
+          "birth_date": "birth_date",
+          "birth_place": "birth_place",
+          "birth_country": "birth_country",
+          "nationality": "nationality",
+          "resident_address": "resident_address",
+          "document_number": "document_number",
+          "issuance_date": "issuance_date",
+          "expiry_date": "expiry_date",
           "issuing_authority": "issuing_authority",
+          "issuing_country": "issuing_country",
           "age_over_18": "age_over_18"
         }
-      }
+      },
+      "claims": [
+        "family_name",
+        "given_name",
+        "birth_date",
+        "birth_place",
+        "birth_country",
+        "nationality",
+        "resident_address",
+        "document_number",
+        "issuance_date",
+        "expiry_date",
+        "issuing_authority",
+        "issuing_country",
+        "age_over_18"
+      ]
     },
     "account": {
       "credentialConfigurationId": "demo_bank_account",
@@ -45,8 +54,8 @@
       "claims": [
         "given_name",
         "family_name",
-        "birthdate",
-        "nationalities",
+        "birth_date",
+        "nationality",
         "account_number",
         "account_opened",
         "bank_name"
@@ -65,14 +74,42 @@
     },
     "birth_certificate": {
       "credentialConfigurationId": "demo_birth_certificate",
-      "vct": "urn:eudi:demo:birth-certificate:1",
+      "vct": "https://credentials.benin.example/birth-certificate",
+      "acceptedVct": [
+        "https://credentials.benin.example/birth-certificate"
+      ],
+      "formats": [
+        "dc+sd-jwt",
+        "mso_mdoc"
+      ],
+      "mdoc": {
+        "docType": "eu.europa.ec.eudi.birth_certificate.1",
+        "namespace": "eu.europa.ec.eudi.birth_certificate.1",
+        "elements": {
+          "family_name": "family_name",
+          "given_name": "given_name",
+          "birth_date": "birth_date",
+          "birth_place": "birth_place",
+          "birth_country": "birth_country",
+          "mother_family_name": "mother_family_name",
+          "mother_given_name": "mother_given_name",
+          "father_family_name": "father_family_name",
+          "father_given_name": "father_given_name",
+          "birth_record_reference": "birth_record_reference",
+          "issuing_authority": "issuing_authority"
+        }
+      },
       "claims": [
-        "given_name",
         "family_name",
-        "birthdate",
-        "place_of_birth",
-        "parent_names",
-        "certificate_number",
+        "given_name",
+        "birth_date",
+        "birth_place",
+        "birth_country",
+        "mother_family_name",
+        "mother_given_name",
+        "father_family_name",
+        "father_given_name",
+        "birth_record_reference",
         "issuing_authority"
       ]
     }
@@ -90,16 +127,16 @@
           "claims": [
             "given_name",
             "family_name",
-            "birthdate",
-            "place_of_birth",
-            "nationalities",
-            "address",
+            "birth_date",
+            "birth_place",
+            "nationality",
+            "resident_address",
             "issuing_country"
           ],
           "minClaims": [
             "given_name",
             "family_name",
-            "birthdate"
+            "birth_date"
           ]
         },
         "pid_any": {
@@ -188,14 +225,14 @@
           "claims": [
             "given_name",
             "family_name",
-            "birthdate",
-            "nationalities",
-            "place_of_birth"
+            "birth_date",
+            "nationality",
+            "birth_place"
           ],
           "minClaims": [
             "given_name",
             "family_name",
-            "birthdate"
+            "birth_date"
           ]
         },
         "bc": {
@@ -205,10 +242,18 @@
           "claims": [
             "given_name",
             "family_name",
-            "birthdate",
-            "place_of_birth",
-            "parent_names",
-            "certificate_number"
+            "birth_date",
+            "birth_place",
+            "mother_family_name",
+            "mother_given_name",
+            "father_family_name",
+            "father_given_name",
+            "birth_record_reference"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name",
+            "birth_date"
           ]
         },
         "pid_bc": {
@@ -219,16 +264,19 @@
           "claims": [
             "given_name",
             "family_name",
-            "birthdate",
-            "nationalities",
-            "place_of_birth",
-            "parent_names",
-            "certificate_number"
+            "birth_date",
+            "nationality",
+            "birth_place",
+            "mother_family_name",
+            "mother_given_name",
+            "father_family_name",
+            "father_given_name",
+            "birth_record_reference"
           ],
           "minClaims": [
             "given_name",
             "family_name",
-            "birthdate"
+            "birth_date"
           ]
         }
       },
@@ -246,13 +294,13 @@
           "claims": [
             "given_name",
             "family_name",
-            "birthdate",
-            "address"
+            "birth_date",
+            "resident_address"
           ],
           "minClaims": [
             "given_name",
             "family_name",
-            "birthdate"
+            "birth_date"
           ]
         }
       },

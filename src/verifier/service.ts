@@ -6,6 +6,7 @@ import { log } from '../logger.js';
 import { SdJwtError, verifySdJwtPresentation, type Claims, type IssuerKeyResolver } from '../sdjwt/index.js';
 import type { VerifierIdentity } from './identity.js';
 import { buildDcql, buildPresentationDefinition, requestedCredentials, type RequestedCredential } from './query.js';
+import { canonicalizeClaims } from './claims.js';
 import { createMdocChainValidator, TrustError } from './trust.js';
 
 const TX_TTL_MS = 10 * 60 * 1000;
@@ -252,7 +253,7 @@ export class Verifier {
           if (!ok) throw lastErr;
         } else {
           const v = await verifySdJwtPresentation(p, { resolveIssuerKey: this.resolveIssuerKey, acceptedVcts, aud: this.audiences(), nonce: tx.nonce, now: Math.floor(this.now() / 1000) });
-          verified.push({ iss: v.iss, vct: v.vct, claims: v.claims });
+          verified.push({ iss: v.iss, vct: v.vct, claims: canonicalizeClaims(v.claims) });
         }
       } catch (e) {
         this.fail(tx, e instanceof TrustError ? 'untrusted_issuer' : e instanceof SdJwtError ? 'invalid_presentation' : 'bad_response', (e as Error).message);
@@ -267,7 +268,7 @@ export class Verifier {
       const absent = req.minClaims.filter((c) => match.claims[c] === undefined);
       if (absent.length) this.fail(tx, 'missing_credential', `Credential lacks required claims: ${absent.join(', ')}`);
       // Data minimisation: keep only what was asked for, even if the wallet disclosed more.
-      byType[req.type] = Object.fromEntries(Object.entries(match.claims).filter(([k]) => req.claims.includes(k)));
+      byType[req.type] = Object.fromEntries(req.claims.filter((k) => match.claims[k] !== undefined).map((k) => [k, match.claims[k]])); // request order, not the issuer's shuffled order
       issuers.add(match.iss);
     }
     tx.result = { byType, issuers: [...issuers] };

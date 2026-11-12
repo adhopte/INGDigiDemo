@@ -163,17 +163,15 @@ export function openId4VpSessionTranscripts(p: { clientId: string; nonce: string
 
 /**
  * Map mdoc elements to the claim names used by the rest of the app (SD-JWT PID naming), using the attestation's
- * `mdoc.elements` map (internal claim → mdoc element). Addresses / places given as flat elements are folded into objects.
+ * `mdoc.elements` map (internal claim → mdoc element).
  */
 export function normalizeMdocClaims(elements: Record<string, Record<string, unknown>>, namespace: string, map: Record<string, string>): Claims {
   const ns = elements[namespace] ?? {};
   const out: Claims = {};
   for (const [claim, element] of Object.entries(map)) if (ns[element] !== undefined) out[claim] = ns[element];
-  if (typeof out.nationalities === 'string') out.nationalities = [out.nationalities];
-  if (typeof out.place_of_birth === 'string') out.place_of_birth = { locality: out.place_of_birth };
-  if (typeof out.address === 'string') out.address = { formatted: out.address };
-  if (out.address === undefined && (ns.resident_city || ns.resident_street || ns.resident_country)) {
-    out.address = { street_address: ns.resident_street, postal_code: ns.resident_postal_code, locality: ns.resident_city, country: ns.resident_country };
+  // EU-style flat residence elements, when no single resident_address string is present
+  if (out.resident_address === undefined && (ns.resident_city || ns.resident_street || ns.resident_country)) {
+    out.resident_address = { street_address: ns.resident_street, postal_code: ns.resident_postal_code, locality: ns.resident_city, country: ns.resident_country };
   }
   return out;
 }

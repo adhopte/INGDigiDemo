@@ -170,7 +170,7 @@ describe('OpenID4VP verifier over HTTP (what a wallet calls)', () => {
     const { app, svc, cfg } = await boot({ VP_RESPONSE_MODE: mode });
     const rp = cfg.rps.find((r) => r.id === 'bank')!;
     // issue a PID via the local issuer first
-    const o = svc.local.createOffer('pid', { given_name: 'Lena', family_name: 'Demo', birthdate: '1990-01-01', place_of_birth: { country: 'DE', locality: 'Köln' }, nationalities: ['DE'], address: { locality: 'Köln', country: 'DE' }, issuing_country: 'DE' });
+    const o = svc.local.createOffer('pid', { given_name: 'Lena', family_name: 'Demo', birth_date: '1990-01-01', birth_place: 'Köln', nationality: 'DE', resident_address: 'Weg 1, Köln', issuing_country: 'DE' });
     const r = await walletRedeem(app, `/issuer/offers/${o.id}`);
     const credential = r.credRes!.body.credential as string;
 

@@ -25,7 +25,8 @@ describe.each([['direct_post'], ['direct_post.jwt']])('OpenID4VP verification en
     expect(tx.status).toBe('complete');
     const pid = tx.result!.byType.pid!;
     expect(pid.given_name).toBe('Camille');
-    expect(pid.nationalities).toEqual(['FR']);
+    expect(pid.nationality).toBe('FR');
+    expect(pid.birth_place).toBe('Lyon');
     expect(pid.age_over_18).toBeUndefined(); // not requested -> not disclosed
     expect(tx.result!.issuers).toEqual([cfg.issuer.localIssuerUrl]);
   });
@@ -127,7 +128,7 @@ describe('verifier rejects bad presentations', () => {
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'university')!, 'pid_bc', '/');
     await respondToVerifier(svc.verifier, tx, { vp_token: await buildVpToken(session, tx, svc.verifier) });
     expect(Object.keys(tx.result!.byType).sort()).toEqual(['birth_certificate', 'pid']);
-    expect(tx.result!.byType.birth_certificate!.certificate_number).toMatch(/^BC-FR-/);
+    expect(tx.result!.byType.birth_certificate!.birth_record_reference).toMatch(/^ACTE-/);
   });
 });
 
@@ -144,7 +145,7 @@ describe('request object', () => {
     const san = await createServices(testConfig({ VP_CLIENT_ID_SCHEME: 'x509_san_dns' }));
     expect(san.verifier.identity.clientId).toBe('x509_san_dns:rp.example.test');
     expect(p.response_uri).toBe(`https://rp.example.test/vp/response/${tx.id}`);
-    expect(p.dcql_query.credentials.map((c: any) => c.id)).toEqual(['pid', 'pid_mdoc', 'birth_certificate']);
+    expect(p.dcql_query.credentials.map((c: any) => c.id)).toEqual(['pid', 'pid_mdoc', 'birth_certificate', 'birth_certificate_mdoc']);
     expect(p.client_metadata.jwks.keys[0].use).toBe('enc');
     expect(p.wallet_nonce).toBe('wn');
     const link = svc.verifier.walletLink(tx);

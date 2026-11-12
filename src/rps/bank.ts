@@ -18,7 +18,7 @@ export function bankRouter(ctx: Ctx, rp: RpConfig): Router {
   /** The customer record is derived from the verified PID (stateless demo). */
   const customer = (req: Request) => {
     const c = pid(req)!;
-    const given = str(c.given_name), family = str(c.family_name), born = str(c.birthdate);
+    const given = str(c.given_name), family = str(c.family_name), born = str(c.birth_date);
     return { claims: c, given, family, born, iban: demoIban(given, family, born) };
   };
 
@@ -47,8 +47,8 @@ export function bankRouter(ctx: Ctx, rp: RpConfig): Router {
     const claims =
       key === 'account'
         ? {
-            given_name: c.given, family_name: c.family, birthdate: c.born,
-            nationalities: (c.claims.nationalities as string[] | undefined) ?? [],
+            given_name: c.given, family_name: c.family, birth_date: c.born,
+            nationality: c.claims.nationality ?? '',
             account_number: c.iban, account_opened: today.toISOString().slice(0, 10), bank_name: BANK_NAME,
           }
         : { account_holder_name: `${c.given} ${c.family}`, iban: c.iban, bic: BIC, bank_name: BANK_NAME, valid_until: plus2y.toISOString().slice(0, 10) };

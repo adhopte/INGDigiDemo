@@ -107,8 +107,8 @@ export function i18nMiddleware(isProduction: boolean) {
     };
     const t = res.locals.t as Translator;
     const region = res.locals.regionName as (c: string) => string;
-    const DATE_CLAIMS = new Set(['birthdate', 'valid_until', 'account_opened']);
-    const COUNTRY_CLAIMS = new Set(['issuing_country', 'nationalities', 'nationality']);
+    const DATE_CLAIMS = new Set(['birth_date', 'valid_until', 'account_opened', 'issuance_date', 'expiry_date', 'registration_date']);
+    const COUNTRY_CLAIMS = new Set(['issuing_country', 'nationality', 'birth_country']);
     /** Human-readable rendering of a verified claim value (dates, countries, addresses, lists). */
     const fmtClaim = (name: string, v: unknown): string => {
       if (v === undefined || v === null || v === '') return '—';
@@ -116,7 +116,7 @@ export function i18nMiddleware(isProduction: boolean) {
       if (Array.isArray(v)) return v.map((x) => fmtClaim(name, x)).join(', ');
       if (typeof v === 'object') {
         const o = v as Record<string, unknown>;
-        if (name === 'address') {
+        if (name === 'address' || name === 'resident_address') {
           if (typeof o.formatted === 'string') return o.formatted;
           return [o.street_address, [o.postal_code, o.locality].filter(Boolean).join(' '), typeof o.country === 'string' ? region(o.country) : '']
             .filter(Boolean).join(', ');

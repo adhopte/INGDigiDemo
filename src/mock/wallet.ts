@@ -27,21 +27,21 @@ export const personaFor = (id: unknown): Persona => PERSONAS.find((p) => p.id ==
 const ISO = (id: string) => id.toUpperCase();
 
 export function demoClaims(typeKey: string, p: Persona): Claims {
+  const cc = ISO(p.id);
   switch (typeKey) {
     case 'pid':
       return {
-        family_name: p.family, given_name: p.given, birthdate: p.born,
-        place_of_birth: { country: ISO(p.id), locality: p.city },
-        nationalities: [ISO(p.id)],
-        address: { street_address: p.street, locality: p.city, postal_code: '00000', country: ISO(p.id) },
-        issuing_authority: 'IN Groupe Issuer (demo PID)', issuing_country: ISO(p.id), age_over_18: true,
+        family_name: p.family, given_name: p.given, birth_date: p.born, birth_place: p.city, birth_country: cc,
+        nationality: cc, resident_address: `${p.street}, 00000 ${p.city}`,
+        document_number: `ID${Math.floor(100000000 + Math.random() * 899999999)}`, issuance_date: '2026-01-10', expiry_date: '2031-01-10',
+        issuing_authority: 'IN Groupe Issuer (demo PID)', issuing_country: cc, age_over_18: true,
       };
     case 'birth_certificate':
       return {
-        given_name: p.given, family_name: p.family, birthdate: p.born,
-        place_of_birth: { country: ISO(p.id), locality: p.city },
-        parent_names: [`Pat ${p.family}`, `Sam ${p.family}`],
-        certificate_number: `BC-${ISO(p.id)}-${Math.floor(100000 + Math.random() * 899999)}`,
+        family_name: p.family, given_name: p.given, birth_date: p.born, birth_place: p.city, birth_country: cc,
+        mother_family_name: p.family, mother_given_name: 'Pat',
+        father_family_name: p.family, father_given_name: 'Sam',
+        birth_record_reference: `ACTE-${Math.floor(100000 + Math.random() * 899999)}`,
         issuing_authority: `Civil registry of ${p.city} (demo)`,
       };
     default:
