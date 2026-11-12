@@ -105,7 +105,8 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
   it('declares mso_mdoc in client_metadata only when an mdoc answer is acceptable', async () => {
     const { cfg, svc } = await setup();
     const bank = (svc.verifier.requestParams(await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/')) as any).client_metadata;
-    expect(bank.vp_formats_supported.mso_mdoc).toEqual({ issuerauth_alg_values: [-7], deviceauth_alg_values: [-7], alg: ['ES256'] });
+    expect(bank.vp_formats_supported.mso_mdoc).toEqual({ issuerauth_alg_values: [-7], deviceauth_alg_values: [-7] });
+    expect(Object.keys(bank.vp_formats_supported).sort()).toEqual(['dc+sd-jwt', 'mso_mdoc']);
     expect(bank.vp_formats).toEqual(bank.vp_formats_supported);
     expect(bank.vp_formats_supported['dc+sd-jwt']).toBeTruthy();
     const shop = (svc.verifier.requestParams(await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'eshop')!, 'payment', '/')) as any).client_metadata;

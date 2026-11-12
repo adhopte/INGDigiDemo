@@ -239,7 +239,7 @@ export function loadConfig(
     port,
     publicBaseUrl,
     mockMode,
-    diagnostics: parseBool(env.DIAGNOSTICS_ENDPOINT, false),
+    diagnostics: parseBool(env.DIAGNOSTICS_ENDPOINT, true),
     multiCredential: parseBool(env.MULTI_CREDENTIAL, false),
     sessionSecret,
     verifier,

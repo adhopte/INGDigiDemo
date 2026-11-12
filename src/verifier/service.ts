@@ -11,8 +11,8 @@ import { createMdocChainValidator, TrustError } from './trust.js';
 const TX_TTL_MS = 10 * 60 * 1000;
 const MAX_TRANSACTIONS = 5000; // in-memory store: bound memory under load
 const SD_JWT_ALGS = { 'sd-jwt_alg_values': ['ES256'], 'kb-jwt_alg_values': ['ES256'] };
-/** mdoc: COSE alg -7 = ES256 (`alg` is the pre-1.0 draft spelling). */
-const MDOC_ALGS = { issuerauth_alg_values: [-7], deviceauth_alg_values: [-7], alg: ['ES256'] };
+/** mdoc: COSE alg -7 = ES256. Exactly the OpenID4VP 1.0 shape: strict wallet parsers reject unknown members. */
+const MDOC_ALGS = { issuerauth_alg_values: [-7], deviceauth_alg_values: [-7] };
 
 export type TxStatus = 'pending' | 'complete' | 'failed' | 'expired';
 export type VerifyErrorCode = 'wallet_declined' | 'untrusted_issuer' | 'invalid_presentation' | 'missing_credential' | 'bad_response';
@@ -131,7 +131,7 @@ export class Verifier {
     const v = this.cfg.verifier;
     // Every format a request may be answered with must be declared here, or wallets answer "no matching documents".
     const wantsMdoc = tx.reqs.some((r) => r.attestation.mdoc && r.attestation.formats.includes('mso_mdoc'));
-    const formats: Record<string, unknown> = { 'dc+sd-jwt': SD_JWT_ALGS, 'vc+sd-jwt': SD_JWT_ALGS, ...(wantsMdoc ? { mso_mdoc: MDOC_ALGS } : {}) };
+    const formats: Record<string, unknown> = { 'dc+sd-jwt': SD_JWT_ALGS, ...(this.cfg.verifier.queryLanguage === 'pex' ? { 'vc+sd-jwt': SD_JWT_ALGS } : {}), ...(wantsMdoc ? { mso_mdoc: MDOC_ALGS } : {}) };
     const clientMetadata: Record<string, unknown> = {
       client_name: `${tx.rpName} – ${this.cfg.brand.name} ${this.cfg.brand.product} demo`,
       logo_uri: `${this.cfg.publicBaseUrl}/img/rp-${tx.rpId}.png`,

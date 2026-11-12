@@ -68,9 +68,9 @@ describe('platform basics', () => {
 
 describe('diagnostics and caching', () => {
   it('/vp/diagnostics exists only when enabled and records wallet metadata and rejections without claim values', async () => {
-    const off = await boot();
+    const off = await boot({ DIAGNOSTICS_ENDPOINT: 'false' });
     expect((await request(off.app).get('/vp/diagnostics')).status).toBe(404);
-    const { app, svc, cfg } = await boot({ DIAGNOSTICS_ENDPOINT: 'true' });
+    const { app, svc, cfg } = await boot();
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
     await request(app).post(`/vp/request/${tx.id}`).type('form').send({ wallet_metadata: JSON.stringify({ vp_formats_supported: { mso_mdoc: {} } }) });
     await request(app).post(`/vp/response/${tx.id}`).type('form').send({ vp_token: 'junk', state: 'x' });
