@@ -9,6 +9,8 @@ export interface RequestedCredential {
   minClaims: string[];
   /** Probe: no vct restriction. */
   anyVct: boolean;
+  /** Formats actually requested (presentation override, else the attestation's). */
+  formats: string[];
 }
 
 export function requestedCredentials(presentation: PresentationConfig, attestations: Record<string, AttestationConfig>): RequestedCredential[] {
@@ -18,7 +20,7 @@ export function requestedCredentials(presentation: PresentationConfig, attestati
     const subset = presentation.claims.filter((c) => attestation.claims.includes(c));
     const claims = subset.length ? subset : attestation.claims;
     const min = presentation.minClaims.filter((c) => claims.includes(c));
-    return { type, attestation, claims, minClaims: min.length && min.length < claims.length ? min : claims, anyVct: presentation.anyVct };
+    return { type, attestation, claims, minClaims: min.length && min.length < claims.length ? min : claims, anyVct: presentation.anyVct, formats: presentation.formats.length ? presentation.formats : attestation.formats };
   });
 }
 
@@ -40,13 +42,13 @@ export function buildDcql(reqs: RequestedCredential[]) {
   const sets: { options: string[][] }[] = [];
   for (const r of reqs) {
     const ids: string[] = [];
-    if (r.attestation.formats.includes('dc+sd-jwt')) {
+    if (r.formats.includes('dc+sd-jwt')) {
       const anyVct = r.anyVct || r.attestation.acceptedVct.includes('*');
       credentials.push({ id: r.type, format: 'dc+sd-jwt', meta: anyVct ? {} : { vct_values: r.attestation.acceptedVct }, ...claimsPart(r.claims, r, (n) => [n]) });
       ids.push(r.type);
     }
     const m = r.attestation.mdoc;
-    if (m && r.attestation.formats.includes('mso_mdoc')) {
+    if (m && r.formats.includes('mso_mdoc')) {
       const mapped = r.claims.filter((c) => m.elements[c]);
       const mapR = { ...r, claims: mapped, minClaims: r.minClaims.filter((c) => m.elements[c]) };
       credentials.push({

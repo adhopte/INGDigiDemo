@@ -130,8 +130,9 @@ export class Verifier {
   requestParams(tx: Transaction, walletNonce?: string): Record<string, unknown> {
     const v = this.cfg.verifier;
     // Every format a request may be answered with must be declared here, or wallets answer "no matching documents".
-    const wantsMdoc = tx.reqs.some((r) => r.attestation.mdoc && r.attestation.formats.includes('mso_mdoc'));
-    const formats: Record<string, unknown> = { 'dc+sd-jwt': SD_JWT_ALGS, ...(this.cfg.verifier.queryLanguage === 'pex' ? { 'vc+sd-jwt': SD_JWT_ALGS } : {}), ...(wantsMdoc ? { mso_mdoc: MDOC_ALGS } : {}) };
+    const wantsMdoc = tx.reqs.some((r) => r.attestation.mdoc && r.formats.includes('mso_mdoc'));
+    const wantsSd = tx.reqs.some((r) => r.formats.includes('dc+sd-jwt'));
+    const formats: Record<string, unknown> = { ...(wantsSd ? { 'dc+sd-jwt': SD_JWT_ALGS } : {}), ...(this.cfg.verifier.queryLanguage === 'pex' ? { 'vc+sd-jwt': SD_JWT_ALGS } : {}), ...(wantsMdoc ? { mso_mdoc: MDOC_ALGS } : {}) };
     const clientMetadata: Record<string, unknown> = {
       client_name: `${tx.rpName} – ${this.cfg.brand.name} ${this.cfg.brand.product} demo`,
       logo_uri: `${this.cfg.publicBaseUrl}/img/rp-${tx.rpId}.png`,
@@ -228,7 +229,7 @@ export class Verifier {
     type Verified = { iss: string; vct?: string; docType?: string; claims: Claims };
     const verified: Verified[] = [];
     const acceptedVcts = [...new Set(tx.reqs.flatMap((r) => (r.anyVct ? ['*'] : r.attestation.acceptedVct)))];
-    const mdocReqs = tx.reqs.filter((r) => r.attestation.mdoc && r.attestation.formats.includes('mso_mdoc'));
+    const mdocReqs = tx.reqs.filter((r) => r.attestation.mdoc && r.formats.includes('mso_mdoc'));
     for (const p of presented) {
       try {
         if (!p.includes('~') && looksLikeDeviceResponse(p)) {

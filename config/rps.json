@@ -115,6 +115,40 @@
             "given_name",
             "family_name"
           ]
+        },
+        "pid_any_sd": {
+          "types": [
+            "pid"
+          ],
+          "anyVct": true,
+          "claims": [
+            "given_name",
+            "family_name"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name"
+          ],
+          "formats": [
+            "dc+sd-jwt"
+          ]
+        },
+        "pid_any_mdoc": {
+          "types": [
+            "pid"
+          ],
+          "anyVct": true,
+          "claims": [
+            "given_name",
+            "family_name"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name"
+          ],
+          "formats": [
+            "mso_mdoc"
+          ]
         }
       },
       "attestations": [

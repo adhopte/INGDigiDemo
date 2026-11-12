@@ -122,6 +122,18 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     expect(q.credentials[1].claim_sets).toBeUndefined();
   });
 
+  it('single-format probes request exactly one format and declare only that one', async () => {
+    const { cfg, svc } = await setup();
+    const bank = cfg.rps.find((r) => r.id === 'bank')!;
+    const sd = svc.verifier.requestParams(await svc.verifier.createTransaction(bank, 'pid_any_sd', '/')) as any;
+    expect(sd.dcql_query.credentials.map((c: any) => c.format)).toEqual(['dc+sd-jwt']);
+    expect(sd.dcql_query.credential_sets).toBeUndefined();
+    expect(Object.keys(sd.client_metadata.vp_formats_supported)).toEqual(['dc+sd-jwt']);
+    const md = svc.verifier.requestParams(await svc.verifier.createTransaction(bank, 'pid_any_mdoc', '/')) as any;
+    expect(md.dcql_query.credentials.map((c: any) => c.format)).toEqual(['mso_mdoc']);
+    expect(Object.keys(md.client_metadata.vp_formats_supported)).toEqual(['mso_mdoc']);
+  });
+
   it('unit: chain validator and primitives', async () => {
     const ca = await makeCa(); const dsc = await makeDsc(ca);
     const leaf = Buffer.from(dsc.cert.rawData);
