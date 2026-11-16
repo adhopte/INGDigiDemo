@@ -296,5 +296,11 @@
   "claim.father_family_name": "Nom de famille du père",
   "claim.father_given_name": "Prénom du père",
   "claim.birth_record_reference": "Référence de l’acte de naissance",
-  "verify.qr_too_long": "Cette demande est trop volumineuse pour un QR code. Ouvrez-la sur cet appareil avec le bouton."
+  "verify.qr_too_long": "Cette demande est trop volumineuse pour un QR code. Ouvrez-la sur cet appareil avec le bouton.",
+  "verify.phone_title": "Le scan ne fonctionne pas ?",
+  "verify.phone_hint": "Scannez ce petit code avec l’appareil photo de votre téléphone. Il ouvre une page avec un bouton qui lance votre portefeuille.",
+  "verify.phone_alt": "Petit QR code qui ouvre une page avec le bouton du portefeuille",
+  "open.title": "Ouvrez votre portefeuille",
+  "open.hint": "{rp} vous demande de partager des données de votre EU Wallet. Appuyez sur le bouton sur ce téléphone.",
+  "open.after": "Après votre approbation dans le portefeuille, la page sur votre ordinateur continue automatiquement."
 }

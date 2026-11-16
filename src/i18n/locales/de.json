@@ -296,5 +296,11 @@
   "claim.father_family_name": "Familienname des Vaters",
   "claim.father_given_name": "Vorname des Vaters",
   "claim.birth_record_reference": "Geburtsurkunden-Referenz",
-  "verify.qr_too_long": "Diese Anfrage ist zu groß für einen QR-Code. Öffnen Sie sie mit der Schaltfläche auf diesem Gerät."
+  "verify.qr_too_long": "Diese Anfrage ist zu groß für einen QR-Code. Öffnen Sie sie mit der Schaltfläche auf diesem Gerät.",
+  "verify.phone_title": "Scannen klappt nicht?",
+  "verify.phone_hint": "Scannen Sie diesen kleinen Code mit der Kamera Ihres Telefons. Er öffnet eine Seite mit einer Schaltfläche, die Ihre Wallet startet.",
+  "verify.phone_alt": "Kleiner QR-Code, der eine Seite mit der Wallet-Schaltfläche öffnet",
+  "open.title": "Öffnen Sie Ihre Wallet",
+  "open.hint": "{rp} bittet Sie, Daten aus Ihrer EU Wallet zu teilen. Tippen Sie auf diesem Telefon auf die Schaltfläche.",
+  "open.after": "Nachdem Sie in der Wallet zugestimmt haben, geht die Seite auf Ihrem Computer automatisch weiter."
 }

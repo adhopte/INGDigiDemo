@@ -125,7 +125,12 @@ ul.plain { padding-left: 1.2rem; }
 
 /* ---- wallet hand-off ---- */
 .handoff-grid { display: grid; gap: 1.75rem; grid-template-columns: 1fr; }
-.qr { display: block; background: #fff; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius); max-width: 100%; height: auto; box-shadow: var(--shadow); }
+.qr { display: block; background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 460px; height: auto; box-shadow: var(--shadow); image-rendering: pixelated; }
+.qr-small { max-width: 190px; }
+.qr-wide { max-width: 560px; }
+.handoff-grid.stack { grid-template-columns: 1fr !important; }
+.phone-scan { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.phone-scan h3 { margin: 0 0 .3rem; }
 .txcode { font-size: 1.7rem; letter-spacing: .22em; margin-left: .5rem; }
 .raw { margin-top: 1rem; } .raw summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 700; }
 .raw summary::before { content: "▸"; margin-right: .5rem; } .raw[open] summary::before { content: "▾"; }
@@ -177,7 +182,7 @@ meter { width: 100%; height: 1.2rem; }
 
 @media (min-width: 760px) {
   .hero-grid { grid-template-columns: 1.3fr 1fr; }
-  .handoff-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+  .handoff-grid { grid-template-columns: 1fr 1.4fr; align-items: start; }
   .account-grid { grid-template-columns: 1fr 1.5fr; }
   .cart-grid { grid-template-columns: 1.6fr 1fr; align-items: start; }
 }

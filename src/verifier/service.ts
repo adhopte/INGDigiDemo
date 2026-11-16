@@ -100,7 +100,7 @@ export class Verifier {
       rpId: rp.id,
       rpName: rp.displayName,
       presentationKey,
-      reqs: requestedCredentials(presentation, this.cfg.attestations),
+      reqs: this.fitFormats(requestedCredentials(presentation, this.cfg.attestations)),
       nonce: randomBytes(24).toString('base64url'),
       state: randomBytes(16).toString('base64url'),
       responseCode: randomBytes(16).toString('base64url'),
@@ -117,6 +117,15 @@ export class Verifier {
     this.txs.set(tx.id, tx);
     log.info('vp transaction started', { rp: rp.id, presentation: presentationKey, types: tx.reqs.map((r) => r.type), scheme: this.cfg.verifier.clientIdScheme, mode: this.cfg.verifier.responseMode });
     return tx;
+  }
+
+  /** By-value requests must stay QR-sized: keep only the configured formats (never emptying a request). */
+  private fitFormats(reqs: ReturnType<typeof requestedCredentials>) {
+    if (!this.byValue) return reqs;
+    return reqs.map((r) => {
+      const f = r.formats.filter((x) => this.cfg.verifier.byValueFormats.includes(x));
+      return f.length ? { ...r, formats: f } : r;
+    });
   }
 
   /** True when requests are passed by value, unsigned (client_id scheme redirect_uri). */
@@ -157,6 +166,14 @@ export class Verifier {
         authorization_encrypted_response_alg: 'ECDH-ES',
         authorization_encrypted_response_enc: 'A128GCM',
       });
+    }
+    if (compact) {
+      // QR-sized: drop pre-1.0 duplicates, the display name and shorten the key id
+      delete clientMetadata.client_name;
+      delete clientMetadata.authorization_encrypted_response_alg;
+      delete clientMetadata.authorization_encrypted_response_enc;
+      if (tx.enc) clientMetadata.jwks = { keys: [{ ...tx.enc.publicJwk, kid: tx.id.slice(0, 8) }] };
+      clientMetadata.encrypted_response_enc_values_supported = ['A128GCM'];
     }
     const params: Record<string, unknown> = {
       client_id: this.clientIdFor(tx),

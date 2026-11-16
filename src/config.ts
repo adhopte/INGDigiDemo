@@ -65,6 +65,8 @@ export interface VerifierConfig {
   clientIdScheme: 'x509_hash' | 'x509_san_dns' | 'redirect_uri';
   responseMode: 'direct_post' | 'direct_post.jwt';
   queryLanguage: 'dcql' | 'pex';
+  /** By-value (redirect_uri) requests must fit a QR code: request only these formats (when the presentation allows them). */
+  byValueFormats: string[];
   /** Wallet invocation URL prefix, e.g. openid4vp://authorize or haip://authorize. */
   deeplinkBase: string;
   /** `iss` URL prefixes whose JWKS may be fetched to verify credentials ('*' = any, demo only). */
@@ -216,6 +218,7 @@ export function loadConfig(
     // HAIP wallets require an encrypted response, so direct_post.jwt is the default.
     responseMode: env.VP_RESPONSE_MODE === 'direct_post' ? 'direct_post' : 'direct_post.jwt',
     queryLanguage: env.VP_QUERY_LANGUAGE === 'pex' ? 'pex' : 'dcql',
+    byValueFormats: (env.VP_BY_VALUE_FORMATS ?? 'dc+sd-jwt').split(',').map((x) => x.trim()).filter(Boolean),
     deeplinkBase: env.VP_DEEPLINK_BASE || 'openid4vp://authorize',
     trustedIssuers: (env.TRUSTED_ISSUERS ?? '').split(',').map((x) => x.trim().replace(/\/+$/, '')).filter(Boolean),
     trustedCaPem: pems(env.TRUSTED_CA_PEM),

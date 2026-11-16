@@ -296,5 +296,11 @@
   "claim.father_family_name": "Achternaam vader",
   "claim.father_given_name": "Voornaam vader",
   "claim.birth_record_reference": "Aktereferentie",
-  "verify.qr_too_long": "Dit verzoek is te groot voor een QR-code. Open het op dit apparaat met de knop."
+  "verify.qr_too_long": "Dit verzoek is te groot voor een QR-code. Open het op dit apparaat met de knop.",
+  "verify.phone_title": "Scannen lukt niet?",
+  "verify.phone_hint": "Scan deze kleine code met de camera van uw telefoon. Er opent een pagina met een knop die uw wallet start.",
+  "verify.phone_alt": "Kleine QR-code die een pagina met de wallet-knop opent",
+  "open.title": "Open uw wallet",
+  "open.hint": "{rp} vraagt u gegevens uit uw EU Wallet te delen. Tik op de knop op deze telefoon.",
+  "open.after": "Nadat u in de wallet goedkeurt, gaat de pagina op uw computer automatisch verder."
 }

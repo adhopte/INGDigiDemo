@@ -296,5 +296,11 @@
   "claim.father_family_name": "Kunjom il-missier",
   "claim.father_given_name": "Isem il-missier",
   "claim.birth_record_reference": "Referenza tar-reġistru tat-twelid",
-  "verify.qr_too_long": "Din it-talba hija kbira wisq għal kodiċi QR. Iftaħha fuq dan l-apparat bil-buttuna."
+  "verify.qr_too_long": "Din it-talba hija kbira wisq għal kodiċi QR. Iftaħha fuq dan l-apparat bil-buttuna.",
+  "verify.phone_title": "L-iskennjar ma jaħdimx?",
+  "verify.phone_hint": "Skennja dan il-kodiċi żgħir bil-kamera tat-telefon tiegħek. Jiftaħ paġna b’buttuna li tibda l-kartiera tiegħek.",
+  "verify.phone_alt": "Kodiċi QR żgħir li jiftaħ paġna bil-buttuna tal-kartiera",
+  "open.title": "Iftaħ il-kartiera tiegħek",
+  "open.hint": "{rp} qed jitlobkom taqsmu data mill-EU Wallet tiegħek. Agħfas il-buttuna fuq dan it-telefon.",
+  "open.after": "Wara li tapprova fil-kartiera, il-paġna fuq il-kompjuter tiegħek tkompli awtomatikament."
 }

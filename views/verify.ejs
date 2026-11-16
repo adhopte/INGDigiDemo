@@ -8,7 +8,7 @@
     <% tx.reqs.forEach(function (rq) { %>
       <h3><%= t('att.' + rq.type + '.name') %></h3>
       <ul class="tags">
-        <% rq.claims.forEach(function (c) { %><li><%= t('claim.' + c) %></li><% }) %>
+        <% (byValue ? rq.minClaims : rq.claims).forEach(function (c) { %><li><%= t('claim.' + c) %></li><% }) %>
       </ul>
     <% }) %>
     <p class="note"><%= t('verify.minimal') %></p>
@@ -16,17 +16,24 @@
 
   <section class="panel handoff" aria-labelledby="scan-h">
     <h2 id="scan-h"><%= t('verify.scan') %></h2>
-    <div class="handoff-grid">
+    <div class="handoff-grid stack">
       <div class="handoff-mobile">
         <p><%= t('verify.mobile') %></p>
         <p><a class="btn btn-large" href="<%= link %>"><%= t('verify.open_wallet') %></a></p>
       </div>
       <div class="handoff-desktop">
         <p><%= t('verify.desktop') %></p>
-        <% if (qr) { %><img class="qr" src="<%= qr %>" width="260" height="260" alt="<%= t('verify.qr_alt') %>">
+        <% if (qr) { %><img class="qr qr-wide" src="<%= qr %>" width="560" height="560" alt="<%= t('verify.qr_alt') %>">
         <% } else { %><p class="alert alert-info" role="note"><%= t('verify.qr_too_long') %></p><% } %>
       </div>
     </div>
+    <% if (phoneQr) { %>
+    <div class="phone-scan">
+      <h3><%= t('verify.phone_title') %></h3>
+      <p><%= t('verify.phone_hint') %></p>
+      <img class="qr qr-small" src="<%= phoneQr %>" width="190" height="190" alt="<%= t('verify.phone_alt') %>">
+    </div>
+    <% } %>
     <details class="raw">
       <summary><%= t('verify.show_link') %></summary>
       <p><code class="break"><%= link %></code></p>

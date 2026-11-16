@@ -1,0 +1,8 @@
+<%- include('partials/head') %>
+<div class="wrap narrow">
+  <h1><%= t('open.title') %></h1>
+  <p class="lead"><%= t('open.hint', { rp: tx.rpName }) %></p>
+  <p><a class="btn btn-large" href="<%= link %>"><%= t('verify.open_wallet') %></a></p>
+  <p class="note"><%= t('open.after') %></p>
+</div>
+<%- include('partials/foot') %>

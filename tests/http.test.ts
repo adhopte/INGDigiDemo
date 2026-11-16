@@ -133,17 +133,38 @@ describe('verifier certificate (what a wallet trust evaluation sees)', () => {
 });
 
 describe('QR fallback for long links', () => {
-  it('university pid_bc by value is too long for a QR code: link only, no crash; separate requests fit', async () => {
+  it('a payload too large for any QR code yields undefined (link-only page), normal ones render', async () => {
+    const { qrDataUrlOrUndefined } = await import('../src/issuer/offer.js');
+    expect(await qrDataUrlOrUndefined('x'.repeat(4000))).toBeUndefined();
+    expect(await qrDataUrlOrUndefined('openid4vp://authorize?x=1')).toMatch(/^data:image\/png/);
+    // the combined university request now fits as well
     const { app } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri', MULTI_CREDENTIAL: 'true' });
     const a = request.agent(app);
     const loc = (await a.get('/university/verify?p=pid_bc&returnTo=/university/documents')).headers.location!;
     const page = (await a.get(loc)).text;
     expect(page).toContain('openid4vp://authorize?');
-    expect(page).toContain('too large for a QR code');
-    expect(page).not.toContain('data:image/png');
-    const two = request.agent(app);
-    const loc2 = (await two.get('/university/verify?p=bc&returnTo=/university/documents')).headers.location!;
-    expect((await two.get(loc2)).text).toContain('data:image/png');
+    expect(page).not.toContain('too large for a QR code');
+  });
+});
+
+describe('phone-camera hand-off and QR scannability', () => {
+  it('by-value link stays well under the dense-QR range; /verify/open/:id is public and shows the wallet button', async () => {
+    const { app, svc, cfg } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    for (const [rp, p] of [['bank', 'pid'], ['electricity', 'pid'], ['university', 'pid'], ['university', 'bc'], ['eshop', 'payment']] as const) {
+      const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, p, '/');
+      expect(svc.verifier.walletLink(tx).length, `${rp}/${p}`).toBeLessThan(1500);
+    }
+    const a = request.agent(app);
+    const loc = (await a.get('/bank/verify?p=pid&returnTo=/bank/kyc')).headers.location!;
+    const id = /\/verify\/([0-9a-f-]{36})/.exec(loc)![1]!;
+    const page = (await a.get(loc)).text;
+    expect(page).toContain('Scanning not working?');
+    expect((page.match(/data:image\/png/g) ?? []).length).toBe(2); // main QR + small phone QR
+    const open = await request(app).get(`/bank/verify/open/${id}`); // no session cookie: a different device
+    expect(open.status).toBe(200);
+    expect(open.text).toContain('openid4vp://authorize?');
+    expect((await request(app).get('/bank/verify/open/nope')).status).toBe(404);
+    expect((await request(app).get(`/eshop/verify/open/${id}`)).status).toBe(404); // wrong RP
   });
 });
 

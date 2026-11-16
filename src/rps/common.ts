@@ -107,6 +107,14 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
     r.post('/verify/wallet/:id/decline', respond('decline'));
   }
 
+  // Phone-camera hand-off: a short https link (tiny QR any camera reads) that opens the wallet. No session needed: the
+  // flow is completed by the wallet posting to response_uri, and the desktop page polls its own session.
+  r.get('/verify/open/:id', (req, res) => {
+    const tx = svc.verifier.get(String(req.params.id));
+    if (!tx || tx.rpId !== rp.id || tx.status !== 'pending') return void res.status(404).render('error', { title: res.locals.t('error.title'), message: res.locals.t('verify.err.unknown'), retryHref: `/${rp.id}/` });
+    res.render('verify-open', { title: res.locals.t('open.title'), tx, link: svc.verifier.walletLink(tx) });
+  });
+
   // Stable page showing the QR code / deeplink for an existing transaction.
   r.get('/verify/:id', async (req, res) => {
     const id = String(req.params.id);
@@ -116,7 +124,8 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
     const link = svc.verifier.walletLink(tx);
     res.render('verify', {
       title: res.locals.t('verify.title'),
-      tx, link, qr: await qrDataUrlOrUndefined(link),
+      tx, link, byValue: svc.verifier.byValue, qr: await qrDataUrlOrUndefined(link),
+      phoneQr: await qrDataUrlOrUndefined(`${cfg.publicBaseUrl}/${rp.id}/verify/open/${tx.id}`),
       expiresAt: new Date(tx.expiresAt),
       statusUrl: `/${rp.id}/verify/status/${id}`,
       finishUrl: `/${rp.id}/verify/finish/${id}`,

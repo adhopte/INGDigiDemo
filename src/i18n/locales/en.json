@@ -296,5 +296,11 @@
   "claim.father_family_name": "Father’s family name",
   "claim.father_given_name": "Father’s given name",
   "claim.birth_record_reference": "Birth record reference",
-  "verify.qr_too_long": "This request is too large for a QR code. Open it on this device with the button."
+  "verify.qr_too_long": "This request is too large for a QR code. Open it on this device with the button.",
+  "verify.phone_title": "Scanning not working?",
+  "verify.phone_hint": "Scan this small code with your phone camera. It opens a page with a button that starts your wallet.",
+  "verify.phone_alt": "Small QR code that opens a page with the wallet button",
+  "open.title": "Open your wallet",
+  "open.hint": "{rp} asks you to share data from your EU Wallet. Tap the button on this phone.",
+  "open.after": "After you approve in the wallet, the page on your computer continues automatically."
 }
