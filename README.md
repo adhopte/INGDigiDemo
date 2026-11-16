@@ -59,9 +59,21 @@ Walk-through in mock mode (all in one browser, so the simulated wallet carries c
 
 1. Make the app reachable over **public HTTPS** (deploy to Render, or run a tunnel locally) and set `PUBLIC_BASE_URL`.
 2. `MOCK_MODE=false`.
-3. **Verifier identity** – wallets validate the request object's certificate. Set `VERIFIER_SIGNING_KEY_JWK` (`npm run keygen`) and `VERIFIER_CERT_CHAIN_PEM` (certificate whose SAN dNSName is your host, chained to a root the wallet trusts). Without them a self-signed demo certificate is generated at startup – fine only for wallets configured to trust it.
+3. **Verifier identity** – wallets validate the request object's certificate. Set `VERIFIER_SIGNING_KEY_JWK` and `VERIFIER_CERT_CHAIN_PEM` (certificate whose SAN dNSName is your host, chained to a root the wallet trusts) – see *Verifier certificate (wallet trust)* below (`npm run gen:csr` / `npm run gen:verifier-cert`). Without them a self-signed demo certificate is generated at startup, which wallets do not trust.
 4. **Trust the PID issuer** – `TRUSTED_ISSUERS=<IN Groupe Issuer URL>` (its keys are read from `<iss>/.well-known/jwt-vc-issuer`) and/or `TRUSTED_CA_PEM` for credentials that carry an `x5c` chain. The local demo issuer is always trusted.
 5. Get test credentials: PID from the IN Groupe Issuer (or a demo PID from `/demo-issuer`), birth certificate from `/demo-issuer`, bank attestations from the bank page.
+
+### Verifier certificate (wallet trust)
+
+Wallets evaluate the certificate that signs the request object. A wallet that answers *"Trust evaluation failed: the certificate '<host>' is not trustworthy"* does not know the verifier's certificate: the **self-signed demo certificate** the app generates at startup is never trusted. `GET /vp/verifier` shows exactly what the service currently signs with (subject, issuer, validity, PEM chain, `x509_hash` / `x509_san_dns` client identifiers).
+
+Pick one:
+
+1. **Certificate from the wallet's trusted PKI (recommended).** `npm run gen:csr -- <your-host>` writes `verifier-cert-out/csr.pem` (subject `CN=<host>`, SAN `dNSName=<host>`) and `key-env.txt`. Have the CA that the wallet trusts (e.g. the IN Groupe / SIGMA PKI) sign the CSR, then set `VERIFIER_SIGNING_KEY_JWK` (from `key-env.txt`) and `VERIFIER_CERT_CHAIN_PEM` (returned chain, leaf first, newlines as `\n`).
+2. **Your own demo CA, added to the wallet's trust anchors.** `npm run gen:verifier-cert -- <your-host>` creates a root CA and a leaf certificate for the host. Give `verifier-cert-out/ca.pem` to whoever manages the wallet's trust anchors; set `VERIFIER_SIGNING_KEY_JWK` and `VERIFIER_CERT_CHAIN_PEM` from `verifier-cert-out/env.txt`. The script also prints the `x509_hash` client id, in case the wallet pins that instead.
+3. **No certificate (quick test only).** `VP_CLIENT_ID_SCHEME=redirect_uri` sends the request unsigned and by value (minimum claims, so the link fits a QR code). The verifier is then not authenticated at all, and wallets that enforce HAIP may refuse it.
+
+`verifier-cert-out/` is git-ignored: the files contain a private key, never commit or share them. Certificates from the scripts are valid for one year.
 
 **Benin PID rulebook.** Claim names, `vct` and docTypes follow the *Benin PID / Birth Certificate Rulebook v2.0* (standard EUDI namespace): PID SD-JWT `vct` `https://credentials.benin.example/pid`, mdoc docType/namespace `eu.europa.ec.eudi.pid.1`; birth certificate `vct` `https://credentials.benin.example/birth-certificate`, mdoc `eu.europa.ec.eudi.birth_certificate.1`; claims `family_name`, `given_name`, `birth_date`, `birth_place`, `birth_country`, `nationality`, `resident_address`, … (see `config/rps.json`). The sensitive `personal_administrative_number` and the portrait are never requested. SD-JWT PIDs that use the older EU names (`birthdate`, `nationalities`, `address`, `place_of_birth`) are mapped to these names.
 

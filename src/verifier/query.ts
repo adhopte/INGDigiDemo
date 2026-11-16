@@ -40,7 +40,9 @@ function claimsPart(names: string[], r: RequestedCredential, path: (n: string) =
 }
 
 /** DCQL (OpenID4VP 1.0). Types offered in several formats become alternatives in `credential_sets`. */
-export function buildDcql(reqs: RequestedCredential[]) {
+/** `compact` (by-value requests that must fit in a QR code): ask only for the minimum claims, without claim_sets. */
+export function buildDcql(allReqs: RequestedCredential[], compact = false) {
+  const reqs = compact ? allReqs.map((r) => ({ ...r, claims: r.minClaims })) : allReqs;
   const credentials: unknown[] = [];
   const sets: { options: string[][] }[] = [];
   for (const r of reqs) {

@@ -59,7 +59,7 @@ describe('verifier rejects bad presentations', () => {
     const holder = await generateKeyPair('ES256', { extractable: true });
     const cred = await issueSdJwt({ privateKey: rogue.privateKey, iss: 'https://evil.example', vct: 'urn:eudi:pid:1', claims: { given_name: 'Eve' }, holderJwk: await exportJWK(holder.publicKey) });
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
-    const vp = await presentSdJwt({ credential: cred, reveal: ['given_name'], holderPrivateKey: holder.privateKey, aud: svc.verifier.identity.clientId, nonce: tx.nonce });
+    const vp = await presentSdJwt({ credential: cred, reveal: ['given_name'], holderPrivateKey: holder.privateKey, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
     await expect(respondToVerifier(svc.verifier, tx, { vp_token: { pid: [vp] } })).rejects.toBeInstanceOf(VpError);
     expect(tx.errorCode).toBe('untrusted_issuer');
   });
@@ -70,7 +70,7 @@ describe('verifier rejects bad presentations', () => {
     const holder = await generateKeyPair('ES256', { extractable: true });
     const cred = await issueSdJwt({ privateKey: rogue.privateKey, iss: cfg.issuer.localIssuerUrl, vct: 'urn:eudi:pid:1', claims: { given_name: 'Eve' }, holderJwk: await exportJWK(holder.publicKey) });
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
-    const vp = await presentSdJwt({ credential: cred, reveal: ['given_name'], holderPrivateKey: holder.privateKey, aud: svc.verifier.identity.clientId, nonce: tx.nonce });
+    const vp = await presentSdJwt({ credential: cred, reveal: ['given_name'], holderPrivateKey: holder.privateKey, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
     await expect(respondToVerifier(svc.verifier, tx, { vp_token: { pid: [vp] } })).rejects.toThrow(/signature/i);
     expect(tx.errorCode).toBe('invalid_presentation');
   });
@@ -89,7 +89,7 @@ describe('verifier rejects bad presentations', () => {
     const held = await addDemoCredential(svc.local, cfg, session, 'pid', 'dk');
     const other = await generateKeyPair('ES256', { extractable: true });
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
-    const vp = await presentSdJwt({ credential: held.credential, reveal: ['given_name'], holderPrivateKey: other.privateKey, aud: svc.verifier.identity.clientId, nonce: tx.nonce });
+    const vp = await presentSdJwt({ credential: held.credential, reveal: ['given_name'], holderPrivateKey: other.privateKey, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
     await expect(respondToVerifier(svc.verifier, tx, { vp_token: { pid: [vp] } })).rejects.toThrow(/key-binding/i);
   });
 
@@ -107,7 +107,7 @@ describe('verifier rejects bad presentations', () => {
     const held = await addDemoCredential(svc.local, cfg, session, 'pid', 'se');
     const { importJWK } = await import('jose');
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
-    const vp = await presentSdJwt({ credential: held.credential, reveal: ['given_name'], holderPrivateKey: await importJWK(held.holderPrivateJwk, 'ES256'), aud: svc.verifier.identity.clientId, nonce: tx.nonce });
+    const vp = await presentSdJwt({ credential: held.credential, reveal: ['given_name'], holderPrivateKey: await importJWK(held.holderPrivateJwk, 'ES256'), aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
     const forged = Buffer.from(JSON.stringify(['salt', 'family_name', 'Hacked'])).toString('base64url');
     const parts = vp.split('~');
     parts.splice(1, 0, forged);

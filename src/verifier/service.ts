@@ -119,6 +119,16 @@ export class Verifier {
     return tx;
   }
 
+  /** True when requests are passed by value, unsigned (client_id scheme redirect_uri). */
+  get byValue(): boolean {
+    return this.cfg.verifier.clientIdScheme === 'redirect_uri';
+  }
+
+  /** Client Identifier for a transaction. With the redirect_uri scheme it must equal the response_uri (OpenID4VP 1.0 §5.9.3). */
+  clientIdFor(tx: Transaction): string {
+    return this.byValue ? `redirect_uri:${this.responseUri(tx)}` : this.identity.clientId;
+  }
+
   responseUri(tx: Transaction): string {
     return `${this.cfg.publicBaseUrl}/vp/response/${tx.id}`;
   }
@@ -128,7 +138,7 @@ export class Verifier {
   }
 
   /** Authorization Request parameters (the content of the request object). */
-  requestParams(tx: Transaction, walletNonce?: string): Record<string, unknown> {
+  requestParams(tx: Transaction, walletNonce?: string, compact = false): Record<string, unknown> {
     const v = this.cfg.verifier;
     // Every format a request may be answered with must be declared here, or wallets answer "no matching documents".
     const wantsMdoc = tx.reqs.some((r) => r.attestation.mdoc && r.formats.includes('mso_mdoc'));
@@ -136,8 +146,8 @@ export class Verifier {
     const formats: Record<string, unknown> = { ...(wantsSd ? { 'dc+sd-jwt': SD_JWT_ALGS } : {}), ...(this.cfg.verifier.queryLanguage === 'pex' ? { 'vc+sd-jwt': SD_JWT_ALGS } : {}), ...(wantsMdoc ? { mso_mdoc: MDOC_ALGS } : {}) };
     const clientMetadata: Record<string, unknown> = {
       client_name: `${tx.rpName} – ${this.cfg.brand.name} ${this.cfg.brand.product} demo`,
-      logo_uri: `${this.cfg.publicBaseUrl}/img/rp-${tx.rpId}.png`,
-      vp_formats: formats,
+      // compact (by-value, QR-sized) requests drop the logo and the pre-1.0 duplicate of vp_formats_supported
+      ...(compact ? {} : { logo_uri: `${this.cfg.publicBaseUrl}/img/rp-${tx.rpId}.png`, vp_formats: formats }),
       vp_formats_supported: formats,
     };
     if (tx.enc) {
@@ -149,7 +159,7 @@ export class Verifier {
       });
     }
     const params: Record<string, unknown> = {
-      client_id: this.identity.clientId,
+      client_id: this.clientIdFor(tx),
       response_type: 'vp_token',
       response_mode: v.responseMode,
       response_uri: this.responseUri(tx),
@@ -158,7 +168,7 @@ export class Verifier {
       client_metadata: clientMetadata,
     };
     if (v.queryLanguage === 'pex') params.presentation_definition = buildPresentationDefinition(tx.reqs, tx.id);
-    else params.dcql_query = buildDcql(tx.reqs);
+    else params.dcql_query = buildDcql(tx.reqs, compact);
     if (walletNonce) params.wallet_nonce = walletNonce;
     return params;
   }
@@ -166,7 +176,7 @@ export class Verifier {
   /** Signed request object (x509_san_dns) – served at request_uri. */
   async signedRequestObject(tx: Transaction, walletNonce?: string): Promise<string> {
     const now = Math.floor(this.now() / 1000);
-    return new SignJWT({ ...this.requestParams(tx, walletNonce), iss: this.identity.clientId, aud: 'https://self-issued.me/v2', iat: now, exp: now + 600 })
+    return new SignJWT({ ...this.requestParams(tx, walletNonce), iss: this.clientIdFor(tx), aud: 'https://self-issued.me/v2', iat: now, exp: now + 600 })
       .setProtectedHeader({ alg: 'ES256', typ: 'oauth-authz-req+jwt', x5c: this.identity.x5c })
       .sign(this.identity.privateKey);
   }
@@ -174,19 +184,19 @@ export class Verifier {
   /** The link/QR content that invokes the wallet. */
   walletLink(tx: Transaction): string {
     const base = this.cfg.verifier.deeplinkBase;
-    const q = new URLSearchParams({ client_id: this.identity.clientId });
+    const q = new URLSearchParams({ client_id: this.clientIdFor(tx) });
     if (this.cfg.verifier.clientIdScheme !== 'redirect_uri') {
       q.set('request_uri', this.requestUri(tx));
       q.set('request_uri_method', 'post');
     } else {
       // unsigned, by value (redirect_uri scheme)
-      for (const [k, val] of Object.entries(this.requestParams(tx))) if (k !== 'client_id') q.set(k, typeof val === 'string' ? val : JSON.stringify(val));
+      for (const [k, val] of Object.entries(this.requestParams(tx, undefined, true))) if (k !== 'client_id') q.set(k, typeof val === 'string' ? val : JSON.stringify(val));
     }
     return `${base}?${q.toString()}`;
   }
 
-  private audiences(): string[] {
-    const id = this.identity.clientId;
+  private audiences(tx: Transaction): string[] {
+    const id = this.clientIdFor(tx);
     return [id, id.slice(id.indexOf(':') + 1)];
   }
 
@@ -236,7 +246,7 @@ export class Verifier {
         if (!p.includes('~') && looksLikeDeviceResponse(p)) {
           if (mdocReqs.length === 0) throw new SdJwtError('mdoc presentations are not accepted for this request');
           const thumb = tx.enc ? Buffer.from(await calculateJwkThumbprint(tx.enc.publicJwk, 'sha256'), 'base64url') : undefined;
-          const transcripts = openId4VpSessionTranscripts({ clientId: this.identity.clientId, nonce: tx.nonce, responseUri: this.responseUri(tx), ...(thumb ? { jwkThumbprint: thumb } : {}) });
+          const transcripts = openId4VpSessionTranscripts({ clientId: this.clientIdFor(tx), nonce: tx.nonce, responseUri: this.responseUri(tx), ...(thumb ? { jwkThumbprint: thumb } : {}) });
           let ok = false;
           let lastErr: unknown;
           for (const r of mdocReqs) {
@@ -252,7 +262,7 @@ export class Verifier {
           }
           if (!ok) throw lastErr;
         } else {
-          const v = await verifySdJwtPresentation(p, { resolveIssuerKey: this.resolveIssuerKey, acceptedVcts, aud: this.audiences(), nonce: tx.nonce, now: Math.floor(this.now() / 1000) });
+          const v = await verifySdJwtPresentation(p, { resolveIssuerKey: this.resolveIssuerKey, acceptedVcts, aud: this.audiences(tx), nonce: tx.nonce, now: Math.floor(this.now() / 1000) });
           verified.push({ iss: v.iss, vct: v.vct, claims: canonicalizeClaims(v.claims) });
         }
       } catch (e) {

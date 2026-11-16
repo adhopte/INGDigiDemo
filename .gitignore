@@ -8,3 +8,5 @@ dist/
 *.log
 coverage/
 .DS_Store
+
+verifier-cert-out/

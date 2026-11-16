@@ -66,6 +66,72 @@ describe('platform basics', () => {
   });
 });
 
+describe('redirect_uri client identifier (unsigned, by value)', () => {
+  it('client_id equals the response_uri, the link is QR-sized, and a presentation verifies end to end', async () => {
+    const { app, svc, cfg } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    const rp = cfg.rps.find((r) => r.id === 'bank')!;
+    const o = svc.local.createOffer('pid', { given_name: 'Lena', family_name: 'Demo', birth_date: '1990-01-01', birth_place: 'Köln', nationality: 'DE', resident_address: 'Weg 1', issuing_country: 'DE' });
+    const r = await walletRedeem(app, `/issuer/offers/${o.id}`);
+    for (const pres of ['pid', 'pid_any_sd']) {
+      const tx = await svc.verifier.createTransaction(rp, pres, '/bank/');
+      expect(svc.verifier.clientIdFor(tx)).toBe(`redirect_uri:${svc.verifier.responseUri(tx)}`);
+      const link = new URL(svc.verifier.walletLink(tx));
+      expect(link.searchParams.get('client_id')).toBe(svc.verifier.clientIdFor(tx));
+      expect(link.searchParams.get('response_uri')).toBe(svc.verifier.responseUri(tx));
+      expect(link.searchParams.get('request_uri')).toBeNull();
+      expect(JSON.parse(link.searchParams.get('dcql_query')!).credentials[0].format).toBe('dc+sd-jwt');
+      expect(svc.verifier.walletLink(tx).length).toBeLessThan(2300); // fits a QR code (error correction M)
+      expect((await request(app).get(`/vp/request/${tx.id}`)).status).toBe(404); // nothing to fetch: not signed, by value
+      const vp = await presentSdJwt({ credential: r.credRes!.body.credential, reveal: ['given_name', 'family_name', 'birth_date'], holderPrivateKey: r.privateKey!, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
+      const body = { vp_token: JSON.stringify({ pid: [vp] }), state: tx.state };
+      const { respondToVerifier } = await import('../src/mock/wallet.js');
+      await respondToVerifier(svc.verifier, tx, { vp_token: { pid: [vp] } });
+      expect(tx.status).toBe('complete');
+      void body;
+    }
+  });
+});
+
+describe('verifier certificate (what a wallet trust evaluation sees)', () => {
+  it('a generated PKI configures the service; its chain validates against the generated root; /vp/verifier reports it', async () => {
+    const { generateDemoPki } = await import('../scripts/lib/verifier-cert.mjs');
+    const { validateX5cChain } = await import('../src/verifier/trust.js');
+    const host = 'rp.example.test';
+    const pki = await generateDemoPki(host);
+    for (const scheme of ['x509_hash', 'x509_san_dns']) {
+      const { app, svc, cfg } = await boot({ ...pki.env, VP_CLIENT_ID_SCHEME: scheme });
+      expect(svc.verifier.identity.ephemeral).toBe(false);
+      expect(svc.verifier.identity.clientId).toBe(pki.clientIds[scheme as 'x509_hash']);
+      const tx = await svc.verifier.createTransaction(cfg.rps[0]!, 'pid', '/');
+      const jwt = (await request(app).post(`/vp/request/${tx.id}`).type('form').send({})).text;
+      const header = JSON.parse(Buffer.from(jwt.split('.')[0]!, 'base64url').toString());
+      expect(header.x5c).toHaveLength(2); // leaf + root
+      const leaf = validateX5cChain(header.x5c, [pki.caPem]); // what the wallet does with its trust anchors
+      expect(leaf.subject).toContain(host);
+      expect(leaf.subjectAltName).toContain(`DNS:${host}`);
+      const info = (await request(app).get('/vp/verifier')).body;
+      expect(info.self_signed_ephemeral).toBe(false);
+      expect(info.x509_hash_client_id).toBe(pki.clientIds.x509_hash);
+      expect(info.chain_pem).toHaveLength(2);
+    }
+    // an unrelated root does not validate the chain (the failure your wallet reported, in miniature)
+    const other = await generateDemoPki(host);
+    expect(() => validateX5cChain([Buffer.from(pki.leaf.rawData).toString('base64')], [other.caPem])).toThrow(/trusted root/);
+    // default (no key configured) is self-signed and says so
+    const dflt = await boot();
+    const body = (await request(dflt.app).get('/vp/verifier')).body;
+    expect(body.self_signed_ephemeral).toBe(true);
+    expect(body.note).toMatch(/no wallet will trust/);
+  });
+
+  it('generates a CSR for a CA to sign', async () => {
+    const { generateCsr } = await import('../scripts/lib/verifier-cert.mjs');
+    const r = await generateCsr('rp.example.test');
+    expect(r.csrPem).toContain('BEGIN CERTIFICATE REQUEST');
+    expect(JSON.parse(r.keyEnv).d).toBeTruthy();
+  });
+});
+
 describe('diagnostics and caching', () => {
   it('/vp/diagnostics exists only when enabled and records wallet metadata and rejections without claim values', async () => {
     const off = await boot({ DIAGNOSTICS_ENDPOINT: 'false' });
@@ -113,9 +179,9 @@ describe('OpenID4VCI issuer over HTTP', () => {
     const credential = r.credRes!.body.credentials[0].credential as string;
 
     const tx = await svc.verifier.createTransaction(cfg.rps.find((x) => x.id === 'eshop')!, 'payment', '/eshop/');
-    const vp = await presentSdJwt({ credential, reveal: ['iban', 'account_holder_name'], holderPrivateKey: r.privateKey!, aud: svc.verifier.identity.clientId, nonce: tx.nonce });
+    const vp = await presentSdJwt({ credential, reveal: ['iban', 'account_holder_name'], holderPrivateKey: r.privateKey!, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
     const { createIssuerKeyResolver } = await import('../src/verifier/trust.js');
-    const v = await verifySdJwtPresentation(vp, { resolveIssuerKey: createIssuerKeyResolver(cfg, svc.local), acceptedVcts: cfg.attestations.payment!.acceptedVct, aud: svc.verifier.identity.clientId, nonce: tx.nonce });
+    const v = await verifySdJwtPresentation(vp, { resolveIssuerKey: createIssuerKeyResolver(cfg, svc.local), acceptedVcts: cfg.attestations.payment!.acceptedVct, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
     expect(v.claims).toEqual({ iban: 'XX00 DEMO 0000 0000 01', account_holder_name: 'Test Holder' });
 
     // offer object is gone once redeemed; replaying the code fails

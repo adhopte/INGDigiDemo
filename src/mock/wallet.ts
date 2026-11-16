@@ -107,7 +107,7 @@ export async function buildVpToken(session: SessionLike, tx: Transaction, verifi
         credential: held.credential,
         reveal: req.claims,
         holderPrivateKey: await importJWK(held.holderPrivateJwk, 'ES256'),
-        aud: verifier.identity.clientId,
+        aud: verifier.clientIdFor(tx),
         nonce: tx.nonce,
       }),
     ];

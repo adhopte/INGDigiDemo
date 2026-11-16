@@ -19,7 +19,7 @@ async function setup(env: Record<string, string> = {}, mode = 'direct_post.jwt')
 
 async function transcriptFor(svc: Awaited<ReturnType<typeof setup>>['svc'], tx: any, variant = 0) {
   const thumb = tx.enc ? Buffer.from(await calculateJwkThumbprint(tx.enc.publicJwk, 'sha256'), 'base64url') : undefined;
-  return openId4VpSessionTranscripts({ clientId: svc.verifier.identity.clientId, nonce: tx.nonce, responseUri: svc.verifier.responseUri(tx), ...(thumb ? { jwkThumbprint: thumb } : {}) })[variant];
+  return openId4VpSessionTranscripts({ clientId: svc.verifier.clientIdFor(tx), nonce: tx.nonce, responseUri: svc.verifier.responseUri(tx), ...(thumb ? { jwkThumbprint: thumb } : {}) })[variant];
 }
 
 describe('mdoc (mso_mdoc) PID presentation', () => {
