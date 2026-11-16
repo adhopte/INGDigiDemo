@@ -295,5 +295,6 @@
   "claim.mother_given_name": "Prénom de la mère",
   "claim.father_family_name": "Nom de famille du père",
   "claim.father_given_name": "Prénom du père",
-  "claim.birth_record_reference": "Référence de l’acte de naissance"
+  "claim.birth_record_reference": "Référence de l’acte de naissance",
+  "verify.qr_too_long": "Cette demande est trop volumineuse pour un QR code. Ouvrez-la sur cet appareil avec le bouton."
 }

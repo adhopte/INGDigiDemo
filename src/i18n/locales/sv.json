@@ -295,5 +295,6 @@
   "claim.mother_given_name": "Moderns förnamn",
   "claim.father_family_name": "Faderns efternamn",
   "claim.father_given_name": "Faderns förnamn",
-  "claim.birth_record_reference": "Födelseregistrets referens"
+  "claim.birth_record_reference": "Födelseregistrets referens",
+  "verify.qr_too_long": "Den här begäran är för stor för en QR-kod. Öppna den på den här enheten med knappen."
 }

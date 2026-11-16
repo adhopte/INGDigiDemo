@@ -295,5 +295,6 @@
   "claim.mother_given_name": "Mother’s given name",
   "claim.father_family_name": "Father’s family name",
   "claim.father_given_name": "Father’s given name",
-  "claim.birth_record_reference": "Birth record reference"
+  "claim.birth_record_reference": "Birth record reference",
+  "verify.qr_too_long": "This request is too large for a QR code. Open it on this device with the button."
 }

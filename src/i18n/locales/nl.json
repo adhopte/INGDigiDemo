@@ -295,5 +295,6 @@
   "claim.mother_given_name": "Voornaam moeder",
   "claim.father_family_name": "Achternaam vader",
   "claim.father_given_name": "Voornaam vader",
-  "claim.birth_record_reference": "Aktereferentie"
+  "claim.birth_record_reference": "Aktereferentie",
+  "verify.qr_too_long": "Dit verzoek is te groot voor een QR-code. Open het op dit apparaat met de knop."
 }

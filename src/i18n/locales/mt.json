@@ -295,5 +295,6 @@
   "claim.mother_given_name": "Isem l-omm",
   "claim.father_family_name": "Kunjom il-missier",
   "claim.father_given_name": "Isem il-missier",
-  "claim.birth_record_reference": "Referenza tar-reġistru tat-twelid"
+  "claim.birth_record_reference": "Referenza tar-reġistru tat-twelid",
+  "verify.qr_too_long": "Din it-talba hija kbira wisq għal kodiċi QR. Iftaħha fuq dan l-apparat bil-buttuna."
 }

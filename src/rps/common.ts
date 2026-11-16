@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import type { RpConfig } from '../config.js';
-import { qrDataUrl } from '../issuer/offer.js';
+import { qrDataUrlOrUndefined } from '../issuer/offer.js';
 import { log } from '../logger.js';
 import { PERSONAS, addDemoCredential, buildVpToken, heldClaims, heldCredential, respondToVerifier } from '../mock/wallet.js';
 import { VpError } from '../verifier/service.js';
@@ -116,7 +116,7 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
     const link = svc.verifier.walletLink(tx);
     res.render('verify', {
       title: res.locals.t('verify.title'),
-      tx, link, qr: await qrDataUrl(link),
+      tx, link, qr: await qrDataUrlOrUndefined(link),
       expiresAt: new Date(tx.expiresAt),
       statusUrl: `/${rp.id}/verify/status/${id}`,
       finishUrl: `/${rp.id}/verify/finish/${id}`,

@@ -132,6 +132,21 @@ describe('verifier certificate (what a wallet trust evaluation sees)', () => {
   });
 });
 
+describe('QR fallback for long links', () => {
+  it('university pid_bc by value is too long for a QR code: link only, no crash; separate requests fit', async () => {
+    const { app } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri', MULTI_CREDENTIAL: 'true' });
+    const a = request.agent(app);
+    const loc = (await a.get('/university/verify?p=pid_bc&returnTo=/university/documents')).headers.location!;
+    const page = (await a.get(loc)).text;
+    expect(page).toContain('openid4vp://authorize?');
+    expect(page).toContain('too large for a QR code');
+    expect(page).not.toContain('data:image/png');
+    const two = request.agent(app);
+    const loc2 = (await two.get('/university/verify?p=bc&returnTo=/university/documents')).headers.location!;
+    expect((await two.get(loc2)).text).toContain('data:image/png');
+  });
+});
+
 describe('diagnostics and caching', () => {
   it('/vp/diagnostics exists only when enabled and records wallet metadata and rejections without claim values', async () => {
     const off = await boot({ DIAGNOSTICS_ENDPOINT: 'false' });
