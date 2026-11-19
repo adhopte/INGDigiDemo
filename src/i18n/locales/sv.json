@@ -321,5 +321,6 @@
   "issuer.console.sigma_advanced": "Använd andra identifierare",
   "issuer.console.sigma_advanced_hint": "Utfärdaren fyller i beviset från sina egna register för dessa identifierare. En okänd identifierare ger ett tomt bevis. Fråga utfärdaren vilka som finns.",
   "issuer.console.sigma_custom_id": "Identifierare",
-  "issuer.console.sigma_custom_cred": "Bevisidentifierare (valfri)"
+  "issuer.console.sigma_custom_cred": "Bevisidentifierare (valfri)",
+  "uni.docs.restart": "Börja om med andra dokument"
 }

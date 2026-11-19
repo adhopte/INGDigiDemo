@@ -321,5 +321,6 @@
   "issuer.console.sigma_advanced": "Uża identifikaturi oħra",
   "issuer.console.sigma_advanced_hint": "L-emittent jimla l-kredenzjal mir-reġistri tiegħu stess għal dawn l-identifikaturi. Identifikatur mhux magħruf joħloq kredenzjal vojt. Staqsi lill-emittent liema jeżistu.",
   "issuer.console.sigma_custom_id": "Identifikatur",
-  "issuer.console.sigma_custom_cred": "Identifikatur tal-kredenzjal (mhux obbligatorju)"
+  "issuer.console.sigma_custom_cred": "Identifikatur tal-kredenzjal (mhux obbligatorju)",
+  "uni.docs.restart": "Ibda mill-ġdid b’dokumenti oħra"
 }

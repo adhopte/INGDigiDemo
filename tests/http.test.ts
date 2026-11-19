@@ -355,6 +355,9 @@ describe('RP flows in the browser session', () => {
     expect((await request(app).get('/electricity/account')).headers.location).toBe('/electricity/login');
     expect((await request(app).get('/eshop/order')).headers.location).toBe('/eshop/cart');
     expect((await request(app).get('/university/enrol')).headers.location).toBe('/university/documents');
+    const rs = await request(app).post('/university/restart'); // start over (e.g. PID and birth certificate of different people)
+    expect(rs.status).toBe(302);
+    expect(rs.headers.location).toBe('/university/documents');
     const a = request.agent(app);
     const r = await a.get('/bank/verify?p=pid&returnTo=//evil.example');
     expect(r.status).toBe(302);

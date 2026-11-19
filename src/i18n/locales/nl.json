@@ -321,5 +321,6 @@
   "issuer.console.sigma_advanced": "Andere identifiers gebruiken",
   "issuer.console.sigma_advanced_hint": "De uitgever vult het bewijs met zijn eigen registers voor deze identifiers. Een onbekende identifier geeft een leeg bewijs. Vraag de uitgever welke bestaan.",
   "issuer.console.sigma_custom_id": "Identifier",
-  "issuer.console.sigma_custom_cred": "Credential-identifier (optioneel)"
+  "issuer.console.sigma_custom_cred": "Credential-identifier (optioneel)",
+  "uni.docs.restart": "Opnieuw beginnen met andere documenten"
 }

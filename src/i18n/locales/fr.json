@@ -321,5 +321,6 @@
   "issuer.console.sigma_advanced": "Utiliser d’autres identifiants",
   "issuer.console.sigma_advanced_hint": "L’émetteur remplit le justificatif à partir de ses propres registres pour ces identifiants. Un identifiant inconnu produit un justificatif vide. Demandez à l’émetteur lesquels existent.",
   "issuer.console.sigma_custom_id": "Identifiant",
-  "issuer.console.sigma_custom_cred": "Identifiant du justificatif (facultatif)"
+  "issuer.console.sigma_custom_cred": "Identifiant du justificatif (facultatif)",
+  "uni.docs.restart": "Recommencer avec d’autres documents"
 }

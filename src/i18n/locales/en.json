@@ -321,5 +321,6 @@
   "issuer.console.sigma_advanced": "Use other identifiers",
   "issuer.console.sigma_advanced_hint": "The issuer fills the credential from its own records for these identifiers. An unknown identifier produces an empty credential. Ask the issuer which ones exist.",
   "issuer.console.sigma_custom_id": "Identifier",
-  "issuer.console.sigma_custom_cred": "Credential identifier (optional)"
+  "issuer.console.sigma_custom_cred": "Credential identifier (optional)",
+  "uni.docs.restart": "Start over with different documents"
 }

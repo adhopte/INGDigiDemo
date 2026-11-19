@@ -32,6 +32,12 @@ export function universityRouter(ctx: Ctx, rp: RpConfig): Router {
     res.render('university/documents', { title: res.locals.t('uni.docs.title'), hasPid: !!pid(req), hasBc: !!bc(req), multi: ctx.cfg.multiCredential, mismatch: !!pid(req) && !!bc(req) && !identityMatches(req) }),
   );
 
+  /** Forget the documents presented so far (e.g. PID and birth certificate of different people) and begin again. */
+  router.post('/restart', (req, res) => {
+    if (req.session.disclosed) delete req.session.disclosed[rp.id];
+    res.redirect(`/${rp.id}/documents`);
+  });
+
   const needBoth = (req: Request) => !!pid(req) && !!bc(req) && identityMatches(req);
 
   router.get('/enrol', (req, res) => {

@@ -321,5 +321,6 @@
   "issuer.console.sigma_advanced": "Brug andre identifikatorer",
   "issuer.console.sigma_advanced_hint": "Udstederen udfylder beviset fra sine egne registre for disse identifikatorer. En ukendt identifikator giver et tomt bevis. Spørg udstederen, hvilke der findes.",
   "issuer.console.sigma_custom_id": "Identifikator",
-  "issuer.console.sigma_custom_cred": "Bevis-identifikator (valgfri)"
+  "issuer.console.sigma_custom_cred": "Bevis-identifikator (valgfri)",
+  "uni.docs.restart": "Start forfra med andre dokumenter"
 }

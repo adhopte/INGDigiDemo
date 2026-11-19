@@ -14,6 +14,9 @@
       <% if (!hasBc && multi && hasPid) { %><p><a class="btn" href="/university/verify?p=pid_bc&amp;returnTo=%2Funiversity%2Fdocuments"><%= t('uni.docs.present_both') %></a></p><% } %>
     </li>
   </ol>
+  <% if (hasPid || hasBc) { %>
+    <form method="post" action="/university/restart"><button class="btn btn-secondary<%= mismatch ? ' btn-large' : '' %>" type="submit"><%= t('uni.docs.restart') %></button></form>
+  <% } %>
   <% if (hasPid && hasBc && !mismatch) { %>
     <p class="alert alert-success" role="status"><%= t('uni.docs.match') %></p>
     <p><a class="btn btn-large" href="/university/enrol"><%= t('uni.docs.continue') %></a></p>

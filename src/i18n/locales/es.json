@@ -321,5 +321,6 @@
   "issuer.console.sigma_advanced": "Usar otros identificadores",
   "issuer.console.sigma_advanced_hint": "El emisor rellena la credencial con sus propios registros para estos identificadores. Un identificador desconocido genera una credencial vacía. Pregunte al emisor cuáles existen.",
   "issuer.console.sigma_custom_id": "Identificador",
-  "issuer.console.sigma_custom_cred": "Identificador de la credencial (opcional)"
+  "issuer.console.sigma_custom_cred": "Identificador de la credencial (opcional)",
+  "uni.docs.restart": "Empezar de nuevo con otros documentos"
 }
