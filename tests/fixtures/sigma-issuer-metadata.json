@@ -1,0 +1,422 @@
+{
+ "credential_issuer": "https://issuer.sigma.prep.smartid.nuagein.io",
+ "authorization_servers": [
+  "https://idp-pid.sigma.prep.smartid.nuagein.io/realms/pid-haip",
+  "https://issuer.sigma.prep.smartid.nuagein.io"
+ ],
+ "credential_endpoint": "https://issuer.sigma.prep.smartid.nuagein.io/credential",
+ "nonce_endpoint": "https://issuer.sigma.prep.smartid.nuagein.io/nonce",
+ "credential_configurations_supported": {
+  "eu.europa.ec.eudi.pid_mdoc": {
+   "format": "mso_mdoc",
+   "doctype": "eu.europa.ec.eudi.pid.1",
+   "scope": "pid-scope2",
+   "cryptographic_binding_methods_supported": [
+    "cose_key"
+   ],
+   "credential_signing_alg_values_supported": [
+    -7
+   ],
+   "credential_metadata": {
+    "display": [
+     {
+      "name": "Digital Identity",
+      "locale": "en"
+     }
+    ],
+    "claims": [
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "family_name"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "family_name_birth"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "given_name"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "birth_date"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "age_over_18"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "birth_place"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "birth_country"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "birth_state"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "birth_city"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "resident_address"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "nationality"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "gender"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "portrait"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "document_number"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "issuance_date"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "expiry_date"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "issuing_authority"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "issuing_country"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "personal_administrative_number"
+      ]
+     }
+    ]
+   }
+  },
+  "eu.europa.ec.eudi.birth_certificate_vc_sd_jwt": {
+   "format": "dc+sd-jwt",
+   "vct": "urn:eudi:birth_certificate:1",
+   "scope": "birth-certificate-sdjwt",
+   "cryptographic_binding_methods_supported": [
+    "jwk"
+   ],
+   "credential_signing_alg_values_supported": [
+    "ES256"
+   ],
+   "credential_metadata": {
+    "display": [
+     {
+      "name": "Birth certificate",
+      "locale": "en"
+     }
+    ],
+    "claims": [
+     {
+      "path": [
+       "family_name"
+      ]
+     },
+     {
+      "path": [
+       "given_name"
+      ]
+     },
+     {
+      "path": [
+       "family_name_birth"
+      ]
+     },
+     {
+      "path": [
+       "given_name_birth"
+      ]
+     },
+     {
+      "path": [
+       "birth_date"
+      ]
+     },
+     {
+      "path": [
+       "birth_place"
+      ]
+     },
+     {
+      "path": [
+       "birth_country"
+      ]
+     },
+     {
+      "path": [
+       "birth_state"
+      ]
+     },
+     {
+      "path": [
+       "birth_city"
+      ]
+     },
+     {
+      "path": [
+       "gender"
+      ]
+     },
+     {
+      "path": [
+       "mother_family_name"
+      ]
+     },
+     {
+      "path": [
+       "mother_given_name"
+      ]
+     },
+     {
+      "path": [
+       "father_family_name"
+      ]
+     },
+     {
+      "path": [
+       "father_given_name"
+      ]
+     },
+     {
+      "path": [
+       "birth_record_reference"
+      ]
+     },
+     {
+      "path": [
+       "issuance_date"
+      ]
+     },
+     {
+      "path": [
+       "issuing_authority"
+      ]
+     },
+     {
+      "path": [
+       "registration_date"
+      ]
+     },
+     {
+      "path": [
+       "registration_place"
+      ]
+     },
+     {
+      "path": [
+       "declarant_name"
+      ]
+     },
+     {
+      "path": [
+       "declarant_relationship"
+      ]
+     },
+     {
+      "path": [
+       "marginal_mentions"
+      ]
+     },
+     {
+      "path": [
+       "marginal_mentions2"
+      ]
+     },
+     {
+      "path": [
+       "document_number"
+      ]
+     }
+    ]
+   }
+  },
+  "eu.europa.ec.eudi.pid_mdoc_emrtd": {
+   "format": "mso_mdoc",
+   "doctype": "eu.europa.ec.eudi.pid.1",
+   "scope": "eMRTD-mdoc",
+   "cryptographic_binding_methods_supported": [
+    "cose_key"
+   ],
+   "credential_signing_alg_values_supported": [
+    -7
+   ],
+   "credential_metadata": {
+    "display": [
+     {
+      "name": "Digital Identity",
+      "locale": "en"
+     }
+    ],
+    "claims": [
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "family_name"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "family_name_birth"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "given_name"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "birth_date"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "age_over_18"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "birth_place"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "birth_country"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "birth_state"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "birth_city"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "resident_address"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "nationality"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "gender"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "portrait"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "document_number"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "issuance_date"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "expiry_date"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "issuing_authority"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "issuing_country"
+      ]
+     },
+     {
+      "path": [
+       "eu.europa.ec.eudi.pid.1",
+       "personal_administrative_number"
+      ]
+     }
+    ]
+   }
+  }
+ }
+}

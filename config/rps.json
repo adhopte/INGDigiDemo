@@ -1,5 +1,5 @@
 {
-  "_comment": "Attestation catalogue + RP definitions. Claim names, vct and docType follow the Benin PID / Birth Certificate Rulebook v2.0 (standard EUDI namespace). 'acceptedVct' = SD-JWT VC types accepted ('*' = any); 'formats' = formats requested; 'mdoc' maps claim names to ISO mdoc elements; 'minClaims' = fallback set when the wallet's credential lacks optional claims. Everything can be overridden by env vars (see .env.example).",
+  "_comment": "Attestation catalogue + RP definitions, aligned with the SIGMA issuer metadata (https://issuer.sigma.prep.smartid.nuagein.io/.well-known/openid-credential-issuer): PID = mdoc eu.europa.ec.eudi.pid.1 (config eu.europa.ec.eudi.pid_mdoc); birth certificate = dc+sd-jwt vct urn:eudi:birth_certificate:1. 'externalConfigurationId' = id at the external issuer; 'credentialConfigurationId' = id of the local demo issuer. 'acceptedVct' = SD-JWT VC types accepted ('*' = any); 'formats' = formats requested (first = preferred); 'mdoc' maps claim names to ISO mdoc elements; 'minClaims' = fallback set when the wallet's credential lacks optional claims. Everything can be overridden by env vars (see .env.example).",
   "attestations": {
     "pid": {
       "credentialConfigurationId": "demo_pid",
@@ -10,8 +10,8 @@
         "urn:eu.europa.ec.eudi:pid:1"
       ],
       "formats": [
-        "dc+sd-jwt",
-        "mso_mdoc"
+        "mso_mdoc",
+        "dc+sd-jwt"
       ],
       "mdoc": {
         "docType": "eu.europa.ec.eudi.pid.1",
@@ -46,7 +46,8 @@
         "issuing_authority",
         "issuing_country",
         "age_over_18"
-      ]
+      ],
+      "externalConfigurationId": "eu.europa.ec.eudi.pid_mdoc"
     },
     "account": {
       "credentialConfigurationId": "demo_bank_account",
@@ -74,31 +75,14 @@
     },
     "birth_certificate": {
       "credentialConfigurationId": "demo_birth_certificate",
-      "vct": "https://credentials.benin.example/birth-certificate",
+      "vct": "urn:eudi:birth_certificate:1",
       "acceptedVct": [
+        "urn:eudi:birth_certificate:1",
         "https://credentials.benin.example/birth-certificate"
       ],
       "formats": [
-        "dc+sd-jwt",
-        "mso_mdoc"
+        "dc+sd-jwt"
       ],
-      "mdoc": {
-        "docType": "eu.europa.ec.eudi.birth_certificate.1",
-        "namespace": "eu.europa.ec.eudi.birth_certificate.1",
-        "elements": {
-          "family_name": "family_name",
-          "given_name": "given_name",
-          "birth_date": "birth_date",
-          "birth_place": "birth_place",
-          "birth_country": "birth_country",
-          "mother_family_name": "mother_family_name",
-          "mother_given_name": "mother_given_name",
-          "father_family_name": "father_family_name",
-          "father_given_name": "father_given_name",
-          "birth_record_reference": "birth_record_reference",
-          "issuing_authority": "issuing_authority"
-        }
-      },
       "claims": [
         "family_name",
         "given_name",
@@ -111,7 +95,8 @@
         "father_given_name",
         "birth_record_reference",
         "issuing_authority"
-      ]
+      ],
+      "externalConfigurationId": "eu.europa.ec.eudi.birth_certificate_vc_sd_jwt"
     }
   },
   "rps": [

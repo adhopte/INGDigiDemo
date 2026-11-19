@@ -302,5 +302,19 @@
   "verify.phone_alt": "Lille QR-kode, der åbner en side med wallet-knappen",
   "open.title": "Åbn din wallet",
   "open.hint": "{rp} beder dig dele data fra din EU Wallet. Tryk på knappen på denne telefon.",
-  "open.after": "Når du har godkendt i walletten, fortsætter siden på din computer automatisk."
+  "open.after": "Når du har godkendt i walletten, fortsætter siden på din computer automatisk.",
+  "dash.sigma.title": "Tilsluttet SIGMA-udsteder",
+  "dash.sigma.desc": "Beviser udstederen tilbyder",
+  "dash.sigma.unreachable": "Udstederens metadata kunne ikke indlæses:",
+  "dash.sigma.mode_local": "Den lokale demo-udsteder udsteder pt. alt. Sæt ISSUER_MODE=external for at bruge denne udsteder.",
+  "dash.sigma.col.att": "Attest",
+  "dash.sigma.col.config": "SIGMA-konfiguration",
+  "dash.sigma.col.status": "Udstedt af",
+  "dash.sigma.ok": "SIGMA-udsteder",
+  "dash.sigma.fallback": "Tilbydes ikke af SIGMA – lokal demo-udsteder",
+  "issuer.console.sigma_title": "Rigtigt PID fra SIGMA-udsteder",
+  "issuer.console.sigma_pid": "Opretter et wallet-initieret tilbud på PID’et (mdoc) fra den tilsluttede SIGMA-udsteder. Din wallet gennemfører selv udstederens autorisationsflow.",
+  "issuer.console.sigma_btn": "Opret SIGMA-PID-tilbud",
+  "issuer.console.sigma_note": "Eksperimentelt: endnu ikke verificeret med SIGMA-walletten.",
+  "offer.fallback_note": "SIGMA-udstederen tilbyder ikke dette attest, så den lokale demo-udsteder udsteder det."
 }

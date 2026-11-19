@@ -1,5 +1,6 @@
 import type { AppConfig } from './config.js';
 import { createIssuerProvider, type IssuerProvider } from './issuer/provider.js';
+import { RemoteIssuerMetadata } from './issuer/remote.js';
 import { loadOrGenerateKey } from './issuer/local/keys.js';
 import { LocalIssuer } from './issuer/local/service.js';
 import { log } from './logger.js';
@@ -12,14 +13,17 @@ export interface Services {
   local: LocalIssuer;
   issuer: IssuerProvider;
   verifier: Verifier;
+  /** Live metadata of the external issuer (undefined when no metadata URL is configured). */
+  remote: RemoteIssuerMetadata | undefined;
 }
 
 export async function createServices(cfg: AppConfig, fetchImpl: typeof fetch = fetch): Promise<Services> {
   const keys = await loadOrGenerateKey(cfg.issuer.signingKeyJwk);
   if (keys.ephemeral) log.warn('Local issuer uses an ephemeral signing key (regenerated on restart); set ISSUER_SIGNING_KEY_JWK to keep issued credentials valid across restarts');
   const local = new LocalIssuer(cfg, keys);
-  const issuer = createIssuerProvider(cfg, local, fetchImpl);
+  const remote = cfg.issuer.metadataUrl ? new RemoteIssuerMetadata(cfg, fetchImpl) : undefined;
+  const issuer = createIssuerProvider(cfg, local, fetchImpl, remote);
   const identity = await createVerifierIdentity(cfg);
   const verifier = new Verifier(cfg, identity, createIssuerKeyResolver(cfg, local, fetchImpl));
-  return { local, issuer, verifier };
+  return { local, issuer, verifier, remote };
 }

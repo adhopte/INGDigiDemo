@@ -19,7 +19,10 @@ export interface PresentationConfig {
 
 export interface AttestationConfig {
   key: string;
+  /** Credential configuration id of the LOCAL demo issuer. */
   credentialConfigurationId: string;
+  /** Credential configuration id at the EXTERNAL issuer (SIGMA), when it differs. */
+  externalConfigurationId: string | undefined;
   vct: string;
   /** Extra vct values the verifier accepts for this credential type. */
   acceptedVct: string[];
@@ -82,6 +85,10 @@ export interface VerifierConfig {
 
 export interface IssuerConfig {
   mode: IssuerMode;
+  /** OID4VCI issuer metadata URL of the external issuer (credential catalogue); defaults to <ISSUER_API_BASE_URL>/.well-known/openid-credential-issuer. */
+  metadataUrl: string | undefined;
+  /** External mode: issue attestations the external issuer does not offer with the local demo issuer instead of failing. */
+  fallbackLocal: boolean;
   /** Issuer identifier of the local issuer: <PUBLIC_BASE_URL>/issuer */
   localIssuerUrl: string;
   txCode: boolean;
@@ -130,6 +137,7 @@ export function buildAttestations(raw: unknown, env: Env): Record<string, Attest
     out[key] = {
       key,
       credentialConfigurationId: env[`ATTESTATION_${upper(key)}_CONFIG_ID`] ?? str(a.credentialConfigurationId, `attestations.${key}.credentialConfigurationId`),
+      externalConfigurationId: env[`ATTESTATION_${upper(key)}_EXTERNAL_CONFIG_ID`] ?? (typeof a.externalConfigurationId === 'string' ? a.externalConfigurationId : undefined),
       vct,
       acceptedVct: env[`ATTESTATION_${upper(key)}_ACCEPTED_VCT`] ? env[`ATTESTATION_${upper(key)}_ACCEPTED_VCT`]!.split(',').map((x) => x.trim()).filter(Boolean) : [...new Set([vct, ...strList(a.acceptedVct)])],
       formats: env[`ATTESTATION_${upper(key)}_FORMATS`] ? env[`ATTESTATION_${upper(key)}_FORMATS`]!.split(',').map((x) => x.trim()).filter(Boolean) : strList(a.formats).length ? strList(a.formats) : ['dc+sd-jwt'],
@@ -218,7 +226,8 @@ export function loadConfig(
     // HAIP wallets require an encrypted response, so direct_post.jwt is the default.
     responseMode: env.VP_RESPONSE_MODE === 'direct_post' ? 'direct_post' : 'direct_post.jwt',
     queryLanguage: env.VP_QUERY_LANGUAGE === 'pex' ? 'pex' : 'dcql',
-    byValueFormats: (env.VP_BY_VALUE_FORMATS ?? 'dc+sd-jwt').split(',').map((x) => x.trim()).filter(Boolean),
+    // by-value requests must fit a QR code: real wallets hold the SIGMA PID as mdoc, the simulated wallet only SD-JWT
+    byValueFormats: (env.VP_BY_VALUE_FORMATS ?? (mockMode ? 'dc+sd-jwt' : 'mso_mdoc')).split(',').map((x) => x.trim()).filter(Boolean),
     deeplinkBase: env.VP_DEEPLINK_BASE || 'openid4vp://authorize',
     trustedIssuers: (env.TRUSTED_ISSUERS ?? '').split(',').map((x) => x.trim().replace(/\/+$/, '')).filter(Boolean),
     trustedCaPem: pems(env.TRUSTED_CA_PEM),
@@ -261,6 +270,8 @@ export function loadConfig(
     attestations,
     issuer: {
       mode: issuerMode,
+      metadataUrl: env.ISSUER_METADATA_URL || (external.apiBaseUrl ? `${external.apiBaseUrl}/.well-known/openid-credential-issuer` : undefined),
+      fallbackLocal: parseBool(env.ISSUER_FALLBACK_LOCAL, true),
       localIssuerUrl: `${publicBaseUrl}/issuer`,
       txCode: parseBool(env.ISSUER_TX_CODE, false),
       signingKeyJwk: env.ISSUER_SIGNING_KEY_JWK || undefined,

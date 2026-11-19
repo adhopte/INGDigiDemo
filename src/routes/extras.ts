@@ -1,5 +1,7 @@
 import { Router } from 'express';
+import { deeplinkForOfferObject, qrDataUrl } from '../issuer/offer.js';
 import { createIssuerProvider } from '../issuer/provider.js';
+import { matchConfig } from '../issuer/remote.js';
 import { PERSONAS, demoClaims, heldClaims, personaFor, redeemOffer } from '../mock/wallet.js';
 import type { Ctx } from '../rps/context.js';
 import { q } from '../rps/context.js';
@@ -15,9 +17,26 @@ export function extrasRouter(ctx: Ctx): Router {
 
   r.use((_req, res, next) => { res.locals.skin = 'dashboard'; res.locals.basePath = ''; next(); });
 
-  r.get('/demo-issuer', (_req, res) =>
-    res.render('issuer/console', { title: res.locals.t('issuer.console.title'), personas: PERSONAS, types: ['pid', 'birth_certificate'] }),
-  );
+  r.get('/demo-issuer', async (_req, res) => {
+    const s = await svc.remote?.summary();
+    res.render('issuer/console', { title: res.locals.t('issuer.console.title'), personas: PERSONAS, types: ['pid', 'birth_certificate'], sigma: s?.reachable ? s : undefined });
+  });
+
+  /**
+   * EXPERIMENTAL: a wallet-initiated credential offer for the real SIGMA PID (authorization_code grant at the issuer's PID realm).
+   * It carries no secret and needs no issuer backend call; the wallet runs the authorization flow itself.
+   */
+  r.post('/demo-issuer/sigma-pid', async (_req, res) => {
+    const s = await svc.remote?.summary();
+    const att = cfg.attestations.pid;
+    const rc = s?.reachable && att ? matchConfig(att, s.configs) : undefined;
+    if (!s?.issuer || !rc) return void res.status(404).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer' });
+    const as = s.authorizationServers.find((a) => a.includes('/realms/')) ?? s.authorizationServers[0];
+    const offerObject = { credential_issuer: s.issuer, credential_configuration_ids: [rc.id], grants: { authorization_code: { ...(as ? { authorization_server: as } : {}) } } };
+    const deeplink = deeplinkForOfferObject(offerObject);
+    const offer = { id: undefined, deeplink, qr: await qrDataUrl(deeplink), txCode: undefined, expiresAt: new Date(Date.now() + 10 * 60_000), provider: 'external' as const };
+    res.render('offer', { title: res.locals.t('att.pid.name'), attestationKey: 'pid', offer, returnTo: '/demo-issuer', canSimulate: false, rp: undefined });
+  });
 
   r.post('/demo-issuer/offer', async (req, res) => {
     const type = q(req.body?.type);

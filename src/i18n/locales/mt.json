@@ -302,5 +302,19 @@
   "verify.phone_alt": "Kodiċi QR żgħir li jiftaħ paġna bil-buttuna tal-kartiera",
   "open.title": "Iftaħ il-kartiera tiegħek",
   "open.hint": "{rp} qed jitlobkom taqsmu data mill-EU Wallet tiegħek. Agħfas il-buttuna fuq dan it-telefon.",
-  "open.after": "Wara li tapprova fil-kartiera, il-paġna fuq il-kompjuter tiegħek tkompli awtomatikament."
+  "open.after": "Wara li tapprova fil-kartiera, il-paġna fuq il-kompjuter tiegħek tkompli awtomatikament.",
+  "dash.sigma.title": "Emittent SIGMA konness",
+  "dash.sigma.desc": "Kredenzjali offruti mill-emittent",
+  "dash.sigma.unreachable": "Il-metadata tal-emittent ma setgħetx titgħabba:",
+  "dash.sigma.mode_local": "Bħalissa l-emittent lokali tad-demo joħroġ kollox. Issettja ISSUER_MODE=external biex tuża dan l-emittent.",
+  "dash.sigma.col.att": "Attestazzjoni",
+  "dash.sigma.col.config": "Konfigurazzjoni SIGMA",
+  "dash.sigma.col.status": "Joħroġ minn",
+  "dash.sigma.ok": "Emittent SIGMA",
+  "dash.sigma.fallback": "Mhux offrut minn SIGMA – emittent lokali tad-demo",
+  "issuer.console.sigma_title": "PID reali mill-emittent SIGMA",
+  "issuer.console.sigma_pid": "Joħloq offerta mibdija mill-kartiera għall-PID (mdoc) tal-emittent SIGMA konness. Il-kartiera tiegħek tmexxi hi stess il-fluss ta’ awtorizzazzjoni tal-emittent.",
+  "issuer.console.sigma_btn": "Oħloq offerta PID SIGMA",
+  "issuer.console.sigma_note": "Sperimentali: għadu mhux ivverifikat mal-kartiera SIGMA.",
+  "offer.fallback_note": "L-emittent SIGMA ma joffrix din l-attestazzjoni, għalhekk l-emittent lokali tad-demo joħroġha."
 }

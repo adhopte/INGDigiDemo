@@ -63,6 +63,21 @@ Walk-through in mock mode (all in one browser, so the simulated wallet carries c
 4. **Trust the PID issuer** – `TRUSTED_ISSUERS=<IN Groupe Issuer URL>` (its keys are read from `<iss>/.well-known/jwt-vc-issuer`) and/or `TRUSTED_CA_PEM` for credentials that carry an `x5c` chain. The local demo issuer is always trusted.
 5. Get test credentials: PID from the IN Groupe Issuer (or a demo PID from `/demo-issuer`), birth certificate from `/demo-issuer`, bank attestations from the bank page.
 
+### SIGMA issuer connection
+
+The catalogue of the SIGMA preprod issuer (`https://issuer.sigma.prep.smartid.nuagein.io/.well-known/openid-credential-issuer`) drives the configuration. It offers exactly three credentials:
+
+| SIGMA configuration | Format | Type | Used by |
+|---|---|---|---|
+| `eu.europa.ec.eudi.pid_mdoc` (and `…pid_mdoc_emrtd`) | `mso_mdoc` | docType / namespace `eu.europa.ec.eudi.pid.1` | bank, university, electricity (the PID is **mdoc only**) |
+| `eu.europa.ec.eudi.birth_certificate_vc_sd_jwt` | `dc+sd-jwt` | `vct` `urn:eudi:birth_certificate:1` | university |
+
+With `ISSUER_MODE=external` (+ `ISSUER_API_BASE_URL`, optional `ISSUER_METADATA_URL`) the app reads this metadata live (cached 10 min), shows on the dashboard which attestation is issued by SIGMA and which is not, and uses SIGMA's own configuration ids. **The bank account and payment attestations are not offered by this issuer**, so they are issued by the local demo issuer (`ISSUER_FALLBACK_LOCAL=true`, the default) and the offer page says so. `tests/fixtures/sigma-issuer-metadata.json` is a snapshot; the test-suite checks that every claim each RP requests exists in that catalogue.
+
+What is *not* connected yet, and why:
+* **Offer creation:** the issuer's backend API for creating pre-authorised offers is not public (no API docs; its own authorization server only supports the pre-authorised-code grant with `attest_jwt_client_auth`). `src/issuer/external.ts` still contains an assumed request/response schema. Until it is confirmed, SIGMA-issued credentials come from the wallet's own flow. The console offers an **experimental** wallet-initiated PID offer (`authorization_code` grant at the issuer's PID realm `…/realms/pid-haip`).
+* **Account / payment attestations:** need credential configurations on the SIGMA issuer (then they switch automatically, matched by `vct`).
+
 ### Verifier certificate (wallet trust)
 
 Wallets evaluate the certificate that signs the request object. A wallet that answers *"Trust evaluation failed: the certificate '<host>' is not trustworthy"* does not know the verifier's certificate: the **self-signed demo certificate** the app generates at startup is never trusted. `GET /vp/verifier` shows exactly what the service currently signs with (subject, issuer, validity, PEM chain, `x509_hash` / `x509_san_dns` client identifiers).
@@ -75,7 +90,7 @@ Pick one:
 
 `verifier-cert-out/` is git-ignored: the files contain a private key, never commit or share them. Certificates from the scripts are valid for one year.
 
-**Benin PID rulebook.** Claim names, `vct` and docTypes follow the *Benin PID / Birth Certificate Rulebook v2.0* (standard EUDI namespace): PID SD-JWT `vct` `https://credentials.benin.example/pid`, mdoc docType/namespace `eu.europa.ec.eudi.pid.1`; birth certificate `vct` `https://credentials.benin.example/birth-certificate`, mdoc `eu.europa.ec.eudi.birth_certificate.1`; claims `family_name`, `given_name`, `birth_date`, `birth_place`, `birth_country`, `nationality`, `resident_address`, … (see `config/rps.json`). The sensitive `personal_administrative_number` and the portrait are never requested. SD-JWT PIDs that use the older EU names (`birthdate`, `nationalities`, `address`, `place_of_birth`) are mapped to these names.
+**Benin PID rulebook.** Claim names follow the *Benin PID / Birth Certificate Rulebook v2.0* (standard EUDI element names); identifiers follow the live SIGMA issuer metadata (see *SIGMA issuer connection*): PID mdoc docType/namespace `eu.europa.ec.eudi.pid.1` (the rulebook's example SD-JWT `vct` `https://credentials.benin.example/pid` is still accepted), birth certificate `vct` `urn:eudi:birth_certificate:1`; claims `family_name`, `given_name`, `birth_date`, `birth_place`, `birth_country`, `nationality`, `resident_address`, … (see `config/rps.json`). The sensitive `personal_administrative_number` and the portrait are never requested. SD-JWT PIDs that use the older EU names (`birthdate`, `nationalities`, `address`, `place_of_birth`) are mapped to these names.
 
 **HAIP wallets.** The defaults follow the OpenID4VC High Assurance Interoperability Profile: DCQL, signed request object with `x509_hash` client identifier, and an **encrypted** response (`direct_post.jwt`, ECDH-ES, A128GCM or A256GCM). A wallet that reports *"HAIP profile requires an encrypted response mode"* was talking to an older build with `direct_post`. The DC API (`dc_api`) transport is not implemented (redirect/QR/deeplink only). If the wallet shows *"Unknown relying party"*, the verifier certificate is not known to it: register it (see the verifier identity above) – a self-signed demo certificate is never recognised by a production wallet.
 

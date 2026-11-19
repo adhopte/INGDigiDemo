@@ -36,6 +36,31 @@
     </ol>
   </section>
 
+  <% if (sigma) { %>
+  <section aria-labelledby="sg-h" class="panel">
+    <h2 id="sg-h"><%= t('dash.sigma.title') %></h2>
+    <% if (!sigma.summary.reachable) { %>
+      <p class="alert alert-warn" role="note"><%= t('dash.sigma.unreachable') %> <code class="break"><%= sigma.url %></code></p>
+    <% } else { %>
+      <p><%= t('dash.sigma.desc') %> <code class="break"><%= sigma.summary.issuer %></code></p>
+      <% if (issuerMode === 'local') { %><p class="note"><%= t('dash.sigma.mode_local') %></p><% } %>
+      <table class="table table-fixed">
+        <caption class="sr-only"><%= t('dash.sigma.title') %></caption>
+        <thead><tr><th scope="col"><%= t('dash.sigma.col.att') %></th><th scope="col"><%= t('dash.sigma.col.config') %></th><th scope="col"><%= t('dash.sigma.col.status') %></th></tr></thead>
+        <tbody>
+        <% sigma.rows.forEach(function (row) { %>
+          <tr>
+            <td><%= t('att.' + row.key + '.name') %></td>
+            <td><% if (row.config) { %><code class="break"><%= row.config.id %></code> <span class="note">(<%= row.config.format %>)</span><% } else { %>—<% } %></td>
+            <td><%= row.config ? t('dash.sigma.ok') : t('dash.sigma.fallback') %></td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </section>
+  <% } %>
+
   <section aria-labelledby="iss-h" class="panel">
     <h2 id="iss-h"><%= t('dash.issuer.title') %></h2>
     <p><%= t('dash.issuer.desc') %></p>

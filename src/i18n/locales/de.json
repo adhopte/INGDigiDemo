@@ -302,5 +302,19 @@
   "verify.phone_alt": "Kleiner QR-Code, der eine Seite mit der Wallet-Schaltfläche öffnet",
   "open.title": "Öffnen Sie Ihre Wallet",
   "open.hint": "{rp} bittet Sie, Daten aus Ihrer EU Wallet zu teilen. Tippen Sie auf diesem Telefon auf die Schaltfläche.",
-  "open.after": "Nachdem Sie in der Wallet zugestimmt haben, geht die Seite auf Ihrem Computer automatisch weiter."
+  "open.after": "Nachdem Sie in der Wallet zugestimmt haben, geht die Seite auf Ihrem Computer automatisch weiter.",
+  "dash.sigma.title": "Verbundener SIGMA-Aussteller",
+  "dash.sigma.desc": "Vom Aussteller angebotene Nachweise",
+  "dash.sigma.unreachable": "Die Aussteller-Metadaten konnten nicht geladen werden:",
+  "dash.sigma.mode_local": "Derzeit stellt der lokale Demo-Aussteller alles aus. Setzen Sie ISSUER_MODE=external, um diesen Aussteller zu nutzen.",
+  "dash.sigma.col.att": "Nachweis",
+  "dash.sigma.col.config": "SIGMA-Konfiguration",
+  "dash.sigma.col.status": "Ausgestellt von",
+  "dash.sigma.ok": "SIGMA-Aussteller",
+  "dash.sigma.fallback": "Von SIGMA nicht angeboten – lokaler Demo-Aussteller",
+  "issuer.console.sigma_title": "Echte PID vom SIGMA-Aussteller",
+  "issuer.console.sigma_pid": "Erstellt ein von der Wallet initiiertes Angebot für die PID (mdoc) des verbundenen SIGMA-Ausstellers. Ihre Wallet führt den Autorisierungsablauf des Ausstellers selbst aus.",
+  "issuer.console.sigma_btn": "SIGMA-PID-Angebot erstellen",
+  "issuer.console.sigma_note": "Experimentell: noch nicht mit der SIGMA-Wallet geprüft.",
+  "offer.fallback_note": "Der SIGMA-Aussteller bietet diesen Nachweis nicht an; der lokale Demo-Aussteller stellt ihn aus."
 }

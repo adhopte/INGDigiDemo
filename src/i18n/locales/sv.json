@@ -302,5 +302,19 @@
   "verify.phone_alt": "Liten QR-kod som öppnar en sida med plånboksknappen",
   "open.title": "Öppna din plånbok",
   "open.hint": "{rp} ber dig dela uppgifter från din EU Wallet. Tryck på knappen på den här telefonen.",
-  "open.after": "När du har godkänt i plånboken fortsätter sidan på din dator automatiskt."
+  "open.after": "När du har godkänt i plånboken fortsätter sidan på din dator automatiskt.",
+  "dash.sigma.title": "Ansluten SIGMA-utfärdare",
+  "dash.sigma.desc": "Bevis som utfärdaren erbjuder",
+  "dash.sigma.unreachable": "Utfärdarens metadata kunde inte läsas in:",
+  "dash.sigma.mode_local": "Den lokala demoutfärdaren utfärdar just nu allt. Sätt ISSUER_MODE=external för att använda den här utfärdaren.",
+  "dash.sigma.col.att": "Intyg",
+  "dash.sigma.col.config": "SIGMA-konfiguration",
+  "dash.sigma.col.status": "Utfärdas av",
+  "dash.sigma.ok": "SIGMA-utfärdare",
+  "dash.sigma.fallback": "Erbjuds inte av SIGMA – lokal demoutfärdare",
+  "issuer.console.sigma_title": "Riktigt PID från SIGMA-utfärdaren",
+  "issuer.console.sigma_pid": "Skapar ett plånboksinitierat erbjudande om PID (mdoc) från den anslutna SIGMA-utfärdaren. Din plånbok kör själv utfärdarens auktoriseringsflöde.",
+  "issuer.console.sigma_btn": "Skapa SIGMA-PID-erbjudande",
+  "issuer.console.sigma_note": "Experimentellt: ännu inte verifierat med SIGMA-plånboken.",
+  "offer.fallback_note": "SIGMA-utfärdaren erbjuder inte det här intyget, så den lokala demoutfärdaren utfärdar det."
 }

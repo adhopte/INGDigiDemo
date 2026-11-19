@@ -8,6 +8,7 @@ import { i18nMiddleware } from './i18n/index.js';
 import { issuerRouters } from './issuer/local/routes.js';
 import { log } from './logger.js';
 import { extrasRouter } from './routes/extras.js';
+import { matchConfig, missingClaims } from './issuer/remote.js';
 import { rpRouterFor } from './rps/index.js';
 import type { Services } from './services.js';
 import { vpRouter } from './verifier/routes.js';
@@ -86,7 +87,19 @@ export function createApp(cfg: AppConfig, svc: Services) {
     next();
   });
 
-  app.get('/', (_req, res) => res.render('dashboard', { title: res.locals.t('dash.title'), issuerUrl: cfg.issuer.localIssuerUrl }));
+  app.get('/', async (_req, res) => {
+    // Live view of the external (SIGMA) issuer's catalogue, matched against what the RPs issue / request.
+    const summary = await svc.remote?.summary();
+    const sigma = summary && {
+      summary,
+      url: svc.remote!.url,
+      rows: Object.values(cfg.attestations).map((a) => {
+        const rc = summary.reachable ? matchConfig(a, summary.configs) : undefined;
+        return { key: a.key, config: rc, missing: rc ? missingClaims(a, rc, a.claims) : [] };
+      }),
+    };
+    res.render('dashboard', { title: res.locals.t('dash.title'), issuerUrl: cfg.issuer.localIssuerUrl, sigma });
+  });
   app.use(extrasRouter(ctx));
   for (const rp of cfg.rps) app.use(`/${rp.id}`, rpRouterFor(ctx, rp));
 

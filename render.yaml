@@ -31,8 +31,10 @@ services:
         generateValue: true          # random, kept by Render
 
       # ---- demo modes ----
-      - key: MOCK_MODE               # true = simulated wallet (no real wallet needed). Set to false to use a real EU Wallet.
-        value: "true"
+      # false = real EU Wallet only. (true adds the simulated wallet, but by-value requests then ask for SD-JWT only, while the
+      # SIGMA PID is an mdoc: use true only to demo without a wallet.)
+      - key: MOCK_MODE
+        value: "false"
       - key: MULTI_CREDENTIAL        # university: true = one PID+BC request, false = two requests in a row
         value: "false"
 
@@ -64,14 +66,20 @@ services:
         sync: false
 
       # ---- attestation issuer ----
+      # external = SIGMA issuer (https://issuer.sigma.prep.smartid.nuagein.io). Attestations it does not offer (bank account, payment)
+      # are issued by the local demo issuer instead (ISSUER_FALLBACK_LOCAL). Set to "local" to issue everything locally.
       - key: ISSUER_MODE             # local | external
-        value: local
+        value: external
+      - key: ISSUER_FALLBACK_LOCAL
+        value: "true"
+      - key: ISSUER_METADATA_URL     # OID4VCI credential issuer metadata of the external issuer (live credential catalogue)
+        value: https://issuer.sigma.prep.smartid.nuagein.io/.well-known/openid-credential-issuer
       - key: ISSUER_TX_CODE          # local issuer: require a 4-digit transaction code
         value: "false"
       - key: ISSUER_SIGNING_KEY_JWK  # SECRET: private ES256 JWK of the local issuer. Without it the key changes at each restart.
         sync: false
-      - key: ISSUER_API_BASE_URL     # external issuer only
-        sync: false
+      - key: ISSUER_API_BASE_URL     # external issuer base URL (offer-creation API: see src/issuer/external.ts – schema to be confirmed)
+        value: https://issuer.sigma.prep.smartid.nuagein.io
       - key: ISSUER_EXTERNAL_OFFER_PATH
         value: /credential-offers
       - key: ISSUER_EXTERNAL_AUTH    # none | bearer | client_credentials

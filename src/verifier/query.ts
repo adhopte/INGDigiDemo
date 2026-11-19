@@ -47,20 +47,21 @@ export function buildDcql(allReqs: RequestedCredential[], compact = false) {
   const sets: { options: string[][] }[] = [];
   for (const r of reqs) {
     const ids: string[] = [];
-    if (r.formats.includes('dc+sd-jwt')) {
-      const anyVct = r.anyVct || r.attestation.acceptedVct.includes('*');
-      credentials.push({ id: r.type, format: 'dc+sd-jwt', meta: { vct_values: anyVct ? [...new Set([...r.attestation.acceptedVct.filter((v) => v !== '*'), ...PROBE_VCTS])] : r.attestation.acceptedVct }, ...claimsPart(r.claims, r, (n) => [n]) });
-      ids.push(r.type);
-    }
-    const m = r.attestation.mdoc;
-    if (m && r.formats.includes('mso_mdoc')) {
-      const mapped = r.claims.filter((c) => m.elements[c]);
-      const mapR = { ...r, claims: mapped, minClaims: r.minClaims.filter((c) => m.elements[c]) };
-      credentials.push({
-        id: mdocQueryId(r.type), format: 'mso_mdoc', meta: { doctype_value: m.docType },
-        ...claimsPart(mapped.map((c) => m.elements[c]!), { ...mapR, minClaims: mapR.minClaims.map((c) => m.elements[c]!) }, (n) => [m.namespace, n]),
-      });
-      ids.push(mdocQueryId(r.type));
+    for (const fmt of r.formats) {
+      if (fmt === 'dc+sd-jwt') {
+        const anyVct = r.anyVct || r.attestation.acceptedVct.includes('*');
+        credentials.push({ id: r.type, format: 'dc+sd-jwt', meta: { vct_values: anyVct ? [...new Set([...r.attestation.acceptedVct.filter((v) => v !== '*'), ...PROBE_VCTS])] : r.attestation.acceptedVct }, ...claimsPart(r.claims, r, (n) => [n]) });
+        ids.push(r.type);
+      } else if (fmt === 'mso_mdoc' && r.attestation.mdoc) {
+        const m = r.attestation.mdoc;
+        const mapped = r.claims.filter((c) => m.elements[c]);
+        const mapR = { ...r, claims: mapped, minClaims: r.minClaims.filter((c) => m.elements[c]) };
+        credentials.push({
+          id: mdocQueryId(r.type), format: 'mso_mdoc', meta: { doctype_value: m.docType },
+          ...claimsPart(mapped.map((c) => m.elements[c]!), { ...mapR, minClaims: mapR.minClaims.map((c) => m.elements[c]!) }, (n) => [m.namespace, n]),
+        });
+        ids.push(mdocQueryId(r.type));
+      }
     }
     sets.push({ options: ids.map((i) => [i]) });
   }

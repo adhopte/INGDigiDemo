@@ -164,7 +164,7 @@ describe('Benin PID rulebook v2.0 shapes', () => {
     for (const [rpId, pres] of [['bank', 'pid'], ['electricity', 'pid'], ['bank', 'pid_any_sd']] as const) {
       const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rpId)!, pres, '/');
       const q = (svc.verifier.requestParams(tx) as any).dcql_query;
-      expect(q.credentials[0].meta.vct_values).toContain('https://credentials.benin.example/pid');
+      expect(q.credentials.find((c: any) => c.format === 'dc+sd-jwt').meta.vct_values).toContain('https://credentials.benin.example/pid');
       await respondToVerifier(svc.verifier, tx, { vp_token: await buildVpToken(session, tx, svc.verifier) });
       const pid = tx.result!.byType.pid!;
       expect(pid).toMatchObject({ given_name: 'Jean', family_name: 'KOSSI', ...(pres === 'pid_any_sd' ? {} : { birth_date: '1990-04-15' }) });

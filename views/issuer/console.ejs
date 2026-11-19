@@ -18,6 +18,14 @@
     </form>
   </section>
   <% }) %>
+  <% if (sigma) { %>
+  <section class="panel" aria-labelledby="sg-h">
+    <h2 id="sg-h"><%= t('issuer.console.sigma_title') %></h2>
+    <p><%= t('issuer.console.sigma_pid') %></p>
+    <form method="post" action="/demo-issuer/sigma-pid"><button class="btn" type="submit"><%= t('issuer.console.sigma_btn') %></button></form>
+    <p class="note"><%= t('issuer.console.sigma_note') %></p>
+  </section>
+  <% } %>
   <p class="note"><%= t('issuer.console.note') %></p>
 </div>
 <%- include('../partials/foot') %>

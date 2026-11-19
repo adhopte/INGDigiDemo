@@ -87,21 +87,25 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     }
   });
 
-  it('the DCQL request offers SD-JWT and mdoc alternatives with claim_sets, and omits vct when wildcarded', async () => {
+  it('the DCQL request offers mdoc (preferred) and SD-JWT alternatives with claim_sets; the birth certificate is SD-JWT only', async () => {
     const { cfg, svc } = await setup();
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'university')!, 'pid_bc', '/');
     const q = (svc.verifier.requestParams(tx) as any).dcql_query;
-    expect(q.credentials.map((c: any) => c.id)).toEqual(['pid', 'pid_mdoc', 'birth_certificate', 'birth_certificate_mdoc']);
-    expect(q.credentials[0].meta.vct_values).toEqual(['https://credentials.benin.example/pid', 'urn:eudi:pid:1', 'urn:eu.europa.ec.eudi:pid:1']);
-    expect(q.credentials[2].meta.vct_values).toEqual(['https://credentials.benin.example/birth-certificate']);
-    expect(q.credentials[3].meta.doctype_value).toBe('eu.europa.ec.eudi.birth_certificate.1');
-    expect(q.credentials[1]).toMatchObject({ format: 'mso_mdoc', meta: { doctype_value: 'eu.europa.ec.eudi.pid.1' } });
-    expect(q.credentials[1].claims[0].path).toEqual(['eu.europa.ec.eudi.pid.1', 'given_name']);
-    expect(q.credentials[1].claim_sets).toHaveLength(2);
-    expect(q.credential_sets).toEqual([{ options: [['pid'], ['pid_mdoc']] }, { options: [['birth_certificate'], ['birth_certificate_mdoc']] }]);
+    expect(q.credentials.map((c: any) => c.id)).toEqual(['pid_mdoc', 'pid', 'birth_certificate']);
+    const sd = q.credentials.find((c: any) => c.id === 'pid');
+    const md = q.credentials.find((c: any) => c.id === 'pid_mdoc');
+    const bc = q.credentials.find((c: any) => c.id === 'birth_certificate');
+    expect(sd.meta.vct_values).toEqual(['https://credentials.benin.example/pid', 'urn:eudi:pid:1', 'urn:eu.europa.ec.eudi:pid:1']);
+    expect(bc.format).toBe('dc+sd-jwt');
+    expect(bc.meta.vct_values).toEqual(['urn:eudi:birth_certificate:1', 'https://credentials.benin.example/birth-certificate']);
+    expect(md).toMatchObject({ format: 'mso_mdoc', meta: { doctype_value: 'eu.europa.ec.eudi.pid.1' } });
+    expect(md.claims[0].path).toEqual(['eu.europa.ec.eudi.pid.1', 'given_name']);
+    expect(md.claim_sets).toHaveLength(2);
+    expect(q.credential_sets).toEqual([{ options: [['pid_mdoc'], ['pid']] }, { options: [['birth_certificate']] }]);
     const wild = await createServices(testConfig({ ATTESTATION_PID_ACCEPTED_VCT: '*' }));
     const tx2 = await wild.verifier.createTransaction(cfg.rps[0]!, 'pid', '/');
-    expect((wild.verifier.requestParams(tx2) as any).dcql_query.credentials[0].meta.vct_values.length).toBeGreaterThan(1); // never empty: wallets require vct_values
+    const wsd = (wild.verifier.requestParams(tx2) as any).dcql_query.credentials.find((c: any) => c.format === 'dc+sd-jwt');
+    expect(wsd.meta.vct_values.length).toBeGreaterThan(1); // never empty: wallets require vct_values
   });
 
   it('declares mso_mdoc in client_metadata only when an mdoc answer is acceptable', async () => {
@@ -119,10 +123,12 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     const { cfg, svc } = await setup();
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid_any', '/');
     const q = (svc.verifier.requestParams(tx) as any).dcql_query;
-    expect(q.credentials[0].meta.vct_values).toEqual(expect.arrayContaining(['https://credentials.benin.example/pid', 'urn:eudi:pid:1', 'eu.europa.ec.eudi.pid.1']));
-    expect(q.credentials[0].claims).toEqual([{ path: ['given_name'] }, { path: ['family_name'] }]);
-    expect(q.credentials[1].claims.map((c: any) => c.path[1])).toEqual(['given_name', 'family_name']);
-    expect(q.credentials[1].claim_sets).toBeUndefined();
+    const sd = q.credentials.find((c: any) => c.format === 'dc+sd-jwt');
+    const md = q.credentials.find((c: any) => c.format === 'mso_mdoc');
+    expect(sd.meta.vct_values).toEqual(expect.arrayContaining(['https://credentials.benin.example/pid', 'urn:eudi:pid:1', 'eu.europa.ec.eudi.pid.1']));
+    expect(sd.claims).toEqual([{ path: ['given_name'] }, { path: ['family_name'] }]);
+    expect(md.claims.map((c: any) => c.path[1])).toEqual(['given_name', 'family_name']);
+    expect(md.claim_sets).toBeUndefined();
   });
 
   it('single-format probes request exactly one format and declare only that one', async () => {

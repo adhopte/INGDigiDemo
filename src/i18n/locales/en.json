@@ -302,5 +302,19 @@
   "verify.phone_alt": "Small QR code that opens a page with the wallet button",
   "open.title": "Open your wallet",
   "open.hint": "{rp} asks you to share data from your EU Wallet. Tap the button on this phone.",
-  "open.after": "After you approve in the wallet, the page on your computer continues automatically."
+  "open.after": "After you approve in the wallet, the page on your computer continues automatically.",
+  "dash.sigma.title": "Connected SIGMA issuer",
+  "dash.sigma.desc": "Credentials offered by the issuer",
+  "dash.sigma.unreachable": "The issuer metadata could not be loaded:",
+  "dash.sigma.mode_local": "The local demo issuer currently issues everything. Set ISSUER_MODE=external to use this issuer.",
+  "dash.sigma.col.att": "Attestation",
+  "dash.sigma.col.config": "SIGMA configuration",
+  "dash.sigma.col.status": "Issued by",
+  "dash.sigma.ok": "SIGMA issuer",
+  "dash.sigma.fallback": "Not offered by SIGMA – local demo issuer",
+  "issuer.console.sigma_title": "Real PID from the SIGMA issuer",
+  "issuer.console.sigma_pid": "Creates a wallet-initiated offer for the PID (mdoc) of the connected SIGMA issuer. Your wallet runs the issuer’s authorisation flow itself.",
+  "issuer.console.sigma_btn": "Create SIGMA PID offer",
+  "issuer.console.sigma_note": "Experimental: not yet verified against the SIGMA wallet.",
+  "offer.fallback_note": "The SIGMA issuer does not offer this attestation, so the local demo issuer issues it."
 }

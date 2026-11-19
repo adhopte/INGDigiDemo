@@ -283,7 +283,7 @@ describe('OpenID4VP verifier over HTTP (what a wallet calls)', () => {
     const claims = JSON.parse(Buffer.from(reqRes.text.split('.')[1]!, 'base64url').toString());
     expect(claims.nonce).toBe(tx.nonce); expect(claims.wallet_nonce).toBe('abc'); expect(claims.response_mode).toBe(mode);
 
-    const vp = await presentSdJwt({ credential, reveal: claims.dcql_query.credentials[0].claims.map((c: any) => c.path[0]), holderPrivateKey: r.privateKey!, aud: claims.client_id, nonce: claims.nonce });
+    const vp = await presentSdJwt({ credential, reveal: claims.dcql_query.credentials.find((c: any) => c.format === 'dc+sd-jwt').claims.map((c: any) => c.path[0]), holderPrivateKey: r.privateKey!, aud: claims.client_id, nonce: claims.nonce });
     const body = { vp_token: { pid: [vp] }, state: claims.state };
     let post;
     if (mode === 'direct_post.jwt') {

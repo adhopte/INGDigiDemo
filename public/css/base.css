@@ -121,6 +121,8 @@ ul.plain { padding-left: 1.2rem; }
 .table { width: 100%; border-collapse: collapse; background: #fff; border-radius: var(--radius-sm); overflow: hidden; }
 .table th, .table td { padding: .75rem .8rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .table th { background: #eef2f9; font-weight: 800; font-size: .92rem; }
+.table-fixed { table-layout: fixed; }
+.table-fixed th, .table-fixed td { overflow-wrap: anywhere; hyphens: auto; }
 .num { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ---- wallet hand-off ---- */

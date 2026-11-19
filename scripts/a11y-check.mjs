@@ -119,7 +119,7 @@ async function languages() {
     for (const path of ['/', '/bank/', '/eshop/', '/eshop/cart', '/university/', '/electricity/', '/demo-issuer']) {
       await page.goto(`${BASE}${path}?lang=${lang}`);
       const htmlLang = await page.getAttribute('html', 'lang');
-      const text = await page.locator('body').innerText();
+      const text = (await page.locator('body').innerText()).replace(/https?:\/\/\S+/g, '').replace(/\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:io|com|org|net)\b/gi, '');
       const leaked = text.match(/\b(?:bank|eshop|uni|el|dash|verify|offer|mockw|claim|att|rp|shop|prog|nav|btn|form|footer|mock|issuer)\.[a-z_0-9]+(?:\.[a-z_0-9]+)*\b/g);
       if (htmlLang !== lang) { failures++; log(`  ✗ [${lang}${path}] html lang=${htmlLang}`); }
       if (leaked) { failures++; log(`  ✗ [${lang}${path}] untranslated keys: ${[...new Set(leaked)].join(', ')}`); }

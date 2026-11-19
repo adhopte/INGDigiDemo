@@ -302,5 +302,19 @@
   "verify.phone_alt": "Petit QR code qui ouvre une page avec le bouton du portefeuille",
   "open.title": "Ouvrez votre portefeuille",
   "open.hint": "{rp} vous demande de partager des données de votre EU Wallet. Appuyez sur le bouton sur ce téléphone.",
-  "open.after": "Après votre approbation dans le portefeuille, la page sur votre ordinateur continue automatiquement."
+  "open.after": "Après votre approbation dans le portefeuille, la page sur votre ordinateur continue automatiquement.",
+  "dash.sigma.title": "Émetteur SIGMA connecté",
+  "dash.sigma.desc": "Justificatifs proposés par l’émetteur",
+  "dash.sigma.unreachable": "Impossible de charger les métadonnées de l’émetteur :",
+  "dash.sigma.mode_local": "L’émetteur de démo local émet actuellement tout. Définissez ISSUER_MODE=external pour utiliser cet émetteur.",
+  "dash.sigma.col.att": "Attestation",
+  "dash.sigma.col.config": "Configuration SIGMA",
+  "dash.sigma.col.status": "Émis par",
+  "dash.sigma.ok": "Émetteur SIGMA",
+  "dash.sigma.fallback": "Non proposé par SIGMA – émetteur de démo local",
+  "issuer.console.sigma_title": "Vrai PID de l’émetteur SIGMA",
+  "issuer.console.sigma_pid": "Crée une offre initiée par le portefeuille pour le PID (mdoc) de l’émetteur SIGMA connecté. Votre portefeuille exécute lui-même le flux d’autorisation de l’émetteur.",
+  "issuer.console.sigma_btn": "Créer l’offre PID SIGMA",
+  "issuer.console.sigma_note": "Expérimental : pas encore vérifié avec le portefeuille SIGMA.",
+  "offer.fallback_note": "L’émetteur SIGMA ne propose pas cette attestation : l’émetteur de démo local l’émet."
 }

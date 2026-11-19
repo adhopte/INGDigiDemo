@@ -302,5 +302,19 @@
   "verify.phone_alt": "Kleine QR-code die een pagina met de wallet-knop opent",
   "open.title": "Open uw wallet",
   "open.hint": "{rp} vraagt u gegevens uit uw EU Wallet te delen. Tik op de knop op deze telefoon.",
-  "open.after": "Nadat u in de wallet goedkeurt, gaat de pagina op uw computer automatisch verder."
+  "open.after": "Nadat u in de wallet goedkeurt, gaat de pagina op uw computer automatisch verder.",
+  "dash.sigma.title": "Verbonden SIGMA-uitgever",
+  "dash.sigma.desc": "Bewijzen die de uitgever aanbiedt",
+  "dash.sigma.unreachable": "De metadata van de uitgever kon niet worden geladen:",
+  "dash.sigma.mode_local": "De lokale demo-uitgever geeft nu alles uit. Zet ISSUER_MODE=external om deze uitgever te gebruiken.",
+  "dash.sigma.col.att": "Attest",
+  "dash.sigma.col.config": "SIGMA-configuratie",
+  "dash.sigma.col.status": "Uitgegeven door",
+  "dash.sigma.ok": "SIGMA-uitgever",
+  "dash.sigma.fallback": "Niet aangeboden door SIGMA – lokale demo-uitgever",
+  "issuer.console.sigma_title": "Echte PID van de SIGMA-uitgever",
+  "issuer.console.sigma_pid": "Maakt een door de wallet gestart aanbod voor de PID (mdoc) van de verbonden SIGMA-uitgever. Uw wallet doorloopt zelf de autorisatiestroom van de uitgever.",
+  "issuer.console.sigma_btn": "SIGMA-PID-aanbod maken",
+  "issuer.console.sigma_note": "Experimenteel: nog niet gecontroleerd met de SIGMA-wallet.",
+  "offer.fallback_note": "De SIGMA-uitgever biedt dit attest niet aan; de lokale demo-uitgever geeft het uit."
 }
