@@ -14,17 +14,19 @@ export function issuerRouters(issuer: LocalIssuer, log?: (e: Record<string, unkn
     next();
   });
   // Diagnostics: which OpenID4VCI calls the wallet really makes, and how each ended (no tokens, no claim values).
+  const track = (req: Request, res: Response, next: NextFunction) => {
+    const h = req.headers;
+    res.on('finish', () => log?.({
+      event: 'issuer_request', method: req.method, path: req.originalUrl.split('?')[0], status: res.statusCode,
+      userAgent: String(h['user-agent'] ?? '').slice(0, 120),
+      headers: ['authorization', 'dpop', 'oauth-client-attestation', 'oauth-client-attestation-pop', 'content-type'].filter((k) => h[k]),
+      errorCode: res.locals.issuerError,
+    }));
+    next();
+  };
   if (log) {
-    main.use((req: Request, res: Response, next: NextFunction) => {
-      const h = req.headers;
-      res.on('finish', () => log({
-        event: 'issuer_request', method: req.method, path: req.path, status: res.statusCode,
-        userAgent: String(h['user-agent'] ?? '').slice(0, 120),
-        headers: ['authorization', 'dpop', 'oauth-client-attestation', 'oauth-client-attestation-pop', 'content-type'].filter((k) => h[k]),
-        errorCode: res.locals.issuerError,
-      }));
-      next();
-    });
+    main.use(track);
+    wellKnown.use('/.well-known', track);
   }
   main.use(express.json({ limit: '64kb' }));
   main.use(express.urlencoded({ extended: false, limit: '64kb' })); // the token endpoint is application/x-www-form-urlencoded (RFC 6749)
