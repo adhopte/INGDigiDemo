@@ -147,10 +147,10 @@ export class Verifier {
       const parsed = parseRegistrationCert(rp.registrationCert ?? this.cfg.verifier.registrationCert, this.now());
       if (!parsed) return [rp.id, { configured: false }];
       if (!parsed.ok) return [rp.id, { configured: true, readable: false, error: parsed.error, sent: false }];
-      const sent = !this.byValue;
+      const sent = !this.byValue || this.cfg.verifier.registrationByValue;
       return [rp.id, {
         configured: true, readable: true, sent,
-        ...(sent ? {} : { not_sent_because: 'requests are passed by value (client_id scheme redirect_uri): the certificate is too large for a QR code and a wallet only trusts it next to an X.509 access certificate. Switch VP_CLIENT_ID_SCHEME to x509_hash or x509_san_dns.' }),
+        ...(sent ? {} : { not_sent_because: 'requests are passed by value (client_id scheme redirect_uri): the certificate is too large for a QR code and a wallet only trusts it next to an X.509 access certificate. Switch VP_CLIENT_ID_SCHEME to x509_hash or x509_san_dns, or try VP_REGISTRATION_BY_VALUE=true (button / phone-camera link only, no QR code).' }),
         name: parsed.info.name, purpose: parsed.info.purposes, subject: parsed.info.subject, type: parsed.info.type, issued_at: parsed.info.issuedAt, expires_at: parsed.info.expiresAt, expired: parsed.info.expired, size_bytes: parsed.info.sizeBytes,
         matches_access_certificate: accessCertOrgId && parsed.info.subject ? accessCertOrgId === parsed.info.subject : undefined,
         warnings: parsed.warnings,
@@ -216,8 +216,8 @@ export class Verifier {
       client_metadata: clientMetadata,
     };
     const reg = this.registrationFor(tx.rpId);
-    // Too big for a QR code / unsigned link, and a wallet only trusts it next to an X.509 access certificate: signed requests only.
-    if (reg && !this.byValue) params.verifier_info = verifierInfo(reg.jwt);
+    // Too big for a QR code / unsigned link, and a wallet only trusts it next to an X.509 access certificate: signed requests (or the by-value experiment).
+    if (reg && (!this.byValue || this.cfg.verifier.registrationByValue)) params.verifier_info = verifierInfo(reg.jwt);
     if (v.queryLanguage === 'pex') params.presentation_definition = buildPresentationDefinition(tx.reqs, tx.id);
     else params.dcql_query = buildDcql(tx.reqs, compact);
     if (walletNonce) params.wallet_nonce = walletNonce;

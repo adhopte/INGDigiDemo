@@ -91,6 +91,7 @@ export interface VerifierConfig {
   trustAnyIssuer: boolean;
   /** Registration certificate (JWT) sent as `verifier_info` for RPs without their own (VP_REGISTRATION_CERT). Needs signed requests (x509 client id schemes). */
   registrationCert: string | undefined;
+  registrationByValue: boolean;
   /** Verifier identity (secrets, env only). When absent a self-signed demo identity is generated at startup. */
   signingKeyJwk: string | undefined;
   certChainPem: string | undefined;
@@ -164,6 +165,15 @@ export function buildAttestations(raw: unknown, env: Env): Record<string, Attest
     };
   }
   return out;
+}
+
+/** The registration certificate shipped in config/registration-cert.jwt, if present. */
+function defaultRegistrationCert(): string | undefined {
+  try {
+    return readFileSync(path.join(ROOT_DIR, 'config', 'registration-cert.jwt'), 'utf8').trim() || undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /** Validate rps.json and apply env-var overrides. */
@@ -255,7 +265,10 @@ export function loadConfig(
     trustedIssuers: (env.TRUSTED_ISSUERS ?? '').split(',').map((x) => x.trim().replace(/\/+$/, '')).filter(Boolean),
     trustedCaPem: pems(env.TRUSTED_CA_PEM),
     trustAnyIssuer: parseBool(env.TRUST_ANY_ISSUER, false),
-    registrationCert: env.VP_REGISTRATION_CERT || undefined,
+    // default: config/registration-cert.jwt (the test registration certificate); VP_REGISTRATION_CERT overrides it, "none" turns it off
+    registrationCert: env.VP_REGISTRATION_CERT === 'none' ? undefined : env.VP_REGISTRATION_CERT || defaultRegistrationCert(),
+    // EXPERIMENT: also put it in unsigned by-value links (redirect_uri scheme). ~15 KB: no QR code, only the button / phone-camera page.
+    registrationByValue: parseBool(env.VP_REGISTRATION_BY_VALUE, false),
     signingKeyJwk: env.VERIFIER_SIGNING_KEY_JWK || undefined,
     certChainPem: env.VERIFIER_CERT_CHAIN_PEM ? env.VERIFIER_CERT_CHAIN_PEM.replace(/\\n/g, '\n') : undefined,
   };

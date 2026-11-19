@@ -36,7 +36,7 @@ describe('registration certificate (verifier_info)', () => {
     };
     expect((await payload('bank', 'pid')).verifier_info).toEqual([{ format: 'registration_cert', data: bank }]);
     expect((await payload('university', 'pid')).verifier_info).toEqual([{ format: 'registration_cert', data: global }]); // falls back to the global one
-    const none = await createServices(testConfig());
+    const none = await createServices(testConfig({ VP_REGISTRATION_CERT: 'none' })); // "none" switches the shipped default off
     const tx = await none.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
     expect(JSON.parse(Buffer.from((await none.verifier.signedRequestObject(tx)).split('.')[1]!, 'base64url').toString())).not.toHaveProperty('verifier_info');
     // an unreadable value is ignored rather than breaking the request
@@ -63,7 +63,34 @@ describe('registration certificate (verifier_info)', () => {
     const byValue = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_REGISTRATION_CERT: jwt });
     const rep2 = (await request(createApp(byValue, await createServices(byValue))).get('/vp/verifier')).body.registration_certificates;
     expect(rep2.bank).toMatchObject({ sent: false, not_sent_because: expect.stringContaining('x509_hash') });
-    const none = testConfig();
+    const none = testConfig({ VP_REGISTRATION_CERT: 'none' });
     expect((await request(createApp(none, await createServices(none))).get('/vp/verifier')).body.registration_certificates.bank).toEqual({ configured: false });
+  });
+
+  it('ships with the test registration certificate (config/registration-cert.jwt) as default for every RP', async () => {
+    const { readFileSync } = await import('node:fs');
+    const file = readFileSync(new URL('../config/registration-cert.jwt', import.meta.url), 'utf8').trim();
+    const cfg = testConfig();
+    expect(cfg.verifier.registrationCert).toBe(file);
+    const svc = await createServices(cfg);
+    for (const rp of cfg.rps) {
+      const tx = await svc.verifier.createTransaction(rp, Object.keys(rp.presentations).find((k) => !k.startsWith('probe') && !k.startsWith('pid_any'))!, '/');
+      const p = JSON.parse(Buffer.from((await svc.verifier.signedRequestObject(tx)).split('.')[1]!, 'base64url').toString());
+      expect(p.verifier_info, rp.id).toEqual([{ format: 'registration_cert', data: file }]);
+    }
+    const parsed = parseRegistrationCert(file, Date.parse('2026-11-19'))!;
+    expect(parsed).toMatchObject({ ok: true, info: { name: 'Web Verifier (PROD)', purposes: ['For Testing Purposes'], subject: 'LEIXG-529900T8BM49AURSDO55', type: 'rc-wrp+jwt' } });
+    expect(testConfig({ VP_REGISTRATION_CERT: 'none' }).verifier.registrationCert).toBeUndefined();
+  });
+
+  it('experiment VP_REGISTRATION_BY_VALUE puts it in the unsigned link (button only: far too big for a QR code)', async () => {
+    const { qrDataUrlOrUndefined } = await import('../src/issuer/offer.js');
+    const cfg = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_REGISTRATION_BY_VALUE: 'true' });
+    const svc = await createServices(cfg);
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
+    const link = svc.verifier.walletLink(tx);
+    expect(JSON.parse(new URL(link).searchParams.get('verifier_info')!)).toEqual([{ format: 'registration_cert', data: cfg.verifier.registrationCert }]);
+    expect(await qrDataUrlOrUndefined(link)).toBeUndefined(); // the page then shows the button / phone-camera route instead of a QR code
+    expect((svc.verifier.registrationReport().bank as any).sent).toBe(true);
   });
 });
