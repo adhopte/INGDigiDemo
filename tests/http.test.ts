@@ -153,6 +153,8 @@ describe('phone-camera hand-off and QR scannability', () => {
     for (const [rp, p] of [['bank', 'pid'], ['electricity', 'pid'], ['university', 'pid'], ['university', 'bc'], ['eshop', 'payment']] as const) {
       const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, p, '/');
       expect(svc.verifier.walletLink(tx).length, `${rp}/${p}`).toBeLessThan(1700);
+      // the wallet shows this as the relying party (unsigned requests carry no certificate name)
+      expect(JSON.parse(new URL(svc.verifier.walletLink(tx)).searchParams.get('client_metadata')!).client_name, `${rp}/${p}`).toBe(tx.rpName);
     }
     const a = request.agent(app);
     const loc = (await a.get('/bank/verify?p=pid&returnTo=/bank/kyc')).headers.location!;

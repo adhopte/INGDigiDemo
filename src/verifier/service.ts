@@ -168,8 +168,9 @@ export class Verifier {
       });
     }
     if (compact) {
-      // QR-sized: drop pre-1.0 duplicates, the display name and shorten the key id
-      delete clientMetadata.client_name;
+      // QR-sized: drop pre-1.0 duplicates and shorten the key id. Keep a SHORT display name: with the unsigned redirect_uri scheme it is
+      // the only thing the wallet can show for the verifier (otherwise "Unknown relying party").
+      clientMetadata.client_name = tx.rpName;
       delete clientMetadata.authorization_encrypted_response_alg;
       delete clientMetadata.authorization_encrypted_response_enc;
       if (tx.enc) clientMetadata.jwks = { keys: [{ ...tx.enc.publicJwk, kid: tx.id.slice(0, 8) }] };
