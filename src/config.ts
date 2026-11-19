@@ -113,6 +113,8 @@ export interface AppConfig {
   mockMode: boolean;
   /** Expose GET /vp/diagnostics (recent verifier events, no personal data). */
   diagnostics: boolean;
+  /** Password of the issuer portal's admin user ("authentic source" console). Default is the demo password; override with ADMIN_PASSWORD. */
+  adminPassword: string;
   multiCredential: boolean;
   sessionSecret: string;
   verifier: VerifierConfig;
@@ -272,6 +274,7 @@ export function loadConfig(
     publicBaseUrl,
     mockMode,
     diagnostics: parseBool(env.DIAGNOSTICS_ENDPOINT, true),
+    adminPassword: env.ADMIN_PASSWORD || 'Admin123',
     multiCredential: parseBool(env.MULTI_CREDENTIAL, false),
     sessionSecret,
     verifier,

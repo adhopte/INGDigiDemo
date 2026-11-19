@@ -50,3 +50,10 @@
 .crumbs { margin: 1.2rem 0 0; font-size: .95rem; }
 .muted { color: #4b5873; }
 .skin-dashboard .wrap > h1:first-child { margin-top: 1.8rem; }
+
+/* Admin console */
+.admin-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.admin-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: 1rem 1.4rem; margin: 1rem 0; }
+.admin-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.admin-actions form { margin: 0; }
+.admin-link { margin-top: 2rem; }

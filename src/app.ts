@@ -7,6 +7,7 @@ import { ROOT_DIR, type AppConfig } from './config.js';
 import { i18nMiddleware } from './i18n/index.js';
 import { issuerRouters } from './issuer/local/routes.js';
 import { log } from './logger.js';
+import { adminRouter, sorRouter } from './routes/admin.js';
 import { extrasRouter } from './routes/extras.js';
 import { matchConfig, missingClaims } from './issuer/remote.js';
 import { rpRouterFor } from './rps/index.js';
@@ -54,6 +55,7 @@ export function createApp(cfg: AppConfig, svc: Services) {
   const issuer = issuerRouters(svc.local, cfg.diagnostics ? (e) => svc.verifier.record(e as { event: 'issuer_request' }) : undefined);
   app.use(issuer.wellKnown);
   app.use('/issuer', issuer.main);
+  app.use('/sor', sorRouter(ctx)); // record service (system of record) for an issuer that reads from this app
 
   app.get('/healthz', (_req, res) => void res.status(200).json({ status: 'ok' }));
 
@@ -100,6 +102,7 @@ export function createApp(cfg: AppConfig, svc: Services) {
     };
     res.render('dashboard', { title: res.locals.t('dash.title'), issuerUrl: cfg.issuer.localIssuerUrl, sigma });
   });
+  app.use(adminRouter(ctx));
   app.use(extrasRouter(ctx));
   for (const rp of cfg.rps) app.use(`/${rp.id}`, rpRouterFor(ctx, rp));
 

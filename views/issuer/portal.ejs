@@ -53,6 +53,10 @@
   </section>
   <% } %>
 
+  <p class="note admin-link">
+    <% if (isAdmin) { %><a href="/demo-issuer/admin"><%= t('admin.open') %></a><% } else { %><a href="/demo-issuer/admin/login"><%= t('admin.link') %></a><% } %>
+  </p>
+
   <% types.forEach(function (type) { %>
   <section class="panel panel-mock" aria-labelledby="t-<%= type %>">
     <h2 id="t-<%= type %>"><%= t('mockw.badge') %> – <%= t('att.' + type + '.name') %></h2>

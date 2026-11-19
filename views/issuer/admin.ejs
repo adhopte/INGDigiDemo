@@ -1,0 +1,90 @@
+<%- include('../partials/head') %>
+<% const L = function (n) { const k = 'claim.' + n; const v = t(k); return v === k ? n.replace(/_/g, ' ') : v; }; %>
+<div class="wrap">
+  <p class="crumbs"><a href="/demo-issuer"><%= t('portal.title') %></a> › <%= t('admin.title') %></p>
+  <div class="admin-head">
+    <h1><%= t('admin.title') %></h1>
+    <form method="post" action="/demo-issuer/admin/logout"><button class="btn btn-small btn-secondary" type="submit"><%= t('admin.logout') %></button></form>
+  </div>
+  <p class="lead"><%= t('admin.intro') %></p>
+
+  <nav aria-label="<%= t('portal.select.label') %>">
+    <ul class="chips">
+      <li><a class="chip<%= uc === 'pid' ? ' chip-ok' : '' %>" href="/demo-issuer/admin?uc=pid"<%= uc === 'pid' ? ' aria-current="page"' : '' %>><%= t('att.pid.name') %></a></li>
+      <li><a class="chip<%= uc === 'birth-certificate' ? ' chip-ok' : '' %>" href="/demo-issuer/admin?uc=birth-certificate"<%= uc === 'birth-certificate' ? ' aria-current="page"' : '' %>><%= t('att.birth_certificate.name') %></a></li>
+    </ul>
+  </nav>
+
+  <% if (Object.keys(errors).length) { %>
+    <div class="alert alert-error" role="alert">
+      <p><strong><%= t('form.err.summary') %></strong></p>
+      <ul><% Object.keys(errors).forEach(function (k) { %><li><a href="#f-<%= k %>"><%= L(k) %>: <%= t(errors[k]) %></a></li><% }) %></ul>
+    </div>
+  <% } %>
+
+  <section class="panel titled" aria-labelledby="rec-h">
+    <h2 class="titlebar" id="rec-h"><%= t('admin.form.title') %></h2>
+    <p class="note"><%= t('admin.form.hint') %></p>
+    <form method="post" action="/demo-issuer/admin/offer" novalidate>
+      <input type="hidden" name="uc" value="<%= uc %>">
+      <div class="admin-fields">
+        <% fields.forEach(function (f) { const val = values[f.name] === undefined ? '' : values[f.name]; const err = errors[f.name]; %>
+        <div class="field<%= err ? ' has-error' : '' %>">
+          <label for="f-<%= f.name %>"><%= L(f.name) %><% if (f.required) { %> <span aria-hidden="true">*</span><% } %></label>
+          <% if (f.kind === 'gender') { %>
+            <select id="f-<%= f.name %>" name="<%= f.name %>"<% if (err) { %> aria-invalid="true" aria-describedby="e-<%= f.name %>"<% } %>>
+              <option value=""><%= t('admin.none') %></option>
+              <% ['1','2','0','9'].forEach(function (g) { %><option value="<%= g %>"<%= val === g ? ' selected' : '' %>><%= t('admin.gender.' + g) %></option><% }) %>
+            </select>
+          <% } else if (f.kind === 'boolean') { %>
+            <select id="f-<%= f.name %>" name="<%= f.name %>"<% if (err) { %> aria-invalid="true" aria-describedby="e-<%= f.name %>"<% } %>>
+              <option value=""><%= t('admin.auto') %></option>
+              <option value="True"<%= val === 'True' ? ' selected' : '' %>><%= t('admin.yes') %></option>
+              <option value="False"<%= val === 'False' ? ' selected' : '' %>><%= t('admin.no') %></option>
+            </select>
+          <% } else { %>
+            <input id="f-<%= f.name %>" name="<%= f.name %>" type="<%= f.kind === 'date' ? 'date' : 'text' %>" value="<%= val %>" maxlength="<%= f.max || 120 %>"<% if (f.kind !== 'date') { %> autocomplete="off"<% } %><% if (f.required) { %> required<% } %><% if (err) { %> aria-invalid="true" aria-describedby="e-<%= f.name %>"<% } %>>
+          <% } %>
+          <% if (err) { %><p class="field-error" id="e-<%= f.name %>"><%= t(err) %></p><% } %>
+        </div>
+        <% }) %>
+      </div>
+      <p><button class="btn btn-large" type="submit"><%= t('admin.create') %></button></p>
+    </form>
+  </section>
+
+  <% if (!mockMode) { %>
+  <p class="alert alert-info" role="note"><%= t('admin.sor_note') %></p>
+  <section class="panel" aria-labelledby="sor-h">
+    <h2 id="sor-h"><%= t('admin.sor_title') %></h2>
+    <p><%= t('admin.sor_body') %></p>
+    <p><code class="break"><%= recordService %>/<%= configId %>/sor/&lt;<%= t('admin.identifier') %>&gt;?credential_identifier=&lt;<%= t('issuer.console.sigma_custom_cred') %>&gt;</code></p>
+  </section>
+  <% } %>
+
+  <section class="panel" aria-labelledby="saved-h">
+    <h2 id="saved-h"><%= t('admin.saved') %></h2>
+    <% if (!records.length) { %><p><%= t('admin.saved_none') %></p><% } else { %>
+    <div class="scroll-x" role="region" aria-labelledby="saved-h" tabindex="0">
+      <table class="table">
+        <thead><tr><th scope="col"><%= t('admin.identifier') %></th><th scope="col"><%= t('claim.given_name') %></th><th scope="col"><%= t('claim.family_name') %></th><th scope="col"><%= t('portal.col.action') %></th></tr></thead>
+        <tbody>
+          <% records.forEach(function (rec) { %>
+          <tr>
+            <td><code><%= rec.identifier %></code></td>
+            <td><%= rec.attributes.given_name %></td>
+            <td><%= rec.attributes.family_name %></td>
+            <td class="admin-actions">
+              <form method="post" action="/demo-issuer/admin/records/<%= rec.identifier %>/offer"><button class="btn btn-small" type="submit"><%= t('portal.create') %><span class="sr-only"> – <%= rec.identifier %></span></button></form>
+              <form method="post" action="/demo-issuer/admin/records/<%= rec.identifier %>/delete"><button class="btn btn-small btn-secondary" type="submit"><%= t('admin.delete') %><span class="sr-only"> – <%= rec.identifier %></span></button></form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <p class="note"><%= t('admin.saved_note') %></p>
+    <% } %>
+  </section>
+</div>
+<%- include('../partials/foot') %>

@@ -46,7 +46,7 @@ export function extrasRouter(ctx: Ctx): Router {
   // Issuer portal (in the spirit of the issuer's own in-person portal): 1. pick a use case, 2. pick a record, 3. create the offer.
   r.get('/demo-issuer', async (_req, res) => {
     const { reachable, useCases } = await availableUseCases();
-    res.render('issuer/portal', { title: res.locals.t('portal.title'), useCases, reachable, personas: PERSONAS, types: cfg.mockMode ? ['pid', 'birth_certificate'] : [], advanced: reachable });
+    res.render('issuer/portal', { isAdmin: !!_req.session.admin, title: res.locals.t('portal.title'), useCases, reachable, personas: PERSONAS, types: cfg.mockMode ? ['pid', 'birth_certificate'] : [], advanced: reachable });
   });
 
   r.get('/demo-issuer/use-case/:id', async (req, res) => {

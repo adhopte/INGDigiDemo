@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <h1><%= t('admin.login.title') %></h1>
+  <p class="lead"><%= t('admin.login.intro') %></p>
+  <% if (error) { %><div class="alert alert-error" role="alert"><%= t(error) %></div><% } %>
+  <form method="post" action="/demo-issuer/admin/login" class="portal-form">
+    <div class="field">
+      <label for="admin-user"><%= t('admin.login.user') %></label>
+      <input id="admin-user" name="username" type="text" value="admin" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label for="admin-pass"><%= t('admin.login.password') %></label>
+      <input id="admin-pass" name="password" type="password" autocomplete="current-password" required>
+    </div>
+    <button class="btn" type="submit"><%= t('admin.login.submit') %></button>
+  </form>
+  <p><a class="btn btn-secondary" href="/demo-issuer"><%= t('btn.back') %></a></p>
+</div>
+<%- include('../partials/foot') %>

@@ -29,6 +29,10 @@ declare module 'express-session' {
   interface SessionData {
     /** Verifier transactions started from this browser session. */
     txIds?: string[];
+    /** Signed in to the issuer portal's admin console. */
+    admin?: boolean;
+    /** Failed admin sign-ins (simple throttle). */
+    adminFails?: { n: number; until: number };
     /** Verified disclosures per RP id, per presentation key. */
     disclosed?: Record<string, Record<string, Disclosure>>;
     wallet?: WalletCredential[];

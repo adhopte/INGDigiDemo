@@ -142,7 +142,7 @@ fieldset { border: 1px solid var(--border); border-radius: var(--radius); paddin
 legend { font-weight: 800; padding: 0 .5rem; }
 .field { margin: 1.1rem 0; }
 label { display: block; font-weight: 700; margin-bottom: .35rem; }
-input[type="text"], input[type="email"], select { width: 100%; max-width: 32rem; min-height: 48px; padding: .55rem .85rem; font: inherit; color: var(--fg); background: #fff; border: 2px solid var(--field-border); border-radius: var(--radius-sm); }
+input[type="text"], input[type="email"], input[type="password"], input[type="date"], select { width: 100%; max-width: 32rem; min-height: 48px; padding: .55rem .85rem; font: inherit; color: var(--fg); background: #fff; border: 2px solid var(--field-border); border-radius: var(--radius-sm); }
 input[type="checkbox"], input[type="radio"] { width: 1.35rem; height: 1.35rem; vertical-align: middle; margin-right: .5rem; accent-color: var(--primary); }
 label.checkbox, label.radio { display: flex; font-weight: 500; min-height: 44px; align-items: center; gap: .4rem; }
 .has-error input, .has-error select { border-color: #b02a2a; }
