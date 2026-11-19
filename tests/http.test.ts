@@ -79,7 +79,7 @@ describe('redirect_uri client identifier (unsigned, by value)', () => {
       expect(link.searchParams.get('client_id')).toBe(svc.verifier.clientIdFor(tx));
       expect(link.searchParams.get('response_uri')).toBe(svc.verifier.responseUri(tx));
       expect(link.searchParams.get('request_uri')).toBeNull();
-      expect(JSON.parse(link.searchParams.get('dcql_query')!).credentials.map((c: any) => c.format)).toEqual(['mso_mdoc', 'dc+sd-jwt']); // mdoc preferred, SD-JWT for the simulated wallet
+      expect(JSON.parse(link.searchParams.get('dcql_query')!).credentials.map((c: any) => c.format)).toEqual(pres === 'pid' ? ['mso_mdoc', 'dc+sd-jwt'] : ['dc+sd-jwt']); // mdoc preferred + SD-JWT for the simulated wallet; the pid_any_sd probe is SD-JWT only
       expect(svc.verifier.walletLink(tx).length).toBeLessThan(2400); // both formats: still fits a QR code (the phone-camera QR / button are the easy paths)
       expect((await request(app).get(`/vp/request/${tx.id}`)).status).toBe(404); // nothing to fetch: not signed, by value
       const vp = await presentSdJwt({ credential: r.credRes!.body.credential, reveal: ['given_name', 'family_name', 'birth_date'], holderPrivateKey: r.privateKey!, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
