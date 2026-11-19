@@ -1,26 +1,35 @@
 /**
- * EXTERNAL ISSUER ADAPTER – the only place that knows the external Issuer's backend API.
+ * EXTERNAL ISSUER ADAPTER for the SIGMA OID4VCI issuer ("oid-vci-adapter" offer API, as used by the WalletTester portal).
  *
- * ASSUMPTION (NOT CONFIRMED – the real SIGMA Issuer schema was not provided):
- *   POST {ISSUER_API_BASE_URL}{ISSUER_EXTERNAL_OFFER_PATH}            (default path: /credential-offers)
- *   Authorization: Bearer <token>            (ISSUER_EXTERNAL_AUTH=bearer | client_credentials | none)
- *   Body : { "credential_configuration_id": "...", "claims": { ... } }
- *   Reply: JSON containing ONE of
- *            "credential_offer_uri": "https://…"           (field name configurable: ISSUER_EXTERNAL_RESPONSE_URI_FIELD)
- *            "credential_offer":     { …OID4VCI offer object… }
- *            "deeplink":             "openid-credential-offer://…"
- *          and optionally "tx_code": "1234", "expires_in": 600.
- * If the real API differs, change ONLY this file (buildRequest / parseResponse).
+ *   POST {ISSUER_API_BASE_URL}/offer            (no authentication on the preprod issuer; bearer / client_credentials supported if added)
+ *   Body : { "identifier": "<user id in the issuer's system of record>",
+ *            "businessId": "<uuid>",
+ *            "walletIdentifier": "<optional wallet id>",
+ *            "authorization_details": [{ "type": "openid_credential",
+ *                                         "credential_configuration_id": "<id from the issuer metadata>",
+ *                                         "credential_identifiers": ["<optional credential id>"] }] }
+ *   Reply: { "uri": "openid-credential-offer://?credential_offer=…",      (pre-authorised code offer, by value)
+ *            "qr_code": "<base64 JPEG>", "tx_code": "123456", "authorization_code": "<pre-authorised code>" }
+ *
+ * The claim VALUES are not part of the request: the issuer resolves them from its own system of record for `identifier`.
+ * Offer creation does not validate the identifier; an unknown one fails later, when the wallet fetches the credential.
  */
+import { randomUUID } from 'node:crypto';
 import type { AppConfig, AttestationConfig } from '../config.js';
 import { log } from '../logger.js';
-import type { Claims } from '../sdjwt/index.js';
 import { deeplinkForOfferObject, deeplinkForOfferUri } from './offer.js';
 
 export interface ExternalOffer {
   deeplink: string;
   txCode: string | undefined;
   expiresAt: Date;
+}
+
+/** Which record of the external issuer's system of record to issue. */
+export interface ExternalOfferOptions {
+  identifier?: string;
+  credentialIdentifier?: string;
+  walletIdentifier?: string;
 }
 
 let cachedToken: { value: string; exp: number } | undefined;
@@ -46,34 +55,51 @@ async function accessToken(cfg: AppConfig['issuer']['external'], fetchImpl: type
   return cachedToken.value;
 }
 
-export function buildRequest(attestation: AttestationConfig, claims: Claims): unknown {
-  return { credential_configuration_id: attestation.credentialConfigurationId, claims };
+export function buildRequest(attestation: AttestationConfig, opts: ExternalOfferOptions = {}, businessId: string = randomUUID()) {
+  const user = attestation.externalUsers.find((u) => u.identifier === opts.identifier) ?? (opts.identifier ? undefined : attestation.externalUsers[0]);
+  const identifier = opts.identifier ?? user?.identifier;
+  if (!identifier) throw new Error(`No identifier for the external issuer: configure attestations.${attestation.key}.externalUsers or pass one`);
+  const credentialIdentifier = opts.credentialIdentifier ?? user?.credentialIdentifier;
+  const walletIdentifier = opts.walletIdentifier ?? user?.walletIdentifier;
+  return {
+    identifier,
+    businessId,
+    ...(walletIdentifier ? { walletIdentifier } : {}),
+    authorization_details: [
+      {
+        type: 'openid_credential',
+        credential_configuration_id: attestation.externalConfigurationId ?? attestation.credentialConfigurationId,
+        ...(credentialIdentifier ? { credential_identifiers: [credentialIdentifier] } : {}),
+      },
+    ],
+  };
 }
 
-export function parseResponse(json: Record<string, unknown>, uriField: string): ExternalOffer {
+export function parseResponse(json: Record<string, unknown>): ExternalOffer {
   let deeplink: string | undefined;
-  const uri = json[uriField];
-  if (typeof json.deeplink === 'string') deeplink = json.deeplink;
-  else if (typeof uri === 'string') deeplink = uri.startsWith('http') ? deeplinkForOfferUri(uri) : uri;
+  const uri = json.uri ?? json.credential_offer_uri;
+  if (typeof uri === 'string') deeplink = /^https?:/.test(uri) ? deeplinkForOfferUri(uri) : uri;
   else if (json.credential_offer && typeof json.credential_offer === 'object') deeplink = deeplinkForOfferObject(json.credential_offer);
   if (!deeplink) throw new Error('Issuer reply contains no credential offer');
-  const ttl = typeof json.expires_in === 'number' ? json.expires_in : 600;
-  return { deeplink, txCode: typeof json.tx_code === 'string' ? json.tx_code : undefined, expiresAt: new Date(Date.now() + ttl * 1000) };
+  const ttl = typeof json.expires_in === 'number' ? json.expires_in : 600; // not reported by the issuer: assume 10 minutes
+  const tx = json.tx_code;
+  return { deeplink, txCode: typeof tx === 'string' || typeof tx === 'number' ? String(tx) : undefined, expiresAt: new Date(Date.now() + ttl * 1000) };
 }
 
-export async function createExternalOffer(cfg: AppConfig, attestation: AttestationConfig, claims: Claims, fetchImpl: typeof fetch = fetch): Promise<ExternalOffer> {
+export async function createExternalOffer(cfg: AppConfig, attestation: AttestationConfig, opts: ExternalOfferOptions = {}, fetchImpl: typeof fetch = fetch): Promise<ExternalOffer> {
   const ext = cfg.issuer.external;
   if (!ext.apiBaseUrl) throw new Error('ISSUER_API_BASE_URL is not configured');
   const token = await accessToken(ext, fetchImpl);
+  const body = buildRequest(attestation, opts);
   const res = await fetchImpl(`${ext.apiBaseUrl}${ext.offerPath}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', accept: 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
-    body: JSON.stringify(buildRequest(attestation, claims)),
-    signal: AbortSignal.timeout(15_000),
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(20_000),
   });
   if (!res.ok) {
     log.error('external issuer error', { status: res.status, attestation: attestation.key });
     throw new Error(`Issuer API answered ${res.status}`);
   }
-  return parseResponse((await res.json()) as Record<string, unknown>, ext.responseUriField);
+  return parseResponse((await res.json()) as Record<string, unknown>);
 }

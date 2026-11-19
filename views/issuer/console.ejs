@@ -18,11 +18,22 @@
     </form>
   </section>
   <% }) %>
-  <% if (sigma) { %>
+  <% if (sigmaItems.length) { %>
   <section class="panel" aria-labelledby="sg-h">
     <h2 id="sg-h"><%= t('issuer.console.sigma_title') %></h2>
     <p><%= t('issuer.console.sigma_pid') %></p>
-    <form method="post" action="/demo-issuer/sigma-pid"><button class="btn" type="submit"><%= t('issuer.console.sigma_btn') %></button></form>
+    <% sigmaItems.forEach(function (it) { %>
+      <form method="post" action="/demo-issuer/sigma-offer" class="inline-form">
+        <input type="hidden" name="type" value="<%= it.type %>">
+        <div class="field">
+          <label for="su-<%= it.type %>"><%= t('att.' + it.type + '.name') %> – <%= t('issuer.console.sigma_user') %></label>
+          <select id="su-<%= it.type %>" name="identifier">
+            <% it.users.forEach(function (u) { %><option value="<%= u.identifier %>"><%= u.label %> (<%= u.identifier %>)</option><% }) %>
+          </select>
+        </div>
+        <button class="btn" type="submit"><%= t('issuer.console.sigma_btn') %><span class="sr-only"> – <%= t('att.' + it.type + '.name') %></span></button>
+      </form>
+    <% }) %>
     <p class="note"><%= t('issuer.console.sigma_note') %></p>
   </section>
   <% } %>

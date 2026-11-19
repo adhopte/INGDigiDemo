@@ -25,6 +25,8 @@ export interface AttestationConfig {
   credentialConfigurationId: string;
   /** Credential configuration id at the EXTERNAL issuer (SIGMA), when it differs. */
   externalConfigurationId: string | undefined;
+  /** Identifiers (and their credential identifier) known to the external issuer's system of record. */
+  externalUsers: { identifier: string; credentialIdentifier: string | undefined; walletIdentifier: string | undefined; label: string }[];
   vct: string;
   /** Extra vct values the verifier accepts for this credential type. */
   acceptedVct: string[];
@@ -62,7 +64,6 @@ export interface ExternalIssuerConfig {
   /** Secrets: read from env only, never logged. */
   clientSecret: string | undefined;
   apiToken: string | undefined;
-  responseUriField: string;
 }
 
 export interface VerifierConfig {
@@ -139,6 +140,7 @@ export function buildAttestations(raw: unknown, env: Env): Record<string, Attest
     out[key] = {
       key,
       credentialConfigurationId: env[`ATTESTATION_${upper(key)}_CONFIG_ID`] ?? str(a.credentialConfigurationId, `attestations.${key}.credentialConfigurationId`),
+      externalUsers: Array.isArray(a.externalUsers) ? a.externalUsers.map((u: any) => ({ identifier: str(u.identifier, `attestations.${key}.externalUsers[].identifier`), credentialIdentifier: typeof u.credentialIdentifier === 'string' ? u.credentialIdentifier : undefined, walletIdentifier: typeof u.walletIdentifier === 'string' ? u.walletIdentifier : undefined, label: typeof u.label === 'string' ? u.label : u.identifier })) : [],
       externalConfigurationId: env[`ATTESTATION_${upper(key)}_EXTERNAL_CONFIG_ID`] ?? (typeof a.externalConfigurationId === 'string' ? a.externalConfigurationId : undefined),
       vct,
       acceptedVct: env[`ATTESTATION_${upper(key)}_ACCEPTED_VCT`] ? env[`ATTESTATION_${upper(key)}_ACCEPTED_VCT`]!.split(',').map((x) => x.trim()).filter(Boolean) : [...new Set([vct, ...strList(a.acceptedVct)])],
@@ -244,13 +246,13 @@ export function loadConfig(
   const authMode = (['none', 'bearer', 'client_credentials'] as const).find((m) => m === env.ISSUER_EXTERNAL_AUTH) ?? 'none';
   const external: ExternalIssuerConfig = {
     apiBaseUrl: env.ISSUER_API_BASE_URL?.replace(/\/+$/, '') || undefined,
-    offerPath: env.ISSUER_EXTERNAL_OFFER_PATH || '/credential-offers',
+    // the SIGMA offer API is POST /offer ('/credential-offers' was an earlier guess and may linger in stored settings)
+    offerPath: !env.ISSUER_EXTERNAL_OFFER_PATH || env.ISSUER_EXTERNAL_OFFER_PATH === '/credential-offers' ? '/offer' : env.ISSUER_EXTERNAL_OFFER_PATH,
     authMode,
     tokenUrl: env.ISSUER_EXTERNAL_TOKEN_URL || undefined,
     clientId: env.ISSUER_CLIENT_ID || undefined,
     clientSecret: env.ISSUER_CLIENT_SECRET || undefined,
     apiToken: env.ISSUER_API_TOKEN || undefined,
-    responseUriField: env.ISSUER_EXTERNAL_RESPONSE_URI_FIELD || 'credential_offer_uri',
   };
   if (issuerMode === 'external' && !external.apiBaseUrl) throw new Error('ISSUER_API_BASE_URL is required when ISSUER_MODE=external');
 

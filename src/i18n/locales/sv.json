@@ -312,9 +312,10 @@
   "dash.sigma.col.status": "Utfärdas av",
   "dash.sigma.ok": "SIGMA-utfärdare",
   "dash.sigma.fallback": "Erbjuds inte av SIGMA – lokal demoutfärdare",
-  "issuer.console.sigma_title": "Riktigt PID från SIGMA-utfärdaren",
-  "issuer.console.sigma_pid": "Skapar ett plånboksinitierat erbjudande om PID (mdoc) från den anslutna SIGMA-utfärdaren. Din plånbok kör själv utfärdarens auktoriseringsflöde.",
-  "issuer.console.sigma_btn": "Skapa SIGMA-PID-erbjudande",
-  "issuer.console.sigma_note": "Experimentellt: ännu inte verifierat med SIGMA-plånboken.",
-  "offer.fallback_note": "SIGMA-utfärdaren erbjuder inte det här intyget, så den lokala demoutfärdaren utfärdar det."
+  "issuer.console.sigma_title": "Bevis från SIGMA-utfärdaren",
+  "issuer.console.sigma_pid": "Skapar ett riktigt erbjudande via SIGMA-utfärdarens erbjudande-API. Uppgifterna kommer från utfärdarens egna register för den valda exempelanvändaren. Din plånbok hämtar sedan beviset från SIGMA.",
+  "issuer.console.sigma_btn": "Skapa SIGMA-erbjudande",
+  "issuer.console.sigma_note": "Utfärdaren returnerar en sexsiffrig transaktionskod som din plånbok frågar efter.",
+  "offer.fallback_note": "SIGMA-utfärdaren erbjuder inte det här intyget, så den lokala demoutfärdaren utfärdar det.",
+  "issuer.console.sigma_user": "exempelanvändare"
 }

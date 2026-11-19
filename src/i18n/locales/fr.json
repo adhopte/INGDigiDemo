@@ -312,9 +312,10 @@
   "dash.sigma.col.status": "Émis par",
   "dash.sigma.ok": "Émetteur SIGMA",
   "dash.sigma.fallback": "Non proposé par SIGMA – émetteur de démo local",
-  "issuer.console.sigma_title": "Vrai PID de l’émetteur SIGMA",
-  "issuer.console.sigma_pid": "Crée une offre initiée par le portefeuille pour le PID (mdoc) de l’émetteur SIGMA connecté. Votre portefeuille exécute lui-même le flux d’autorisation de l’émetteur.",
-  "issuer.console.sigma_btn": "Créer l’offre PID SIGMA",
-  "issuer.console.sigma_note": "Expérimental : pas encore vérifié avec le portefeuille SIGMA.",
-  "offer.fallback_note": "L’émetteur SIGMA ne propose pas cette attestation : l’émetteur de démo local l’émet."
+  "issuer.console.sigma_title": "Justificatifs de l’émetteur SIGMA",
+  "issuer.console.sigma_pid": "Crée une vraie offre de justificatif via l’API d’offres de l’émetteur SIGMA. Les données proviennent des registres de l’émetteur pour l’utilisateur d’exemple choisi. Votre portefeuille récupère ensuite le justificatif auprès de SIGMA.",
+  "issuer.console.sigma_btn": "Créer l’offre SIGMA",
+  "issuer.console.sigma_note": "L’émetteur renvoie un code de transaction à 6 chiffres, que votre portefeuille demande.",
+  "offer.fallback_note": "L’émetteur SIGMA ne propose pas cette attestation : l’émetteur de démo local l’émet.",
+  "issuer.console.sigma_user": "utilisateur d’exemple"
 }

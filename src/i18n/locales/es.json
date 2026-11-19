@@ -312,9 +312,10 @@
   "dash.sigma.col.status": "Emitido por",
   "dash.sigma.ok": "Emisor SIGMA",
   "dash.sigma.fallback": "No lo ofrece SIGMA – emisor de demostración local",
-  "issuer.console.sigma_title": "PID real del emisor SIGMA",
-  "issuer.console.sigma_pid": "Crea una oferta iniciada por la cartera para el PID (mdoc) del emisor SIGMA conectado. Su cartera ejecuta por sí misma el flujo de autorización del emisor.",
-  "issuer.console.sigma_btn": "Crear oferta de PID SIGMA",
-  "issuer.console.sigma_note": "Experimental: aún no verificado con la cartera SIGMA.",
-  "offer.fallback_note": "El emisor SIGMA no ofrece esta atestación, así que la emite el emisor de demostración local."
+  "issuer.console.sigma_title": "Credenciales del emisor SIGMA",
+  "issuer.console.sigma_pid": "Crea una oferta de credencial real mediante la API de ofertas del emisor SIGMA. Los datos proceden de los registros del propio emisor para el usuario de ejemplo elegido. Su cartera obtiene después la credencial de SIGMA.",
+  "issuer.console.sigma_btn": "Crear oferta SIGMA",
+  "issuer.console.sigma_note": "El emisor devuelve un código de transacción de 6 dígitos que le pedirá su cartera.",
+  "offer.fallback_note": "El emisor SIGMA no ofrece esta atestación, así que la emite el emisor de demostración local.",
+  "issuer.console.sigma_user": "usuario de ejemplo"
 }

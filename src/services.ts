@@ -15,6 +15,8 @@ export interface Services {
   verifier: Verifier;
   /** Live metadata of the external issuer (undefined when no metadata URL is configured). */
   remote: RemoteIssuerMetadata | undefined;
+  /** HTTP client used for all outbound calls (injectable in tests). */
+  fetchImpl: typeof fetch;
 }
 
 export async function createServices(cfg: AppConfig, fetchImpl: typeof fetch = fetch): Promise<Services> {
@@ -25,5 +27,5 @@ export async function createServices(cfg: AppConfig, fetchImpl: typeof fetch = f
   const issuer = createIssuerProvider(cfg, local, fetchImpl, remote);
   const identity = await createVerifierIdentity(cfg);
   const verifier = new Verifier(cfg, identity, createIssuerKeyResolver(cfg, local, fetchImpl));
-  return { local, issuer, verifier, remote };
+  return { local, issuer, verifier, remote, fetchImpl };
 }

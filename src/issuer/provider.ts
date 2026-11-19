@@ -1,7 +1,7 @@
 import type { AppConfig } from '../config.js';
 import { log } from '../logger.js';
 import type { Claims } from '../sdjwt/index.js';
-import { createExternalOffer } from './external.js';
+import { createExternalOffer, type ExternalOfferOptions } from './external.js';
 import type { RemoteIssuerMetadata } from './remote.js';
 import type { LocalIssuer } from './local/service.js';
 import { deeplinkForOfferUri, qrDataUrl } from './offer.js';
@@ -20,7 +20,8 @@ export interface IssuedOffer {
 
 export interface IssuerProvider {
   readonly mode: 'local' | 'external';
-  createOffer(attestationKey: string, claims: Claims): Promise<IssuedOffer>;
+  /** `claims` are used by the local issuer; the external issuer resolves its data itself from `options.identifier`. */
+  createOffer(attestationKey: string, claims: Claims, options?: ExternalOfferOptions): Promise<IssuedOffer>;
 }
 
 /** Selects the local demo issuer or the external Issuer purely from configuration (ISSUER_MODE). */
@@ -36,7 +37,7 @@ export function createIssuerProvider(cfg: AppConfig, local: LocalIssuer | undefi
   if (cfg.issuer.mode === 'external') {
     return {
       mode: 'external',
-      async createOffer(key, claims) {
+      async createOffer(key, claims, options) {
         const att = cfg.attestations[key];
         if (!att) throw new Error(`Unknown attestation "${key}"`);
         // Use the external issuer's own configuration id (from its live metadata when reachable).
@@ -44,7 +45,7 @@ export function createIssuerProvider(cfg: AppConfig, local: LocalIssuer | undefi
         const configId = rc?.id ?? att.externalConfigurationId;
         const offeredRemotely = remote?.url ? !!rc || (!(await remote.summary())?.reachable && !!att.externalConfigurationId) : !!att.externalConfigurationId;
         if (!offeredRemotely && cfg.issuer.fallbackLocal && local) return localOffer(key, claims, true);
-        const o = await createExternalOffer(cfg, { ...att, credentialConfigurationId: configId ?? att.credentialConfigurationId }, claims, fetchImpl);
+        const o = await createExternalOffer(cfg, { ...att, externalConfigurationId: configId ?? att.externalConfigurationId }, options, fetchImpl);
         log.info('offer created', { provider: 'external', attestation: key, configuration: configId });
         return { id: undefined, deeplink: o.deeplink, qr: await qrDataUrl(o.deeplink), txCode: o.txCode, expiresAt: o.expiresAt, provider: 'external' };
       },

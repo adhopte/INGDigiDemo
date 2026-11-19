@@ -77,16 +77,14 @@ services:
         value: "false"
       - key: ISSUER_SIGNING_KEY_JWK  # SECRET: private ES256 JWK of the local issuer. Without it the key changes at each restart.
         sync: false
-      - key: ISSUER_API_BASE_URL     # external issuer base URL (offer-creation API: see src/issuer/external.ts – schema to be confirmed)
+      - key: ISSUER_API_BASE_URL     # external issuer base URL (offer API: POST <base>/offer, see src/issuer/external.ts)
         value: https://issuer.sigma.prep.smartid.nuagein.io
-      - key: ISSUER_EXTERNAL_OFFER_PATH
-        value: /credential-offers
+      - key: ISSUER_EXTERNAL_OFFER_PATH   # SIGMA offer API: POST /offer
+        value: /offer
       - key: ISSUER_EXTERNAL_AUTH    # none | bearer | client_credentials
         value: none
       - key: ISSUER_EXTERNAL_TOKEN_URL
         sync: false
-      - key: ISSUER_EXTERNAL_RESPONSE_URI_FIELD
-        value: credential_offer_uri
       - key: ISSUER_API_TOKEN        # SECRET
         sync: false
       - key: ISSUER_CLIENT_ID

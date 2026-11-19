@@ -1,5 +1,5 @@
 {
-  "_comment": "Attestation catalogue + RP definitions, aligned with the SIGMA issuer metadata (https://issuer.sigma.prep.smartid.nuagein.io/.well-known/openid-credential-issuer): PID = mdoc eu.europa.ec.eudi.pid.1 (config eu.europa.ec.eudi.pid_mdoc); birth certificate = dc+sd-jwt vct urn:eudi:birth_certificate:1. 'externalConfigurationId' = id at the external issuer; 'credentialConfigurationId' = id of the local demo issuer. 'acceptedVct' = SD-JWT VC types accepted ('*' = any); 'formats' = formats requested (first = preferred); 'mdoc' maps claim names to ISO mdoc elements; 'minClaims' = fallback set when the wallet's credential lacks optional claims. Everything can be overridden by env vars (see .env.example).",
+  "_comment": "Attestation catalogue + RP definitions, aligned with the SIGMA issuer metadata (https://issuer.sigma.prep.smartid.nuagein.io/.well-known/openid-credential-issuer): PID = mdoc eu.europa.ec.eudi.pid.1 (config eu.europa.ec.eudi.pid_mdoc); birth certificate = dc+sd-jwt vct urn:eudi:birth_certificate:1. 'externalConfigurationId' = id at the external issuer; 'credentialConfigurationId' = id of the local demo issuer. 'acceptedVct' = SD-JWT VC types accepted ('*' = any); 'formats' = formats requested (first = preferred); 'mdoc' maps claim names to ISO mdoc elements; 'minClaims' = fallback set when the wallet's credential lacks optional claims. Everything can be overridden by env vars (see .env.example). 'externalUsers' = identifiers known to the external issuer's system of record (its offer API issues the data it holds for that identifier; relying parties cannot supply claim values).",
   "attestations": {
     "pid": {
       "credentialConfigurationId": "demo_pid",
@@ -47,7 +47,21 @@
         "issuing_country",
         "age_over_18"
       ],
-      "externalConfigurationId": "eu.europa.ec.eudi.pid_mdoc"
+      "externalConfigurationId": "eu.europa.ec.eudi.pid_mdoc",
+      "externalUsers": [
+        {
+          "identifier": "user-001",
+          "label": "Sample user 001"
+        },
+        {
+          "identifier": "user-002",
+          "label": "Sample user 002"
+        },
+        {
+          "identifier": "user-003",
+          "label": "Sample user 003"
+        }
+      ]
     },
     "account": {
       "credentialConfigurationId": "demo_bank_account",
@@ -96,7 +110,19 @@
         "birth_record_reference",
         "issuing_authority"
       ],
-      "externalConfigurationId": "eu.europa.ec.eudi.birth_certificate_vc_sd_jwt"
+      "externalConfigurationId": "eu.europa.ec.eudi.birth_certificate_vc_sd_jwt",
+      "externalUsers": [
+        {
+          "identifier": "user-bc-sd-jwt-001",
+          "credentialIdentifier": "birth_certificate_full_data",
+          "label": "Sample user 001"
+        },
+        {
+          "identifier": "user-bc-sd-jwt-002",
+          "credentialIdentifier": "birth_certificate_full_data",
+          "label": "Sample user 002"
+        }
+      ]
     }
   },
   "rps": [

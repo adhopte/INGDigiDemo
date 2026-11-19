@@ -74,9 +74,11 @@ The catalogue of the SIGMA preprod issuer (`https://issuer.sigma.prep.smartid.nu
 
 With `ISSUER_MODE=external` (+ `ISSUER_API_BASE_URL`, optional `ISSUER_METADATA_URL`) the app reads this metadata live (cached 10 min), shows on the dashboard which attestation is issued by SIGMA and which is not, and uses SIGMA's own configuration ids. **The bank account and payment attestations are not offered by this issuer**, so they are issued by the local demo issuer (`ISSUER_FALLBACK_LOCAL=true`, the default) and the offer page says so. `tests/fixtures/sigma-issuer-metadata.json` is a snapshot; the test-suite checks that every claim each RP requests exists in that catalogue.
 
-What is *not* connected yet, and why:
-* **Offer creation:** the issuer's backend API for creating pre-authorised offers is not public (no API docs; its own authorization server only supports the pre-authorised-code grant with `attest_jwt_client_auth`). `src/issuer/external.ts` still contains an assumed request/response schema. Until it is confirmed, SIGMA-issued credentials come from the wallet's own flow. The console offers an **experimental** wallet-initiated PID offer (`authorization_code` grant at the issuer's PID realm `…/realms/pid-haip`).
-* **Account / payment attestations:** need credential configurations on the SIGMA issuer (then they switch automatically, matched by `vct`).
+**Offer API (confirmed).** The SIGMA issuer exposes `POST <issuer>/offer` (the "oid-vci-adapter" API used by the *WalletTester* portal, https://github.com/adhopte/WalletTester); on the preprod issuer it needs no authentication. Request: `{ identifier, businessId (uuid), walletIdentifier?, authorization_details: [{ type: "openid_credential", credential_configuration_id, credential_identifiers? }] }`. Reply: `{ uri (openid-credential-offer://?credential_offer=… , pre-authorised code), qr_code (base64 JPEG), tx_code (6 digits), authorization_code }`. The `/demo-issuer` console creates such offers for **sample users** (`externalUsers` in `config/rps.json`: PID `user-001…003`, birth certificate `user-bc-sd-jwt-001/002`) and shows the 6-digit code the wallet asks for.
+
+Two things to know about this API:
+* **The claim values are not part of the request.** The issuer fills the credential from its own system of record for the given `identifier`; a relying party cannot supply data. Offer creation does not validate the identifier (an unknown one fails later, when the wallet fetches the credential). Which identifiers carry which data has to come from the SIGMA team.
+* **Account / payment attestations** are not offered by this issuer (no credential configuration, no record), so they stay with the local demo issuer. They switch automatically once SIGMA offers a configuration with the same `vct`, **and** its system of record holds the data: the bank cannot push the customer's account data into a SIGMA credential through this API.
 
 ### Verifier certificate (wallet trust)
 
@@ -140,11 +142,7 @@ Credential configurations: `demo_pid`, `demo_bank_account`, `demo_bank_payment`,
 
 ### External issuer
 
-`ISSUER_MODE=external` sends offer creation to your Issuer through **one module, `src/issuer/external.ts`**.
-
-> ⚠️ **The request/response schema there is an assumption** (`POST {ISSUER_API_BASE_URL}{ISSUER_EXTERNAL_OFFER_PATH}` with `{credential_configuration_id, claims}`; reply containing `credential_offer_uri`, `credential_offer` or `deeplink`). It must be aligned with the real SIGMA Issuer API. Only `buildRequest` and `parseResponse` need to change. Auth: `none`, `bearer` or `client_credentials`.
-
-The bank page then uses the external issuer for the account and payment attestations; the `/demo-issuer` console always uses the local one.
+`ISSUER_MODE=external` sends offer creation to the SIGMA issuer through **one module, `src/issuer/external.ts`** (request/response schema in the previous section; default path `/offer`, `ISSUER_EXTERNAL_OFFER_PATH`; authentication `none` by default, `bearer` / `client_credentials` supported should the API be protected later). The offer's `tx_code` is shown on the offer page. Attestations the external issuer does not offer fall back to the local demo issuer (`ISSUER_FALLBACK_LOCAL`).
 
 ### Verifier behaviour
 

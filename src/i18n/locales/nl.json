@@ -312,9 +312,10 @@
   "dash.sigma.col.status": "Uitgegeven door",
   "dash.sigma.ok": "SIGMA-uitgever",
   "dash.sigma.fallback": "Niet aangeboden door SIGMA – lokale demo-uitgever",
-  "issuer.console.sigma_title": "Echte PID van de SIGMA-uitgever",
-  "issuer.console.sigma_pid": "Maakt een door de wallet gestart aanbod voor de PID (mdoc) van de verbonden SIGMA-uitgever. Uw wallet doorloopt zelf de autorisatiestroom van de uitgever.",
-  "issuer.console.sigma_btn": "SIGMA-PID-aanbod maken",
-  "issuer.console.sigma_note": "Experimenteel: nog niet gecontroleerd met de SIGMA-wallet.",
-  "offer.fallback_note": "De SIGMA-uitgever biedt dit attest niet aan; de lokale demo-uitgever geeft het uit."
+  "issuer.console.sigma_title": "Bewijzen van de SIGMA-uitgever",
+  "issuer.console.sigma_pid": "Maakt een echt aanbod via de aanbod-API van de SIGMA-uitgever. De gegevens komen uit de eigen registers van de uitgever voor de gekozen voorbeeldgebruiker. Uw wallet haalt het bewijs daarna bij SIGMA op.",
+  "issuer.console.sigma_btn": "SIGMA-aanbod maken",
+  "issuer.console.sigma_note": "De uitgever geeft een transactiecode van 6 cijfers terug waar uw wallet om vraagt.",
+  "offer.fallback_note": "De SIGMA-uitgever biedt dit attest niet aan; de lokale demo-uitgever geeft het uit.",
+  "issuer.console.sigma_user": "voorbeeldgebruiker"
 }

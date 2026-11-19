@@ -174,44 +174,65 @@ describe('Benin PID rulebook v2.0 shapes', () => {
   });
 });
 
-describe('external issuer adapter', () => {
+describe('external issuer adapter (SIGMA offer API)', () => {
   const cfg = (env: Record<string, string>) => testConfig({ ISSUER_MODE: 'external', ISSUER_API_BASE_URL: 'https://issuer.api.example/', ...env });
   const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+  const OFFER = 'openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.api.example%22%7D';
 
-  it('builds the request and parses the supported reply shapes', () => {
+  it('builds the offer request exactly like the WalletTester portal', () => {
     const c = cfg({});
-    expect(buildRequest(c.attestations.payment!, { a: 1 })).toEqual({ credential_configuration_id: 'demo_bank_payment', claims: { a: 1 } });
-    expect(parseResponse({ credential_offer_uri: 'https://i.example/o/1' }, 'credential_offer_uri').deeplink).toBe('openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fi.example%2Fo%2F1');
-    expect(parseResponse({ deeplink: 'openid-credential-offer://?x=1', tx_code: '1234', expires_in: 60 }, 'credential_offer_uri')).toMatchObject({ deeplink: 'openid-credential-offer://?x=1', txCode: '1234' });
-    expect(parseResponse({ credential_offer: { credential_issuer: 'https://i.example' } }, 'credential_offer_uri').deeplink).toContain('credential_offer=');
-    expect(parseResponse({ offer: 'https://i.example/o/1' }, 'offer').deeplink).toContain('credential_offer_uri=');
-    expect(() => parseResponse({}, 'credential_offer_uri')).toThrow(/no credential offer/);
+    expect(buildRequest(c.attestations.birth_certificate!, {}, 'biz-1')).toEqual({
+      identifier: 'user-bc-sd-jwt-001', businessId: 'biz-1',
+      authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.birth_certificate_vc_sd_jwt', credential_identifiers: ['birth_certificate_full_data'] }],
+    });
+    expect(buildRequest(c.attestations.pid!, { identifier: 'user-002', walletIdentifier: 'w-002' }, 'biz-2')).toEqual({
+      identifier: 'user-002', businessId: 'biz-2', walletIdentifier: 'w-002',
+      authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc' }],
+    });
+    expect(buildRequest(c.attestations.pid!).businessId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(() => buildRequest(c.attestations.account!)).toThrow(/No identifier/); // no sample users configured for a type the issuer does not know
+    expect(buildRequest(c.attestations.account!, { identifier: 'x' }).authorization_details[0]!.credential_configuration_id).toBe('demo_bank_account');
   });
 
-  it('calls the configured endpoint with bearer auth and returns a deeplink + QR', async () => {
-    const c = cfg({ ISSUER_EXTERNAL_AUTH: 'bearer', ISSUER_API_TOKEN: 'tok', ISSUER_EXTERNAL_OFFER_PATH: '/v1/offers' });
+  it('parses the issuer reply (uri, tx_code) and the fallbacks', () => {
+    const o = parseResponse({ qr_code: 'AAAA', uri: OFFER, tx_code: '593296', authorization_code: 'abc' });
+    expect(o.deeplink).toBe(OFFER);
+    expect(o.txCode).toBe('593296');
+    expect(o.expiresAt.getTime()).toBeGreaterThan(Date.now());
+    expect(parseResponse({ credential_offer_uri: 'https://i.example/o/1' }).deeplink).toBe('openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fi.example%2Fo%2F1');
+    expect(parseResponse({ credential_offer: { credential_issuer: 'https://i.example' } }).deeplink).toContain('credential_offer=');
+    expect(parseResponse({ uri: OFFER, tx_code: 123456 }).txCode).toBe('123456');
+    expect(() => parseResponse({})).toThrow(/no credential offer/);
+  });
+
+  it('POSTs to /offer on the base URL and returns deeplink, tx code and QR; the legacy path setting maps to /offer', async () => {
+    expect(cfg({ ISSUER_EXTERNAL_OFFER_PATH: '/credential-offers' }).issuer.external.offerPath).toBe('/offer');
+    expect(cfg({}).issuer.external.offerPath).toBe('/offer');
+    const c = cfg({});
     let seen: { url: string; init: RequestInit } | undefined;
-    const f = (async (url: string, init: RequestInit) => { seen = { url, init }; return reply({ credential_offer_uri: 'https://i.example/o/9' }); }) as unknown as typeof fetch;
+    const f = (async (url: string, init: RequestInit) => { seen = { url, init }; return reply({ uri: OFFER, tx_code: '111222', qr_code: 'x', authorization_code: 'y' }); }) as unknown as typeof fetch;
     const provider = createIssuerProvider(c, undefined, f);
-    const offer = await provider.createOffer('payment', { iban: 'X' });
+    const offer = await provider.createOffer('birth_certificate', {}, { identifier: 'user-bc-sd-jwt-002' });
     expect(provider.mode).toBe('external');
-    expect(seen!.url).toBe('https://issuer.api.example/v1/offers');
-    expect((seen!.init.headers as Record<string, string>).authorization).toBe('Bearer tok');
-    expect(JSON.parse(String(seen!.init.body))).toEqual({ credential_offer_uri: undefined, credential_configuration_id: 'demo_bank_payment', claims: { iban: 'X' } });
-    expect(offer.provider).toBe('external'); expect(offer.id).toBeUndefined();
+    expect(seen!.url).toBe('https://issuer.api.example/offer');
+    expect((seen!.init.headers as Record<string, string>).authorization).toBeUndefined(); // the preprod offer API is unauthenticated
+    expect(JSON.parse(String(seen!.init.body)).identifier).toBe('user-bc-sd-jwt-002');
+    expect(offer).toMatchObject({ provider: 'external', txCode: '111222', deeplink: OFFER });
+    expect(offer.id).toBeUndefined();
     expect(offer.qr.startsWith('data:image/png;base64,')).toBe(true);
   });
 
-  it('supports client_credentials and surfaces API errors; missing secrets fail loudly', async () => {
+  it('supports bearer / client_credentials when the API is later protected, and surfaces API errors', async () => {
     const c = cfg({ ISSUER_EXTERNAL_AUTH: 'client_credentials', ISSUER_EXTERNAL_TOKEN_URL: 'https://auth.example/token', ISSUER_CLIENT_ID: 'id', ISSUER_CLIENT_SECRET: 'secret' });
     const urls: string[] = [];
     const f = (async (url: string, init: RequestInit) => {
       urls.push(url);
       if (url === 'https://auth.example/token') { expect((init.headers as Record<string, string>).authorization).toBe(`Basic ${Buffer.from('id:secret').toString('base64')}`); return reply({ access_token: 'at', expires_in: 60 }); }
+      expect((init.headers as Record<string, string>).authorization).toBe('Bearer at');
       return reply({ error: 'boom' }, 500);
     }) as unknown as typeof fetch;
-    await expect(createExternalOffer(c, c.attestations.account!, {}, f)).rejects.toThrow(/answered 500/);
+    await expect(createExternalOffer(c, c.attestations.pid!, {}, f)).rejects.toThrow(/answered 500/);
     expect(urls[0]).toBe('https://auth.example/token');
-    await expect(createExternalOffer(cfg({ ISSUER_EXTERNAL_AUTH: 'bearer' }), c.attestations.account!, {}, f)).rejects.toThrow(/ISSUER_API_TOKEN/);
+    await expect(createExternalOffer(cfg({ ISSUER_EXTERNAL_AUTH: 'bearer' }), c.attestations.pid!, {}, f)).rejects.toThrow(/ISSUER_API_TOKEN/);
   });
 });

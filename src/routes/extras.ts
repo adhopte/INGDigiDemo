@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { deeplinkForOfferObject, qrDataUrl } from '../issuer/offer.js';
 import { createIssuerProvider } from '../issuer/provider.js';
 import { matchConfig } from '../issuer/remote.js';
 import { PERSONAS, demoClaims, heldClaims, personaFor, redeemOffer } from '../mock/wallet.js';
@@ -34,23 +33,33 @@ export function extrasRouter(ctx: Ctx): Router {
 
   r.get('/demo-issuer', async (_req, res) => {
     const s = await svc.remote?.summary();
-    res.render('issuer/console', { title: res.locals.t('issuer.console.title'), personas: PERSONAS, types: ['pid', 'birth_certificate'], sigma: s?.reachable ? s : undefined });
+    // credentials the connected SIGMA issuer offers AND that we know sample identifiers for
+    const sigmaItems = s?.reachable
+      ? Object.values(cfg.attestations).flatMap((a) => {
+          const rc = matchConfig(a, s.configs);
+          return rc && a.externalUsers.length ? [{ type: a.key, config: rc.id, users: a.externalUsers }] : [];
+        })
+      : [];
+    res.render('issuer/console', { title: res.locals.t('issuer.console.title'), personas: PERSONAS, types: ['pid', 'birth_certificate'], sigmaItems });
   });
 
-  /**
-   * EXPERIMENTAL: a wallet-initiated credential offer for the real SIGMA PID (authorization_code grant at the issuer's PID realm).
-   * It carries no secret and needs no issuer backend call; the wallet runs the authorization flow itself.
-   */
-  r.post('/demo-issuer/sigma-pid', async (_req, res) => {
+  /** A REAL pre-authorised offer from the SIGMA issuer's offer API for a known sample identifier. */
+  r.post('/demo-issuer/sigma-offer', async (req, res) => {
     const s = await svc.remote?.summary();
-    const att = cfg.attestations.pid;
-    const rc = s?.reachable && att ? matchConfig(att, s.configs) : undefined;
-    if (!s?.issuer || !rc) return void res.status(404).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer' });
-    const as = s.authorizationServers.find((a) => a.includes('/realms/')) ?? s.authorizationServers[0];
-    const offerObject = { credential_issuer: s.issuer, credential_configuration_ids: [rc.id], grants: { authorization_code: { ...(as ? { authorization_server: as } : {}) } } };
-    const deeplink = deeplinkForOfferObject(offerObject);
-    const offer = { id: undefined, deeplink, qr: await qrDataUrl(deeplink), txCode: undefined, expiresAt: new Date(Date.now() + 10 * 60_000), provider: 'external' as const };
-    res.render('offer', { title: res.locals.t('att.pid.name'), attestationKey: 'pid', offer, returnTo: '/demo-issuer', canSimulate: false, rp: undefined });
+    const att = cfg.attestations[q(req.body?.type) ?? ''];
+    const rc = att && s?.reachable ? matchConfig(att, s.configs) : undefined;
+    const user = att?.externalUsers.find((u) => u.identifier === q(req.body?.identifier));
+    if (!att || !rc || !user || !s?.issuer) return void res.status(400).render('error', { title: res.locals.t('error.title'), message: res.locals.t('error.generic'), retryHref: '/demo-issuer' });
+    const external = createIssuerProvider(
+      { ...cfg, issuer: { ...cfg.issuer, mode: 'external', fallbackLocal: false, external: { ...cfg.issuer.external, apiBaseUrl: cfg.issuer.external.apiBaseUrl ?? s.issuer } } },
+      svc.local, svc.fetchImpl, svc.remote,
+    );
+    try {
+      const offer = await external.createOffer(att.key, {}, { identifier: user.identifier });
+      res.render('offer', { title: res.locals.t(`att.${att.key}.name`), attestationKey: att.key, offer, returnTo: '/demo-issuer', canSimulate: false, rp: undefined });
+    } catch {
+      res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer' });
+    }
   });
 
   r.post('/demo-issuer/offer', async (req, res) => {

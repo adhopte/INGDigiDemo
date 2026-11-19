@@ -57,6 +57,31 @@ describe('SIGMA issuer catalogue vs. what the RPs request', () => {
   });
 });
 
+describe('console: offers through the SIGMA offer API', () => {
+  it('POSTs the chosen sample user to /offer and shows deeplink and the 6-digit tx code', async () => {
+    const cfg = testConfig({ ISSUER_MODE: 'external', ISSUER_API_BASE_URL: 'https://issuer.sigma.prep.smartid.nuagein.io', MOCK_MODE: 'false' });
+    const calls: any[] = [];
+    const f = (async (url: string, init?: RequestInit) => {
+      if (url === META_URL) return json(META);
+      calls.push({ url, body: JSON.parse(String(init?.body)) });
+      return json({ uri: 'openid-credential-offer://?credential_offer=%7B%22credential_issuer%22%3A%22https%3A%2F%2Fissuer.sigma.prep.smartid.nuagein.io%22%7D', tx_code: '246810', qr_code: 'x', authorization_code: 'y' });
+    }) as unknown as typeof fetch;
+    const svc = await createServices(cfg, f);
+    const app = createApp(cfg, svc);
+    const res = await request(app).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'user-002' });
+    expect(res.status).toBe(200);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe('https://issuer.sigma.prep.smartid.nuagein.io/offer');
+    expect(calls[0].body).toMatchObject({ identifier: 'user-002', authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc' }] });
+    expect(res.text).toContain('246810'); // the code the wallet asks for
+    expect(res.text).toContain('openid-credential-offer://');
+    expect(res.text).toContain('data:image/png');
+    // API failure: error page, no crash
+    const bad = await createServices(cfg, (async (url: string) => (url === META_URL ? json(META) : new Response('x', { status: 500 }))) as unknown as typeof fetch);
+    expect((await request(createApp(cfg, bad)).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'user-001' })).status).toBe(502);
+  });
+});
+
 describe('wallet compatibility check (probe ladder)', () => {
   it('each probe requests exactly one credential type, one claim', async () => {
     const cfg = testConfig({ MOCK_MODE: 'false' });
@@ -127,19 +152,23 @@ describe('connecting the attestation issuer to the SIGMA URL', () => {
   it('an attestation the SIGMA issuer does offer goes to the external API with SIGMA\'s own configuration id', async () => {
     const cfg = testConfig({ ...env, ISSUER_EXTERNAL_AUTH: 'bearer', ISSUER_API_TOKEN: 't' });
     let body: any;
+    let target = '';
     const f = (async (url: string, init?: RequestInit) => {
       if (url === META_URL) return json(META);
+      target = url;
       body = JSON.parse(String(init?.body));
-      return json({ credential_offer_uri: 'https://issuer.sigma.prep.smartid.nuagein.io/offers/abc' });
+      return json({ uri: 'openid-credential-offer://?credential_offer=%7B%7D', tx_code: '593296', qr_code: 'x', authorization_code: 'y' });
     }) as unknown as typeof fetch;
     const svc = await createServices(cfg, f);
-    const offer = await svc.issuer.createOffer('birth_certificate', { given_name: 'A' });
-    expect(offer.provider).toBe('external');
-    expect(body.credential_configuration_id).toBe('eu.europa.ec.eudi.birth_certificate_vc_sd_jwt');
+    const offer = await svc.issuer.createOffer('birth_certificate', {});
+    expect(offer).toMatchObject({ provider: 'external', txCode: '593296' });
+    expect(target).toBe('https://issuer.sigma.prep.smartid.nuagein.io/offer');
+    expect(body.authorization_details[0].credential_configuration_id).toBe('eu.europa.ec.eudi.birth_certificate_vc_sd_jwt');
+    expect(body.identifier).toBe('user-bc-sd-jwt-001');
     expect(offer.fallback).toBeUndefined();
   });
 
-  it('the dashboard lists SIGMA\'s catalogue and what is local; the console builds an authorization-code PID offer', async () => {
+  it('the dashboard lists SIGMA\'s catalogue and what is local; the console creates SIGMA offers', async () => {
     const cfg = testConfig(env);
     const svc = await createServices(cfg, fetchMeta);
     const app = createApp(cfg, svc);
@@ -148,18 +177,15 @@ describe('connecting the attestation issuer to the SIGMA URL', () => {
     expect(home).toContain('eu.europa.ec.eudi.pid_mdoc');
     expect(home).toContain('eu.europa.ec.eudi.birth_certificate_vc_sd_jwt');
     expect(home).toContain('Not offered by SIGMA');
-    const res = await request(app).post('/demo-issuer/sigma-pid');
-    expect(res.status).toBe(200);
-    const link = /href="(openid-credential-offer:\/\/[^"]+)"/.exec(res.text)![1]!.replace(/&amp;/g, '&');
-    const offer = JSON.parse(new URL(link).searchParams.get('credential_offer')!);
-    expect(offer).toEqual({
-      credential_issuer: 'https://issuer.sigma.prep.smartid.nuagein.io',
-      credential_configuration_ids: ['eu.europa.ec.eudi.pid_mdoc'],
-      grants: { authorization_code: { authorization_server: 'https://idp-pid.sigma.prep.smartid.nuagein.io/realms/pid-haip' } },
-    });
+    // console: lists the sample users and creates a REAL pre-authorised offer through the issuer's offer API
+    const consolePage = (await request(app).get('/demo-issuer')).text;
+    expect(consolePage).toContain('Credentials from the SIGMA issuer');
+    expect(consolePage).toContain('user-001');
+    expect(consolePage).toContain('user-bc-sd-jwt-002');
+    expect((await request(app).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'not-configured' })).status).toBe(400);
     // no metadata URL configured: no panel, no SIGMA button
     const plain = createApp(testConfig({ MOCK_MODE: 'true' }), await createServices(testConfig({ MOCK_MODE: 'true' })));
     expect((await request(plain).get('/')).text).not.toContain('Connected SIGMA issuer');
-    expect((await request(plain).post('/demo-issuer/sigma-pid')).status).toBe(404);
+    expect((await request(plain).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'user-001' })).status).toBe(400);
   });
 });

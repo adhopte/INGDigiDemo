@@ -312,9 +312,10 @@
   "dash.sigma.col.status": "Issued by",
   "dash.sigma.ok": "SIGMA issuer",
   "dash.sigma.fallback": "Not offered by SIGMA – local demo issuer",
-  "issuer.console.sigma_title": "Real PID from the SIGMA issuer",
-  "issuer.console.sigma_pid": "Creates a wallet-initiated offer for the PID (mdoc) of the connected SIGMA issuer. Your wallet runs the issuer’s authorisation flow itself.",
-  "issuer.console.sigma_btn": "Create SIGMA PID offer",
-  "issuer.console.sigma_note": "Experimental: not yet verified against the SIGMA wallet.",
-  "offer.fallback_note": "The SIGMA issuer does not offer this attestation, so the local demo issuer issues it."
+  "issuer.console.sigma_title": "Credentials from the SIGMA issuer",
+  "issuer.console.sigma_pid": "Creates a real credential offer through the SIGMA issuer’s offer API. The data comes from the issuer’s own records for the chosen sample user. Your wallet then fetches the credential from SIGMA.",
+  "issuer.console.sigma_btn": "Create SIGMA offer",
+  "issuer.console.sigma_note": "The issuer returns a 6-digit transaction code, which your wallet asks for.",
+  "offer.fallback_note": "The SIGMA issuer does not offer this attestation, so the local demo issuer issues it.",
+  "issuer.console.sigma_user": "sample user"
 }

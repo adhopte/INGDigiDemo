@@ -312,9 +312,10 @@
   "dash.sigma.col.status": "Ausgestellt von",
   "dash.sigma.ok": "SIGMA-Aussteller",
   "dash.sigma.fallback": "Von SIGMA nicht angeboten – lokaler Demo-Aussteller",
-  "issuer.console.sigma_title": "Echte PID vom SIGMA-Aussteller",
-  "issuer.console.sigma_pid": "Erstellt ein von der Wallet initiiertes Angebot für die PID (mdoc) des verbundenen SIGMA-Ausstellers. Ihre Wallet führt den Autorisierungsablauf des Ausstellers selbst aus.",
-  "issuer.console.sigma_btn": "SIGMA-PID-Angebot erstellen",
-  "issuer.console.sigma_note": "Experimentell: noch nicht mit der SIGMA-Wallet geprüft.",
-  "offer.fallback_note": "Der SIGMA-Aussteller bietet diesen Nachweis nicht an; der lokale Demo-Aussteller stellt ihn aus."
+  "issuer.console.sigma_title": "Nachweise vom SIGMA-Aussteller",
+  "issuer.console.sigma_pid": "Erstellt über die Angebots-API des SIGMA-Ausstellers ein echtes Nachweisangebot. Die Daten stammen aus den eigenen Registern des Ausstellers zum gewählten Beispielnutzer. Ihre Wallet holt den Nachweis anschließend bei SIGMA ab.",
+  "issuer.console.sigma_btn": "SIGMA-Angebot erstellen",
+  "issuer.console.sigma_note": "Der Aussteller liefert einen 6-stelligen Transaktionscode, nach dem Ihre Wallet fragt.",
+  "offer.fallback_note": "Der SIGMA-Aussteller bietet diesen Nachweis nicht an; der lokale Demo-Aussteller stellt ihn aus.",
+  "issuer.console.sigma_user": "Beispielnutzer"
 }

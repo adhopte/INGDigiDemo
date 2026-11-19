@@ -312,9 +312,10 @@
   "dash.sigma.col.status": "Joħroġ minn",
   "dash.sigma.ok": "Emittent SIGMA",
   "dash.sigma.fallback": "Mhux offrut minn SIGMA – emittent lokali tad-demo",
-  "issuer.console.sigma_title": "PID reali mill-emittent SIGMA",
-  "issuer.console.sigma_pid": "Joħloq offerta mibdija mill-kartiera għall-PID (mdoc) tal-emittent SIGMA konness. Il-kartiera tiegħek tmexxi hi stess il-fluss ta’ awtorizzazzjoni tal-emittent.",
-  "issuer.console.sigma_btn": "Oħloq offerta PID SIGMA",
-  "issuer.console.sigma_note": "Sperimentali: għadu mhux ivverifikat mal-kartiera SIGMA.",
-  "offer.fallback_note": "L-emittent SIGMA ma joffrix din l-attestazzjoni, għalhekk l-emittent lokali tad-demo joħroġha."
+  "issuer.console.sigma_title": "Kredenzjali mill-emittent SIGMA",
+  "issuer.console.sigma_pid": "Joħloq offerta reali permezz tal-API tal-offerti tal-emittent SIGMA. Id-data tiġi mir-reġistri tal-emittent stess għall-utent tal-eżempju magħżul. Il-kartiera tiegħek imbagħad tikseb il-kredenzjal minn SIGMA.",
+  "issuer.console.sigma_btn": "Oħloq offerta SIGMA",
+  "issuer.console.sigma_note": "L-emittent jirritorna kodiċi tat-tranżazzjoni b’6 ċifri li l-kartiera tiegħek titlob.",
+  "offer.fallback_note": "L-emittent SIGMA ma joffrix din l-attestazzjoni, għalhekk l-emittent lokali tad-demo joħroġha.",
+  "issuer.console.sigma_user": "utent tal-eżempju"
 }
