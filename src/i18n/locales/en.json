@@ -399,5 +399,9 @@
   "admin.err.portrait": "The portrait could not be used. Choose a JPEG, PNG or similar image.",
   "admin.sor_unreachable": "The record service could not be reached, so the record was not saved. Check SOR_URL and SOR_API_TOKEN.",
   "admin.store_error": "The record service could not be reached. Saved records cannot be shown or changed right now.",
-  "admin.standalone_note": "Records are stored in the standalone record service, which the issuer reads from. They stay there until deleted or until that service loses its storage."
+  "admin.standalone_note": "Records are stored in the standalone record service, which the issuer reads from. They stay there until deleted or until that service loses its storage.",
+  "admin.via.title": "Issue through",
+  "admin.via.own": "This app’s own issuer (OpenID4VCI) – issues exactly the values you typed",
+  "admin.via.sigma": "SIGMA issuer – only works if it can read this record (it uses its own records unless pointed at the record service)",
+  "admin.via.sigma_btn": "SIGMA offer"
 }

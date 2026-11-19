@@ -399,5 +399,9 @@
   "admin.err.portrait": "Das Porträt konnte nicht verwendet werden. Wählen Sie ein JPEG-, PNG- oder ähnliches Bild.",
   "admin.sor_unreachable": "Der Datensatzdienst ist nicht erreichbar, der Datensatz wurde nicht gespeichert. Prüfen Sie SOR_URL und SOR_API_TOKEN.",
   "admin.store_error": "Der Datensatzdienst ist nicht erreichbar. Gespeicherte Datensätze können derzeit weder angezeigt noch geändert werden.",
-  "admin.standalone_note": "Datensätze liegen im eigenständigen Datensatzdienst, aus dem der Aussteller liest. Sie bleiben dort, bis sie gelöscht werden oder der Dienst seinen Speicher verliert."
+  "admin.standalone_note": "Datensätze liegen im eigenständigen Datensatzdienst, aus dem der Aussteller liest. Sie bleiben dort, bis sie gelöscht werden oder der Dienst seinen Speicher verliert.",
+  "admin.via.title": "Ausstellen über",
+  "admin.via.own": "Der eigene Aussteller dieser App (OpenID4VCI) – stellt genau die eingegebenen Werte aus",
+  "admin.via.sigma": "SIGMA-Aussteller – funktioniert nur, wenn er diesen Datensatz lesen kann (er nutzt eigene Datensätze, sofern er nicht auf den Datensatzdienst zeigt)",
+  "admin.via.sigma_btn": "SIGMA-Angebot"
 }

@@ -399,5 +399,9 @@
   "admin.err.portrait": "No se pudo usar el retrato. Elija una imagen JPEG, PNG o similar.",
   "admin.sor_unreachable": "No se pudo contactar con el servicio de registros, así que el registro no se guardó. Compruebe SOR_URL y SOR_API_TOKEN.",
   "admin.store_error": "No se pudo contactar con el servicio de registros. Ahora no se pueden mostrar ni modificar los registros guardados.",
-  "admin.standalone_note": "Los registros se guardan en el servicio de registros independiente, del que lee el emisor. Permanecen allí hasta que se eliminen o ese servicio pierda su almacenamiento."
+  "admin.standalone_note": "Los registros se guardan en el servicio de registros independiente, del que lee el emisor. Permanecen allí hasta que se eliminen o ese servicio pierda su almacenamiento.",
+  "admin.via.title": "Emitir mediante",
+  "admin.via.own": "El emisor propio de esta aplicación (OpenID4VCI) – emite exactamente los valores introducidos",
+  "admin.via.sigma": "Emisor SIGMA – solo funciona si puede leer este registro (usa sus propios registros salvo que apunte al servicio de registros)",
+  "admin.via.sigma_btn": "Oferta SIGMA"
 }

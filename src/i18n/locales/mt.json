@@ -399,5 +399,9 @@
   "admin.err.portrait": "Ir-ritratt ma setax jintuża. Agħżel stampa JPEG, PNG jew simili.",
   "admin.sor_unreachable": "Is-servizz tar-records ma setax jintlaħaq, għalhekk ir-record ma ġiex salvat. Iċċekkja SOR_URL u SOR_API_TOKEN.",
   "admin.store_error": "Is-servizz tar-records ma setax jintlaħaq. Ir-records salvati ma jistgħux jintwerew jew jinbidlu bħalissa.",
-  "admin.standalone_note": "Ir-records jinżammu fis-servizz tar-records indipendenti li minnu jaqra l-emittent. Jibqgħu hemm sakemm jitħassru jew sakemm dak is-servizz jitlef l-ħażna tiegħu."
+  "admin.standalone_note": "Ir-records jinżammu fis-servizz tar-records indipendenti li minnu jaqra l-emittent. Jibqgħu hemm sakemm jitħassru jew sakemm dak is-servizz jitlef l-ħażna tiegħu.",
+  "admin.via.title": "Oħroġ permezz ta’",
+  "admin.via.own": "L-emittent proprju ta’ din l-app (OpenID4VCI) – joħroġ eżattament il-valuri li daħħalt",
+  "admin.via.sigma": "Emittent SIGMA – jaħdem biss jekk jista’ jaqra dan ir-record (juża r-records tiegħu stess sakemm ma jippuntax lejn is-servizz tar-records)",
+  "admin.via.sigma_btn": "Offerta SIGMA"
 }

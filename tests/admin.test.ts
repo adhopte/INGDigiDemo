@@ -80,7 +80,7 @@ describe('admin console (mock of an authentic source)', () => {
     expect(bad.status).toBe(422);
     expect(bad.text).toContain('This field is required.');
     expect(calls).toHaveLength(0);
-    const res = await agent.post('/demo-issuer/admin/offer').type('form').send(PID_FORM);
+    const res = await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, via: 'sigma' });
     expect(res.status).toBe(200);
     expect(res.text).toContain('135790'); // transaction code
     expect(res.text).toContain('Pre-authorised code');
@@ -105,7 +105,7 @@ describe('admin console (mock of an authentic source)', () => {
     // listed on the admin page; offer again, then delete
     const page = await agent.get('/demo-issuer/admin');
     expect(page.text).toContain(sent.identifier);
-    expect((await agent.post(`/demo-issuer/admin/records/${sent.identifier}/offer`)).status).toBe(200);
+    expect((await agent.post(`/demo-issuer/admin/records/${sent.identifier}/offer`).type('form').send({ via: 'sigma' })).status).toBe(200);
     expect(calls).toHaveLength(2);
     await agent.post(`/demo-issuer/admin/records/${sent.identifier}/delete`);
     expect((await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${sent.identifier}`)).status).toBe(404);
@@ -118,16 +118,16 @@ describe('admin console (mock of an authentic source)', () => {
     expect(bad.status).toBe(422);
     expect(bad.text).toContain('The portrait could not be used');
     expect(calls).toHaveLength(0);
-    expect((await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, portrait: JPEG_B64 })).status).toBe(200);
+    expect((await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, portrait: JPEG_B64, via: 'sigma' })).status).toBe(200);
     const id = calls[0].body.identifier;
     const sor = await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${id}`);
     expect(sor.body.attributes).toContainEqual({ name: 'portrait', value: JPEG_B64 });
     expect((await agent.get('/demo-issuer/admin')).text).toContain(`data:image/jpeg;base64,${JPEG_B64}`);
     // a record without portrait serves none; the birth certificate never takes one
-    expect((await agent.post('/demo-issuer/admin/offer').type('form').send(PID_FORM)).status).toBe(200);
+    expect((await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, via: 'sigma' })).status).toBe(200);
     const sor2 = await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${calls[1].body.identifier}`);
     expect(sor2.body.attributes.some((a: any) => a.name === 'portrait')).toBe(false);
-    await agent.post('/demo-issuer/admin/offer').type('form').send({ uc: 'birth-certificate', given_name: 'A', family_name: 'B', birth_date: '1990-01-01', portrait: JPEG_B64 });
+    await agent.post('/demo-issuer/admin/offer').type('form').send({ uc: 'birth-certificate', given_name: 'A', family_name: 'B', birth_date: '1990-01-01', portrait: JPEG_B64, via: 'sigma' });
     const sor3 = await request(app).get(`/sor/eu.europa.ec.eudi.birth_certificate_vc_sd_jwt/sor/${calls[2].body.identifier}`);
     expect(sor3.body.attributes.some((a: any) => a.name === 'portrait')).toBe(false);
   });
@@ -135,10 +135,24 @@ describe('admin console (mock of an authentic source)', () => {
   it('birth certificate uses its own configuration', async () => {
     const { agent, calls } = await setup();
     await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
-    const res = await agent.post('/demo-issuer/admin/offer').type('form').send({ uc: 'birth-certificate', given_name: 'Amina', family_name: 'Koffi', birth_date: '1990-05-17', birth_place: 'Cotonou' });
+    const res = await agent.post('/demo-issuer/admin/offer').type('form').send({ uc: 'birth-certificate', given_name: 'Amina', family_name: 'Koffi', birth_date: '1990-05-17', birth_place: 'Cotonou', via: 'sigma' });
     expect(res.status).toBe(200);
     expect(calls[0].body.identifier).toMatch(/^custom-bc-/);
     expect(calls[0].body.authorization_details[0]).toMatchObject({ credential_configuration_id: 'eu.europa.ec.eudi.birth_certificate_vc_sd_jwt', credential_identifiers: ['custom_birth_certificate'] });
+  });
+
+  it('by default issues the typed values through the app\'s own issuer, by value, without calling SIGMA', async () => {
+    const { agent, calls, svc } = await setup();
+    await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
+    expect((await agent.get('/demo-issuer/admin')).text).toContain('own issuer (OpenID4VCI)');
+    const res = await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, family_name: 'Zoumarou' });
+    expect(res.status).toBe(200);
+    expect(calls).toHaveLength(0); // nothing sent to SIGMA
+    const link = /openid-credential-offer:\/\/\?credential_offer=[^"<\s]+/.exec(res.text.replace(/&amp;/g, '&'))![0];
+    const offer = JSON.parse(decodeURIComponent(link.split('credential_offer=')[1]!));
+    expect(offer.credential_issuer).toContain('/issuer');
+    const token = await request(createApp(testConfig({ MOCK_MODE: 'false' }), svc)).post('/issuer/token').type('form').send({ grant_type: 'urn:ietf:params:oauth:grant-type:pre-authorized_code', 'pre-authorized_code': offer.grants['urn:ietf:params:oauth:grant-type:pre-authorized_code']['pre-authorized_code'] });
+    expect(token.status).toBe(200); // the offer really is redeemable at our issuer
   });
 
   it('normal users still create offers from the sample records', async () => {

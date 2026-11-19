@@ -399,5 +399,9 @@
   "admin.err.portrait": "De pasfoto kon niet worden gebruikt. Kies een JPEG-, PNG- of vergelijkbare afbeelding.",
   "admin.sor_unreachable": "De recordservice is niet bereikbaar, dus het record is niet opgeslagen. Controleer SOR_URL en SOR_API_TOKEN.",
   "admin.store_error": "De recordservice is niet bereikbaar. Opgeslagen records kunnen nu niet worden getoond of gewijzigd.",
-  "admin.standalone_note": "Records worden bewaard in de zelfstandige recordservice waaruit de uitgever leest. Ze blijven daar staan tot ze worden verwijderd of die service zijn opslag verliest."
+  "admin.standalone_note": "Records worden bewaard in de zelfstandige recordservice waaruit de uitgever leest. Ze blijven daar staan tot ze worden verwijderd of die service zijn opslag verliest.",
+  "admin.via.title": "Uitgeven via",
+  "admin.via.own": "De eigen uitgever van deze app (OpenID4VCI) – geeft precies de ingevoerde waarden uit",
+  "admin.via.sigma": "SIGMA-uitgever – werkt alleen als hij dit record kan lezen (hij gebruikt zijn eigen records tenzij hij naar de recordservice wijst)",
+  "admin.via.sigma_btn": "SIGMA-aanbod"
 }

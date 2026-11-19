@@ -50,6 +50,13 @@
         </div>
         <% }) %>
       </div>
+      <% if (!mockMode) { %>
+      <fieldset class="portrait-field">
+        <legend><%= t('admin.via.title') %></legend>
+        <p><label><input type="radio" name="via" value="own" checked> <%= t('admin.via.own') %></label></p>
+        <p><label><input type="radio" name="via" value="sigma"> <%= t('admin.via.sigma') %></label></p>
+      </fieldset>
+      <% } %>
       <% if (uc === 'pid') { %>
       <fieldset class="portrait-field<%= errors.portrait ? ' has-error' : '' %>">
         <legend><%= t('admin.portrait') %></legend>
@@ -93,7 +100,8 @@
             <td><%= rec.attributes.given_name %></td>
             <td><%= rec.attributes.family_name %></td>
             <td class="admin-actions">
-              <form method="post" action="/demo-issuer/admin/records/<%= rec.identifier %>/offer"><button class="btn btn-small" type="submit"><%= t('portal.create') %><span class="sr-only"> – <%= rec.identifier %></span></button></form>
+              <form method="post" action="/demo-issuer/admin/records/<%= rec.identifier %>/offer"><input type="hidden" name="via" value="own"><button class="btn btn-small" type="submit"><%= t('portal.create') %><span class="sr-only"> – <%= rec.identifier %></span></button></form>
+              <% if (standalone) { %><form method="post" action="/demo-issuer/admin/records/<%= rec.identifier %>/offer"><input type="hidden" name="via" value="sigma"><button class="btn btn-small btn-secondary" type="submit"><%= t('admin.via.sigma_btn') %><span class="sr-only"> – <%= rec.identifier %></span></button></form><% } %>
               <form method="post" action="/demo-issuer/admin/records/<%= rec.identifier %>/delete"><button class="btn btn-small btn-secondary" type="submit"><%= t('admin.delete') %><span class="sr-only"> – <%= rec.identifier %></span></button></form>
             </td>
           </tr>

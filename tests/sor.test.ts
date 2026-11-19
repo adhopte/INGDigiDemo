@@ -82,7 +82,7 @@ describe('admin console writing to the standalone service', () => {
       expect(cfg.sor.url).toBe(base);
       const agent = request.agent(createApp(cfg, await createServices(cfg, f)));
       await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
-      const res = await agent.post('/demo-issuer/admin/offer').type('form').send({ uc: 'pid', given_name: 'Amina', family_name: 'Koffi', birth_date: '1990-05-17', portrait: JPEG_B64 });
+      const res = await agent.post('/demo-issuer/admin/offer').type('form').send({ uc: 'pid', given_name: 'Amina', family_name: 'Koffi', birth_date: '1990-05-17', portrait: JPEG_B64, via: 'sigma' });
       expect(res.status).toBe(200);
       expect(res.text).toContain('424242');
       const id = calls[0].identifier as string;
@@ -96,6 +96,7 @@ describe('admin console writing to the standalone service', () => {
       const page = await agent.get('/demo-issuer/admin');
       expect(page.text).toContain(id);
       expect(page.text).toContain(`${base}/eu.europa.ec.eudi.pid_mdoc/sor/`);
+      expect((await agent.post(`/demo-issuer/admin/records/${id}/offer`).type('form').send({ via: 'sigma' })).status).toBe(200);
       await agent.post(`/demo-issuer/admin/records/${id}/delete`);
       expect((await fetch(`${base}/eu.europa.ec.eudi.pid_mdoc/sor/${id}`)).status).toBe(404);
     } finally { server.close(); }

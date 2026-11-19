@@ -36,6 +36,7 @@ export function adminRouter(ctx: Ctx): Router {
   const { cfg, svc } = ctx;
   const r = Router();
   const samples = loadPortalUseCases();
+  const viaOf = (v: unknown): 'own' | 'sigma' => (v === 'sigma' ? 'sigma' : 'own');
   const ucOf = (id: unknown) => (id === 'birth-certificate' ? 'birth-certificate' : 'pid');
   const attOf = (uc: string) => cfg.attestations[uc === 'pid' ? 'pid' : 'birth_certificate']!;
 
@@ -85,9 +86,11 @@ export function adminRouter(ctx: Ctx): Router {
   });
 
   /** The issuer creates the credential from the record: SIGMA's offer API (live) or the local demo issuer (mock mode). */
-  const offerFor = async (rec: CustomRecord): Promise<IssuedOffer | undefined> => {
+  /** The app's own OpenID4VCI issuer: issues exactly the typed values (strings -> booleans for flags). */
+  const ownClaims = (attrs: Record<string, string>) => Object.fromEntries(Object.entries(attrs).map(([k, v]) => [k, v === 'True' ? true : v === 'False' ? false : v]));
+  const offerFor = async (rec: CustomRecord, via: 'own' | 'sigma'): Promise<IssuedOffer | undefined> => {
     const att = attOf(rec.useCase);
-    if (cfg.mockMode) return createIssuerProvider({ ...cfg, issuer: { ...cfg.issuer, mode: 'local' } }, svc.local).createOffer(att.key, rec.attributes);
+    if (cfg.mockMode || via === 'own') return createIssuerProvider({ ...cfg, issuer: { ...cfg.issuer, mode: 'local' } }, svc.local).createOffer(att.key, ownClaims(rec.attributes));
     const s = await svc.remote?.summary();
     if (!s?.reachable || !s.issuer || !matchConfig(att, s.configs)) return undefined;
     const external = createIssuerProvider(
@@ -97,10 +100,10 @@ export function adminRouter(ctx: Ctx): Router {
     return external.createOffer(att.key, {}, { identifier: rec.identifier, credentialIdentifier: rec.credentialId });
   };
 
-  const showOffer = async (req: Request, res: Response, rec: CustomRecord) => {
+  const showOffer = async (req: Request, res: Response, rec: CustomRecord, via: 'own' | 'sigma') => {
     const att = attOf(rec.useCase);
     try {
-      const offer = await offerFor(rec);
+      const offer = await offerFor(rec, via);
       if (!offer) return void res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer/admin' });
       if (offer.id) req.session.offerIds = [...(req.session.offerIds ?? []).slice(-19), offer.id];
       res.render('offer', { title: res.locals.t(`att.${att.key}.name`), attestationKey: att.key, offer, returnTo: `/demo-issuer/admin?uc=${rec.useCase}`, canSimulate: cfg.mockMode, rp: undefined });
@@ -121,13 +124,13 @@ export function adminRouter(ctx: Ctx): Router {
     }
     let rec: CustomRecord;
     try { rec = await svc.records.add(uc, v.attributes, pt.portrait); } catch { return void res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('admin.sor_unreachable'), retryHref: '/demo-issuer/admin' }); }
-    await showOffer(req, res, rec);
+    await showOffer(req, res, rec, viaOf(req.body?.via));
   });
 
   r.post('/demo-issuer/admin/records/:id/offer', needAdmin, async (req, res) => {
     const rec = await Promise.resolve(svc.records.get(String(req.params.id))).catch(() => undefined);
     if (!rec) return void res.redirect('/demo-issuer/admin');
-    await showOffer(req, res, rec);
+    await showOffer(req, res, rec, viaOf(req.body?.via));
   });
 
   r.post('/demo-issuer/admin/records/:id/delete', needAdmin, async (req, res) => {

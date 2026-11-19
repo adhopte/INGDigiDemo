@@ -399,5 +399,9 @@
   "admin.err.portrait": "Le portrait n’a pas pu être utilisé. Choisissez une image JPEG, PNG ou similaire.",
   "admin.sor_unreachable": "Le service de dossiers est injoignable : le dossier n’a pas été enregistré. Vérifiez SOR_URL et SOR_API_TOKEN.",
   "admin.store_error": "Le service de dossiers est injoignable. Les dossiers enregistrés ne peuvent pas être affichés ni modifiés pour le moment.",
-  "admin.standalone_note": "Les dossiers sont stockés dans le service de dossiers autonome, que l’émetteur interroge. Ils y restent jusqu’à leur suppression ou jusqu’à la perte du stockage de ce service."
+  "admin.standalone_note": "Les dossiers sont stockés dans le service de dossiers autonome, que l’émetteur interroge. Ils y restent jusqu’à leur suppression ou jusqu’à la perte du stockage de ce service.",
+  "admin.via.title": "Émettre via",
+  "admin.via.own": "L’émetteur propre à cette application (OpenID4VCI) – émet exactement les valeurs saisies",
+  "admin.via.sigma": "Émetteur SIGMA – ne fonctionne que s’il peut lire ce dossier (il utilise ses propres dossiers sauf s’il est pointé vers le service de dossiers)",
+  "admin.via.sigma_btn": "Offre SIGMA"
 }

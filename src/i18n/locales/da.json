@@ -399,5 +399,9 @@
   "admin.err.portrait": "Portrættet kunne ikke bruges. Vælg et JPEG-, PNG- eller lignende billede.",
   "admin.sor_unreachable": "Postservicen kunne ikke nås, så posten blev ikke gemt. Tjek SOR_URL og SOR_API_TOKEN.",
   "admin.store_error": "Postservicen kunne ikke nås. Gemte poster kan ikke vises eller ændres lige nu.",
-  "admin.standalone_note": "Poster gemmes i den selvstændige postservice, som udstederen læser fra. De bliver der, indtil de slettes, eller servicen mister sin lagring."
+  "admin.standalone_note": "Poster gemmes i den selvstændige postservice, som udstederen læser fra. De bliver der, indtil de slettes, eller servicen mister sin lagring.",
+  "admin.via.title": "Udsted via",
+  "admin.via.own": "Denne apps egen udsteder (OpenID4VCI) – udsteder præcis de indtastede værdier",
+  "admin.via.sigma": "SIGMA-udsteder – virker kun, hvis den kan læse denne post (den bruger sine egne poster, medmindre den peger på postservicen)",
+  "admin.via.sigma_btn": "SIGMA-tilbud"
 }

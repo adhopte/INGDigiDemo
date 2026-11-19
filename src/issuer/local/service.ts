@@ -243,7 +243,7 @@ export class LocalIssuer {
       grant_types_supported: [PRE_AUTH_GRANT],
       'pre-authorized_grant_anonymous_access_supported': true,
       response_types_supported: ['token'],
-      token_endpoint_auth_methods_supported: ['none'],
+      token_endpoint_auth_methods_supported: ['none', 'attest_jwt_client_auth'], // wallet attestation headers (the SIGMA wallet sends them) are accepted and not enforced
     };
   }
 

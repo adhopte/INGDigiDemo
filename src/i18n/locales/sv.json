@@ -399,5 +399,9 @@
   "admin.err.portrait": "Porträttet kunde inte användas. Välj en JPEG-, PNG- eller liknande bild.",
   "admin.sor_unreachable": "Posttjänsten kunde inte nås, så posten sparades inte. Kontrollera SOR_URL och SOR_API_TOKEN.",
   "admin.store_error": "Posttjänsten kunde inte nås. Sparade poster kan inte visas eller ändras just nu.",
-  "admin.standalone_note": "Poster lagras i den fristående posttjänsten som utfärdaren läser från. De finns kvar där tills de tas bort eller tjänsten förlorar sin lagring."
+  "admin.standalone_note": "Poster lagras i den fristående posttjänsten som utfärdaren läser från. De finns kvar där tills de tas bort eller tjänsten förlorar sin lagring.",
+  "admin.via.title": "Utfärda via",
+  "admin.via.own": "Den här appens egen utfärdare (OpenID4VCI) – utfärdar exakt de värden du angav",
+  "admin.via.sigma": "SIGMA-utfärdaren – fungerar bara om den kan läsa den här posten (den använder egna poster om den inte pekar på posttjänsten)",
+  "admin.via.sigma_btn": "SIGMA-erbjudande"
 }
