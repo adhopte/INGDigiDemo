@@ -393,5 +393,7 @@
   "admin.result.available": "In der authentischen Quelle verfügbare Datensätze",
   "admin.result.snapshot": "Die Datensatzliste des Ausstellers konnte nicht live gelesen werden, daher wurde eine gespeicherte Kopie seiner Beispieldatensätze verwendet.",
   "admin.sigma_note": "Der SIGMA-Aussteller stellt nur aus, was in seinen eigenen Datensätzen steht. Ihre Werte werden daher mit diesen Datensätzen abgeglichen, und das Angebot wird für die passende Person erstellt.",
-  "uni.docs.differs": "Name oder Geburtsdatum in PID und Geburtsurkunde weichen ab. Die Prüfung ist abgeschaltet, Sie können fortfahren."
+  "uni.docs.differs": "Name oder Geburtsdatum in PID und Geburtsurkunde weichen ab. Die Prüfung ist abgeschaltet, Sie können fortfahren.",
+  "verify.elsewhere.title": "Prüfung abgeschlossen",
+  "verify.elsewhere.body": "Ihre Wallet hat die angeforderten Daten geteilt. Bitte machen Sie in dem Browser oder auf dem Bildschirm weiter, wo Sie begonnen haben."
 }

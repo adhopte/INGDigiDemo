@@ -40,7 +40,11 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
     const id = String(req.params.id);
     const tx = svc.verifier.get(id);
     if (!tx || tx.rpId !== rp.id) return void res.status(404).render('error', { title: res.locals.t('error.title'), message: res.locals.t('verify.err.unknown'), retryHref: `/${rp.id}/` });
-    if (!owns(req, id)) return void res.status(403).render('error', { title: res.locals.t('error.title'), message: res.locals.t('verify.err.other_browser'), retryHref: `/${rp.id}/` });
+    if (!owns(req, id)) {
+      // e.g. the wallet opened the follow-up page in a browser that did not start the flow: that is not an error if the request was answered
+      if (q(req.query.response_code) === tx.responseCode && tx.status === 'complete') return void res.render('verify-elsewhere', { title: res.locals.t('verify.elsewhere.title'), rpHref: `/${rp.id}/` });
+      return void res.status(403).render('error', { title: res.locals.t('error.title'), message: res.locals.t('verify.err.other_browser'), retryHref: `/${rp.id}/` });
+    }
     const code = q(req.query.response_code);
     if (code && code !== tx.responseCode) return void res.status(400).render('error', { title: res.locals.t('error.title'), message: res.locals.t('verify.err.unknown'), retryHref: `/${rp.id}/` });
 
@@ -126,10 +130,11 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
     const tx = owns(req, id) ? svc.verifier.get(id) : undefined;
     if (!tx) return void res.status(404).render('error', { title: res.locals.t('error.title'), message: res.locals.t('verify.err.unknown'), retryHref: `/${rp.id}/` });
     if (tx.status !== 'pending') return void res.redirect(`/${rp.id}/verify/finish/${id}`);
-    const link = svc.verifier.walletLink(tx);
+    const link = svc.verifier.walletLink(tx, true); // the button on this device: the wallet may return to this browser
+    const qrLink = svc.verifier.walletLink(tx); // the QR code is scanned from another device: no redirect afterwards
     res.render('verify', {
       title: res.locals.t('verify.title'),
-      tx, link, byValue: svc.verifier.byValue, qr: await qrDataUrlOrUndefined(link),
+      tx, link, byValue: svc.verifier.byValue, qr: await qrDataUrlOrUndefined(qrLink),
       phoneQr: await qrDataUrlOrUndefined(`${cfg.publicBaseUrl}/${rp.id}/verify/open/${tx.id}`),
       expiresAt: new Date(tx.expiresAt),
       statusUrl: `/${rp.id}/verify/status/${id}`,

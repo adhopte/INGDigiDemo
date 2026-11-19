@@ -393,5 +393,7 @@
   "admin.result.available": "Poster i den autentiske kilde",
   "admin.result.snapshot": "Udstederens postliste kunne ikke læses live, så en gemt kopi af dens eksempelposter blev brugt.",
   "admin.sigma_note": "SIGMA-udstederen udsteder kun det, der står i dens egne poster. Dine værdier tjekkes derfor mod disse poster, og tilbuddet oprettes for den matchende person.",
-  "uni.docs.differs": "Navn eller fødselsdato på PID og fødselsattest er forskellige. Kontrollen er slået fra, så du kan fortsætte."
+  "uni.docs.differs": "Navn eller fødselsdato på PID og fødselsattest er forskellige. Kontrollen er slået fra, så du kan fortsætte.",
+  "verify.elsewhere.title": "Verifikation gennemført",
+  "verify.elsewhere.body": "Din wallet har delt de ønskede data. Fortsæt i den browser eller på den skærm, hvor du startede."
 }

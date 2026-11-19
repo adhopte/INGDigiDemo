@@ -393,5 +393,7 @@
   "admin.result.available": "Dossiers disponibles dans la source authentique",
   "admin.result.snapshot": "La liste des dossiers de l’émetteur n’a pas pu être lue en direct ; une copie enregistrée de ses dossiers d’exemple a été utilisée.",
   "admin.sigma_note": "L’émetteur SIGMA n’émet que ce qui figure dans ses propres dossiers. Vos valeurs sont donc comparées à ces dossiers, et l’offre est créée pour la personne correspondante.",
-  "uni.docs.differs": "Le nom ou la date de naissance du PID et de l’acte de naissance diffèrent. La vérification est désactivée : vous pouvez continuer."
+  "uni.docs.differs": "Le nom ou la date de naissance du PID et de l’acte de naissance diffèrent. La vérification est désactivée : vous pouvez continuer.",
+  "verify.elsewhere.title": "Vérification terminée",
+  "verify.elsewhere.body": "Votre portefeuille a partagé les données demandées. Poursuivez dans le navigateur ou sur l’écran où vous avez commencé."
 }

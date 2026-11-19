@@ -393,5 +393,7 @@
   "admin.result.available": "Registros disponibles en la fuente auténtica",
   "admin.result.snapshot": "No se pudo leer en directo la lista de registros del emisor, así que se usó una copia guardada de sus registros de ejemplo.",
   "admin.sigma_note": "El emisor SIGMA solo emite lo que figura en sus propios registros. Por eso sus valores se comprueban con esos registros y la oferta se crea para la persona coincidente.",
-  "uni.docs.differs": "El nombre o la fecha de nacimiento del PID y del certificado de nacimiento difieren. La comprobación está desactivada, así que puede continuar."
+  "uni.docs.differs": "El nombre o la fecha de nacimiento del PID y del certificado de nacimiento difieren. La comprobación está desactivada, así que puede continuar.",
+  "verify.elsewhere.title": "Verificación completada",
+  "verify.elsewhere.body": "Su cartera ha compartido los datos solicitados. Continúe en el navegador o en la pantalla donde empezó."
 }

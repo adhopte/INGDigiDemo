@@ -393,5 +393,7 @@
   "admin.result.available": "Records available in the authentic source",
   "admin.result.snapshot": "The issuer’s record list could not be read live, so a saved copy of its sample records was used.",
   "admin.sigma_note": "The SIGMA issuer issues only what is in its own records. Your values are therefore checked against those records, and the offer is created for the matching person.",
-  "uni.docs.differs": "The name or date of birth on the PID and the birth certificate differ. The check is switched off, so you can continue."
+  "uni.docs.differs": "The name or date of birth on the PID and the birth certificate differ. The check is switched off, so you can continue.",
+  "verify.elsewhere.title": "Verification complete",
+  "verify.elsewhere.body": "Your wallet has shared the requested data. Please continue in the browser or on the screen where you started."
 }

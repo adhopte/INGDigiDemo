@@ -57,6 +57,9 @@ export interface DiagnosticEvent {
   [k: string]: unknown;
 }
 
+/** Suffix of `state` in links meant for the device that shows the page (same-device flow). */
+const SAME_DEVICE = '.sd';
+
 export class Verifier {
   private txs = new Map<string, Transaction>();
   private events: DiagnosticEvent[] = [];
@@ -200,7 +203,7 @@ export class Verifier {
   }
 
   /** The link/QR content that invokes the wallet. */
-  walletLink(tx: Transaction): string {
+  walletLink(tx: Transaction, sameDevice = false): string {
     const base = this.cfg.verifier.deeplinkBase;
     const q = new URLSearchParams({ client_id: this.clientIdFor(tx) });
     if (this.cfg.verifier.clientIdScheme !== 'redirect_uri') {
@@ -209,6 +212,8 @@ export class Verifier {
     } else {
       // unsigned, by value (redirect_uri scheme)
       for (const [k, val] of Object.entries(this.requestParams(tx, undefined, true))) if (k !== 'client_id') q.set(k, typeof val === 'string' ? val : JSON.stringify(val));
+      // The wallet echoes `state`: a marker tells us the user tapped the button on THIS device, so the wallet may open the follow-up page in its browser.
+      if (sameDevice) q.set('state', `${tx.state}${SAME_DEVICE}`);
     }
     // Standard percent-encoding: this is the form the wallet's own QR scanner reads (the "lean" variant that left ':' '/' ',' readable did not scan).
     return `${base}?${q.toString()}`;
@@ -229,7 +234,7 @@ export class Verifier {
   }
 
   /** response_uri handler: validates what the wallet posted (direct_post or direct_post.jwt). */
-  async handleResponse(id: string, body: Record<string, unknown>): Promise<{ redirect_uri: string }> {
+  async handleResponse(id: string, body: Record<string, unknown>): Promise<{ redirect_uri?: string }> {
     const tx = this.get(id);
     if (!tx || tx.status !== 'pending') throw new VpError(400, 'invalid_request', 'Unknown, expired or already completed request');
 
@@ -246,7 +251,8 @@ export class Verifier {
       this.fail(tx, 'bad_response', 'Response must be encrypted (direct_post.jwt)');
     }
 
-    if (params.state !== tx.state) this.fail(tx, 'bad_response', 'state mismatch');
+    const sameDevice = params.state === `${tx.state}${SAME_DEVICE}`;
+    if (params.state !== tx.state && !sameDevice) this.fail(tx, 'bad_response', 'state mismatch');
     if (typeof params.error === 'string') this.fail(tx, params.error === 'access_denied' ? 'wallet_declined' : 'bad_response', `Wallet error: ${params.error}`);
 
     let presented: string[];
@@ -304,6 +310,8 @@ export class Verifier {
     tx.status = 'complete';
     this.record({ event: 'response_accepted', rp: tx.rpId, presentation: tx.presentationKey, types: Object.keys(byType), issuers: tx.result.issuers });
     log.info('vp response accepted', { rp: tx.rpId, presentation: tx.presentationKey, types: Object.keys(byType), issuers: tx.result.issuers });
+    // Cross-device (QR scanned from another screen): no redirect, the wallet just confirms and the original page continues by itself (OpenID4VP §8.2).
+    if (this.byValue && !sameDevice) return {};
     return { redirect_uri: `${this.cfg.publicBaseUrl}/${tx.rpId}/verify/finish/${tx.id}?response_code=${tx.responseCode}` };
   }
 }

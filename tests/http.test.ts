@@ -92,6 +92,39 @@ describe('redirect_uri client identifier (unsigned, by value)', () => {
   });
 });
 
+describe('same-device vs cross-device response (redirect_uri scheme)', () => {
+  it('a QR scanned on another screen gets no redirect; the button on this device does; a stranger browser sees a friendly page', async () => {
+    const { app, svc, cfg } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri', MOCK_MODE: 'false', VP_RESPONSE_MODE: 'direct_post' });
+    const rp = cfg.rps.find((r) => r.id === 'bank')!;
+    const o = svc.local.createOffer('pid', { given_name: 'Lena', family_name: 'Demo', birth_date: '1990-01-01', birth_place: 'Köln', nationality: 'DE', resident_address: 'Weg 1', issuing_country: 'DE' });
+    const r = await walletRedeem(app, `/issuer/offers/${o.id}`);
+    const present = async (state: (tx: { state: string }) => string) => {
+      const tx = await svc.verifier.createTransaction(rp, 'pid', '/bank/');
+      const vp = await presentSdJwt({ credential: r.credRes!.body.credential, reveal: ['given_name', 'family_name', 'birth_date'], holderPrivateKey: r.privateKey!, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
+      const post = await request(app).post(`/vp/response/${tx.id}`).type('form').send({ vp_token: JSON.stringify({ pid: [vp] }), state: state(tx) });
+      return { tx, post };
+    };
+    // cross-device (QR): the link carries the plain state, the wallet posts it back, nothing to open afterwards
+    const cross = await present((t) => t.state);
+    expect(cross.post.status, JSON.stringify(cross.post.body)).toBe(200);
+    expect(cross.post.body).toEqual({});
+    // same-device (button): marker in state, the wallet is told where to go next
+    const tx0 = await svc.verifier.createTransaction(rp, 'pid', '/bank/');
+    expect(new URL(svc.verifier.walletLink(tx0, true)).searchParams.get('state')).toBe(`${tx0.state}.sd`);
+    expect(new URL(svc.verifier.walletLink(tx0)).searchParams.get('state')).toBe(tx0.state);
+    const same = await present((t) => `${t.state}.sd`);
+    expect(same.post.status).toBe(200);
+    expect(same.post.body.redirect_uri).toContain(`/bank/verify/finish/${same.tx.id}?response_code=`);
+    // anything else is still a state mismatch
+    expect((await present((t) => `${t.state}.x`)).post.status).toBe(400);
+    // a browser that did not start the flow: friendly page with the right code, error without it
+    const stranger = request(app);
+    expect((await stranger.get(`/bank/verify/finish/${same.tx.id}?response_code=${same.tx.responseCode}`)).text).toContain('Verification complete');
+    expect((await stranger.get(`/bank/verify/finish/${same.tx.id}`)).status).toBe(403);
+    expect((await stranger.get(`/bank/verify/finish/${same.tx.id}?response_code=wrong`)).status).toBe(403);
+  });
+});
+
 describe('verifier certificate (what a wallet trust evaluation sees)', () => {
   it('a generated PKI configures the service; its chain validates against the generated root; /vp/verifier reports it', async () => {
     const { generateDemoPki } = await import('../scripts/lib/verifier-cert.mjs');

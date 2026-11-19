@@ -393,5 +393,7 @@
   "admin.result.available": "Poster i den autentiska källan",
   "admin.result.snapshot": "Utfärdarens postlista kunde inte läsas live, så en sparad kopia av dess exempelposter användes.",
   "admin.sigma_note": "SIGMA-utfärdaren utfärdar bara det som finns i dess egna poster. Dina värden kontrolleras därför mot dessa poster och erbjudandet skapas för den matchande personen.",
-  "uni.docs.differs": "Namn eller födelsedatum på PID och födelsebevis skiljer sig åt. Kontrollen är avstängd, så du kan fortsätta."
+  "uni.docs.differs": "Namn eller födelsedatum på PID och födelsebevis skiljer sig åt. Kontrollen är avstängd, så du kan fortsätta.",
+  "verify.elsewhere.title": "Verifieringen klar",
+  "verify.elsewhere.body": "Din plånbok har delat de begärda uppgifterna. Fortsätt i webbläsaren eller på skärmen där du började."
 }
