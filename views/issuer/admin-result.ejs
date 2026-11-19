@@ -1,0 +1,42 @@
+<%- include('../partials/head') %>
+<% const L = function (n) { const k = 'claim.' + n; const v = t(k); return v === k ? n.replace(/_/g, ' ') : v; }; %>
+<div class="wrap">
+  <p class="crumbs"><a href="/demo-issuer"><%= t('portal.title') %></a> › <a href="/demo-issuer/admin?uc=<%= uc %>"><%= t('admin.title') %></a> › <%= t('admin.result.title') %></p>
+  <h1><%= t('admin.result.title') %></h1>
+  <% if (!live) { %><p class="alert alert-info" role="note"><%= t('admin.result.snapshot') %></p><% } %>
+
+  <% if (matches.length) { %>
+    <p class="alert alert-info" role="status"><%= t('admin.result.multi') %></p>
+  <% } else { %>
+    <p class="alert alert-error" role="alert"><%= t('admin.result.none') %></p>
+  <% } %>
+
+  <% if (matches.length) { %>
+  <section class="panel" aria-labelledby="m-h">
+    <h2 id="m-h"><%= t('admin.result.matches') %></h2>
+    <div class="scroll-x" role="region" aria-labelledby="m-h" tabindex="0">
+      <table class="table">
+        <thead><tr><% columns.forEach(function (c) { %><th scope="col"><%= L(c) %></th><% }) %><th scope="col"><%= t('admin.identifier') %></th><th scope="col"><%= t('portal.col.action') %></th></tr></thead>
+        <tbody>
+          <% matches.forEach(function (m) { %>
+          <tr>
+            <% columns.forEach(function (c) { %><td><%= m.attributes[c] === undefined ? '—' : fmtClaim(c, m.attributes[c]) %></td><% }) %>
+            <td><code><%= m.identifier %></code></td>
+            <td><form method="post" action="/demo-issuer/admin/pick"><input type="hidden" name="uc" value="<%= uc %>"><input type="hidden" name="identifier" value="<%= m.identifier %>"><button class="btn btn-small" type="submit"><%= t('portal.create') %><span class="sr-only"> – <%= m.identifier %></span></button></form></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <% } %>
+
+  <section class="panel" aria-labelledby="av-h">
+    <h2 id="av-h"><%= t('admin.result.available') %></h2>
+    <ul class="plain-list">
+      <% available.forEach(function (u) { %><li><%= u.attributes.given_name || '' %> <%= u.attributes.family_name || '' %> – <%= u.attributes.birth_date ? fmtClaim('birth_date', u.attributes.birth_date) : '' %> <span class="muted">(<%= u.identifier %>)</span></li><% }) %>
+    </ul>
+  </section>
+  <p><a class="btn btn-secondary" href="/demo-issuer/admin?uc=<%= uc %>"><%= t('btn.back') %></a></p>
+</div>
+<%- include('../partials/foot') %>

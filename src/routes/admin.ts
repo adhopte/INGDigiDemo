@@ -1,9 +1,9 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import { createIssuerProvider, type IssuedOffer } from '../issuer/provider.js';
-import { loadPortalUseCases } from '../issuer/portal.js';
+import { SOR_LIST_PATH, SOR_USE_CASE_ID, loadPortalUseCases, parseUsers, type PortalUser } from '../issuer/portal.js';
 import { matchConfig } from '../issuer/remote.js';
-import { RECORD_FIELDS, sorLookup, validatePortrait, validateRecord, type CustomRecord } from '../issuer/records.js';
+import { RECORD_FIELDS, matchRecords, validateRecord } from '../issuer/records.js';
 import type { Ctx } from '../rps/context.js';
 import { q } from '../rps/context.js';
 
@@ -12,31 +12,14 @@ const LOCK_AFTER = 5;
 const LOCK_MS = 60_000;
 
 /**
- * Machine-facing record service ("system of record") with the same contract as the WalletTester's SoR server:
- *   GET /sor/<credential configuration id>/sor/<identifier>[?credential_identifier=<credential id>]
- * It serves the issuer portal's sample records plus the records an admin entered. An issuer pointed at this service
- * (a SIGMA-side setting) fills credentials from these values. No session, no list endpoint.
+ * Admin console of the issuer portal: a mock of a check against an authentic source.
+ * The SIGMA issuer issues only what its own record store holds, so the admin's input is MATCHED against those records
+ * (the store's list is publicly readable) and the offer is created for the matching record.
  */
-export function sorRouter(ctx: Ctx): Router {
-  const { cfg, svc } = ctx;
-  const r = Router();
-  const samples = loadPortalUseCases();
-  r.use((_req, res, next) => { res.set('Access-Control-Allow-Origin', '*').set('Cache-Control', 'no-store'); next(); });
-  r.get('/:configId/sor/:identifier', async (req, res) => {
-    const identifier = String(req.params.identifier);
-    const found = sorLookup(await Promise.resolve(svc.records.get(identifier)).catch(() => undefined), samples.flatMap((u) => u.users), String(req.params.configId), identifier, q(req.query.credential_identifier));
-    if (!found) return void res.status(404).type('text/plain').send('User not found by identifier');
-    res.json(found);
-  });
-  return r;
-}
-
-/** Admin console of the issuer portal: a mock of a check against an authentic source. */
 export function adminRouter(ctx: Ctx): Router {
   const { cfg, svc } = ctx;
   const r = Router();
   const samples = loadPortalUseCases();
-  const viaOf = (v: unknown): 'own' | 'sigma' => (v === 'sigma' ? 'sigma' : 'own');
   const ucOf = (id: unknown) => (id === 'birth-certificate' ? 'birth-certificate' : 'pid');
   const attOf = (uc: string) => cfg.attestations[uc === 'pid' ? 'pid' : 'birth_certificate']!;
 
@@ -68,75 +51,95 @@ export function adminRouter(ctx: Ctx): Router {
     res.redirect('/demo-issuer');
   });
 
-  const sampleValues = (uc: string) => samples.find((s) => s.id === uc)?.users[0]?.attributes ?? {};
-
-  const renderAdmin = async (req: Request, res: Response, uc: string, values: Record<string, string>, errors: Record<string, string>, status = 200) => {
-    let records: CustomRecord[] = [];
-    let storeError = false;
-    try { records = await svc.records.list(); } catch { storeError = true; } // standalone record service unreachable
-    res.status(status).render('issuer/admin', {
-      title: res.locals.t('admin.title'), uc, fields: RECORD_FIELDS[uc], values, errors, records, storeError,
-      recordService: cfg.sor.url ?? `${cfg.publicBaseUrl}/sor`, standalone: !!cfg.sor.url, configId: attOf(uc).externalConfigurationId, mockMode: cfg.mockMode,
-    });
+  const sampleValues = (uc: string) => {
+    const a = samples.find((s) => s.id === uc)?.users[0]?.attributes ?? {};
+    return Object.fromEntries(Object.entries(a).filter(([k]) => RECORD_FIELDS[uc]!.some((f) => f.name === k)));
   };
 
-  r.get('/demo-issuer/admin', needAdmin, async (req, res) => {
+  const renderForm = (res: Response, uc: string, values: Record<string, string>, errors: Record<string, string>, status = 200) =>
+    void res.status(status).render('issuer/admin', { title: res.locals.t('admin.title'), uc, fields: RECORD_FIELDS[uc], values, errors, mockMode: cfg.mockMode });
+
+  r.get('/demo-issuer/admin', needAdmin, (req, res) => {
     const uc = ucOf(req.query.uc);
-    await renderAdmin(req, res, uc, sampleValues(uc), {});
+    renderForm(res, uc, sampleValues(uc), {});
   });
 
-  /** The issuer creates the credential from the record: SIGMA's offer API (live) or the local demo issuer (mock mode). */
-  /** The app's own OpenID4VCI issuer: issues exactly the typed values (strings -> booleans for flags). */
-  const ownClaims = (attrs: Record<string, string>) => Object.fromEntries(Object.entries(attrs).map(([k, v]) => [k, v === 'True' ? true : v === 'False' ? false : v]));
-  const offerFor = async (rec: CustomRecord, via: 'own' | 'sigma'): Promise<IssuedOffer | undefined> => {
-    const att = attOf(rec.useCase);
-    if (cfg.mockMode || via === 'own') return createIssuerProvider({ ...cfg, issuer: { ...cfg.issuer, mode: 'local' } }, svc.local).createOffer(att.key, ownClaims(rec.attributes));
+  /** The issuer's records for a use case: read live from its record store, or the saved copy of the sample records when it cannot be reached. */
+  const authenticSource = async (uc: string): Promise<{ users: PortalUser[]; live: boolean }> => {
+    const fallback = { users: samples.find((s) => s.id === uc)?.users ?? [], live: false };
+    try {
+      const s = await svc.remote?.summary();
+      const base = s?.issuer ?? cfg.issuer.external.apiBaseUrl;
+      if (!base) return fallback;
+      const res = await svc.fetchImpl(`${base}${SOR_LIST_PATH}/${SOR_USE_CASE_ID[uc]}/sor/`, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(10_000) });
+      if (!res.ok) return fallback;
+      const users = parseUsers(await res.json());
+      return users.length ? { users, live: true } : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
+  /** SIGMA's offer API for the matched record; the local demo issuer only in mock mode (typed values). */
+  const createOffer = async (uc: string, record: PortalUser, typed: Record<string, string>): Promise<IssuedOffer | undefined> => {
+    const att = attOf(uc);
+    if (cfg.mockMode) {
+      const claims = Object.fromEntries(Object.entries(typed).map(([k, v]) => [k, v === 'True' ? true : v === 'False' ? false : v]));
+      return createIssuerProvider({ ...cfg, issuer: { ...cfg.issuer, mode: 'local' } }, svc.local).createOffer(att.key, claims);
+    }
     const s = await svc.remote?.summary();
     if (!s?.reachable || !s.issuer || !matchConfig(att, s.configs)) return undefined;
     const external = createIssuerProvider(
       { ...cfg, issuer: { ...cfg.issuer, mode: 'external', fallbackLocal: false, external: { ...cfg.issuer.external, apiBaseUrl: cfg.issuer.external.apiBaseUrl ?? s.issuer } } },
       svc.local, svc.fetchImpl, svc.remote,
     );
-    return external.createOffer(att.key, {}, { identifier: rec.identifier, credentialIdentifier: rec.credentialId });
+    return external.createOffer(att.key, {}, { identifier: record.identifier, credentialIdentifier: record.credentialId, ...(record.walletId ? { walletIdentifier: record.walletId } : {}) });
   };
 
-  const showOffer = async (req: Request, res: Response, rec: CustomRecord, via: 'own' | 'sigma') => {
-    const att = attOf(rec.useCase);
+  const showOffer = async (req: Request, res: Response, uc: string, record: PortalUser, typed: Record<string, string>) => {
+    const att = attOf(uc);
     try {
-      const offer = await offerFor(rec, via);
+      const offer = await createOffer(uc, record, typed);
       if (!offer) return void res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer/admin' });
       if (offer.id) req.session.offerIds = [...(req.session.offerIds ?? []).slice(-19), offer.id];
-      res.render('offer', { title: res.locals.t(`att.${att.key}.name`), attestationKey: att.key, offer, returnTo: `/demo-issuer/admin?uc=${rec.useCase}`, canSimulate: cfg.mockMode, rp: undefined });
+      res.render('offer', { title: res.locals.t(`att.${att.key}.name`), attestationKey: att.key, offer, returnTo: `/demo-issuer/admin?uc=${uc}`, canSimulate: cfg.mockMode, rp: undefined });
     } catch {
       res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer/admin' });
     }
   };
 
-  r.post('/demo-issuer/admin/offer', needAdmin, async (req, res) => {
+  /** What the admin typed, without the derived "over 18" flag (unless chosen explicitly). */
+  const enteredValues = (uc: string, body: Record<string, unknown>, attributes: Record<string, string>) => {
+    const e = { ...attributes };
+    if (!(typeof body.age_over_18 === 'string' && body.age_over_18.trim())) delete e.age_over_18;
+    return e;
+  };
+
+  r.post('/demo-issuer/admin/check', needAdmin, async (req, res) => {
     const uc = ucOf(req.body?.uc);
-    const v = validateRecord(uc, (req.body ?? {}) as Record<string, unknown>);
-    const pt = uc === 'pid' ? validatePortrait(req.body?.portrait) : { ok: true as const, portrait: undefined };
-    if (!v.ok || !pt.ok) {
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const v = validateRecord(uc, body);
+    if (!v.ok) {
       const values: Record<string, string> = {};
-      for (const f of RECORD_FIELDS[uc]!) values[f.name] = q(req.body?.[f.name]) ?? '';
-      if (pt.ok && pt.portrait) values.portrait = pt.portrait;
-      return void (await renderAdmin(req, res, uc, values, { ...(v.ok ? {} : v.errors), ...(pt.ok ? {} : { portrait: 'admin.err.portrait' }) }, 422));
+      for (const f of RECORD_FIELDS[uc]!) values[f.name] = q(body[f.name]) ?? '';
+      return renderForm(res, uc, values, v.errors, 422);
     }
-    let rec: CustomRecord;
-    try { rec = await svc.records.add(uc, v.attributes, pt.portrait); } catch { return void res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('admin.sor_unreachable'), retryHref: '/demo-issuer/admin' }); }
-    await showOffer(req, res, rec, viaOf(req.body?.via));
+    const typed = enteredValues(uc, body, v.attributes);
+    if (cfg.mockMode) return void (await showOffer(req, res, uc, { identifier: 'typed', credentialId: 'typed', configurationId: '', attributes: v.attributes }, v.attributes));
+    const source = await authenticSource(uc);
+    const matches = matchRecords(source.users, typed);
+    if (matches.length === 1) return void (await showOffer(req, res, uc, matches[0]!, typed));
+    res.status(matches.length ? 200 : 404).render('issuer/admin-result', {
+      title: res.locals.t('admin.result.title'), uc, matches, available: source.users, live: source.live, columns: ['given_name', 'family_name', 'birth_date'],
+    });
   });
 
-  r.post('/demo-issuer/admin/records/:id/offer', needAdmin, async (req, res) => {
-    const rec = await Promise.resolve(svc.records.get(String(req.params.id))).catch(() => undefined);
-    if (!rec) return void res.redirect('/demo-issuer/admin');
-    await showOffer(req, res, rec, viaOf(req.body?.via));
-  });
-
-  r.post('/demo-issuer/admin/records/:id/delete', needAdmin, async (req, res) => {
-    const rec = await Promise.resolve(svc.records.get(String(req.params.id))).catch(() => undefined);
-    await Promise.resolve(svc.records.delete(String(req.params.id))).catch(() => undefined);
-    res.redirect(`/demo-issuer/admin?uc=${rec?.useCase ?? 'pid'}`);
+  /** Offer for one of several matching records (looked up again on the server, nothing is trusted from the client). */
+  r.post('/demo-issuer/admin/pick', needAdmin, async (req, res) => {
+    const uc = ucOf(req.body?.uc);
+    const record = (await authenticSource(uc)).users.find((u) => u.identifier === q(req.body?.identifier));
+    if (!record) return void res.redirect(`/demo-issuer/admin?uc=${uc}`);
+    await showOffer(req, res, uc, record, {});
   });
 
   return r;

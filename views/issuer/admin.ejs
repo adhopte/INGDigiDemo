@@ -15,18 +15,17 @@
     </ul>
   </nav>
 
-  <% if (storeError) { %><div class="alert alert-error" role="alert"><%= t('admin.store_error') %></div><% } %>
-  <% if (Object.keys(errors).length) { %>
+    <% if (Object.keys(errors).length) { %>
     <div class="alert alert-error" role="alert">
       <p><strong><%= t('form.err.summary') %></strong></p>
-      <ul><% Object.keys(errors).forEach(function (k) { %><li><a href="#<%= k === 'portrait' ? 'f-portrait-file' : 'f-' + k %>"><%= k === 'portrait' ? t('admin.portrait') : L(k) %>: <%= t(errors[k]) %></a></li><% }) %></ul>
+      <ul><% Object.keys(errors).forEach(function (k) { %><li><a href="#f-<%= k %>"><%= L(k) %>: <%= t(errors[k]) %></a></li><% }) %></ul>
     </div>
   <% } %>
 
   <section class="panel titled" aria-labelledby="rec-h">
     <h2 class="titlebar" id="rec-h"><%= t('admin.form.title') %></h2>
     <p class="note"><%= t('admin.form.hint') %></p>
-    <form method="post" action="/demo-issuer/admin/offer" novalidate>
+    <form method="post" action="/demo-issuer/admin/check" novalidate>
       <input type="hidden" name="uc" value="<%= uc %>">
       <div class="admin-fields">
         <% fields.forEach(function (f) { const val = values[f.name] === undefined ? '' : values[f.name]; const err = errors[f.name]; %>
@@ -50,68 +49,10 @@
         </div>
         <% }) %>
       </div>
-      <% if (!mockMode) { %>
-      <fieldset class="portrait-field">
-        <legend><%= t('admin.via.title') %></legend>
-        <p><label><input type="radio" name="via" value="own" checked> <%= t('admin.via.own') %></label></p>
-        <p><label><input type="radio" name="via" value="sigma"> <%= t('admin.via.sigma') %></label></p>
-      </fieldset>
-      <% } %>
-      <% if (uc === 'pid') { %>
-      <fieldset class="portrait-field<%= errors.portrait ? ' has-error' : '' %>">
-        <legend><%= t('admin.portrait') %></legend>
-        <p class="note" id="portrait-hint"><%= t('admin.portrait_hint') %></p>
-        <div class="portrait-row">
-          <img id="portrait-preview" class="avatar" width="72" height="90" alt="" <% if (values.portrait) { %>src="data:image/jpeg;base64,<%= values.portrait %>"<% } else { %>hidden<% } %>>
-          <div>
-            <label class="sr-only" for="f-portrait-file"><%= t('admin.portrait') %></label>
-            <input id="f-portrait-file" type="file" accept="image/*" aria-describedby="portrait-hint<%= errors.portrait ? ' e-portrait' : '' %>">
-            <button type="button" id="portrait-clear" class="btn btn-small btn-secondary" <% if (!values.portrait) { %>hidden<% } %>><%= t('admin.portrait_remove') %></button>
-          </div>
-        </div>
-        <input type="hidden" id="f-portrait" name="portrait" value="<%= values.portrait || '' %>">
-        <% if (errors.portrait) { %><p class="field-error" id="e-portrait"><%= t(errors.portrait) %></p><% } %>
-      </fieldset>
-      <% } %>
       <p><button class="btn btn-large" type="submit"><%= t('admin.create') %></button></p>
     </form>
   </section>
 
-  <% if (!mockMode) { %>
-  <p class="alert alert-info" role="note"><%= t('admin.sor_note') %></p>
-  <section class="panel" aria-labelledby="sor-h">
-    <h2 id="sor-h"><%= t('admin.sor_title') %></h2>
-    <p><%= t('admin.sor_body') %></p>
-    <p><code class="break"><%= recordService %>/<%= configId %>/sor/&lt;<%= t('admin.identifier') %>&gt;?credential_identifier=&lt;<%= t('issuer.console.sigma_custom_cred') %>&gt;</code></p>
-  </section>
-  <% } %>
-
-  <section class="panel" aria-labelledby="saved-h">
-    <h2 id="saved-h"><%= t('admin.saved') %></h2>
-    <% if (!records.length) { %><p><%= t('admin.saved_none') %></p><% if (standalone) { %><p class="note"><%= t('admin.standalone_note') %></p><% } %><% } else { %>
-    <div class="scroll-x" role="region" aria-labelledby="saved-h" tabindex="0">
-      <table class="table">
-        <thead><tr><th scope="col"><span class="sr-only"><%= t('portal.portrait') %></span></th><th scope="col"><%= t('admin.identifier') %></th><th scope="col"><%= t('claim.given_name') %></th><th scope="col"><%= t('claim.family_name') %></th><th scope="col"><%= t('portal.col.action') %></th></tr></thead>
-        <tbody>
-          <% records.forEach(function (rec) { %>
-          <tr>
-            <td><% if (rec.portrait) { %><img class="avatar" src="data:image/jpeg;base64,<%= rec.portrait %>" width="36" height="45" alt=""><% } %></td>
-            <td><code><%= rec.identifier %></code></td>
-            <td><%= rec.attributes.given_name %></td>
-            <td><%= rec.attributes.family_name %></td>
-            <td class="admin-actions">
-              <form method="post" action="/demo-issuer/admin/records/<%= rec.identifier %>/offer"><input type="hidden" name="via" value="own"><button class="btn btn-small" type="submit"><%= t('portal.create') %><span class="sr-only"> – <%= rec.identifier %></span></button></form>
-              <% if (standalone) { %><form method="post" action="/demo-issuer/admin/records/<%= rec.identifier %>/offer"><input type="hidden" name="via" value="sigma"><button class="btn btn-small btn-secondary" type="submit"><%= t('admin.via.sigma_btn') %><span class="sr-only"> – <%= rec.identifier %></span></button></form><% } %>
-              <form method="post" action="/demo-issuer/admin/records/<%= rec.identifier %>/delete"><button class="btn btn-small btn-secondary" type="submit"><%= t('admin.delete') %><span class="sr-only"> – <%= rec.identifier %></span></button></form>
-            </td>
-          </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-    <p class="note"><%= standalone ? t('admin.standalone_note') : t('admin.saved_note') %></p>
-    <% } %>
-  </section>
+  <% if (!mockMode) { %><p class="alert alert-info" role="note"><%= t('admin.sigma_note') %></p><% } %>
 </div>
-<script src="/js/portrait.js?v=<%= v %>" defer></script>
 <%- include('../partials/foot') %>

@@ -2,177 +2,166 @@ import { readFileSync } from 'node:fs';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
-import { validatePortrait, validateRecord } from '../src/issuer/records.js';
+import { matchRecords, validateRecord } from '../src/issuer/records.js';
 import { createServices } from '../src/services.js';
 import { testConfig } from './helpers.js';
 
 const META = JSON.parse(readFileSync(new URL('./fixtures/sigma-issuer-metadata.json', import.meta.url), 'utf8'));
 const META_URL = 'https://issuer.sigma.prep.smartid.nuagein.io/.well-known/openid-credential-issuer';
-const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
+const ISSUER = 'https://issuer.sigma.prep.smartid.nuagein.io';
+const PID_LIST_URL = `${ISSUER}/api/in-person-portal-sor/oid_pid_inp_uc1/sor/`;
+const BC_LIST_URL = `${ISSUER}/api/in-person-portal-sor/oid_birth_certificate_sd_jwt_uc1/sor/`;
+const file = (n: string) => readFileSync(new URL(`../config/portal/${n}`, import.meta.url), 'utf8');
+const json = (b: unknown, status = 200) => new Response(typeof b === 'string' ? b : JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
 
-async function setup(env: Record<string, string> = {}) {
-  const cfg = testConfig({ ISSUER_MODE: 'external', ISSUER_API_BASE_URL: 'https://issuer.sigma.prep.smartid.nuagein.io', MOCK_MODE: 'false', ...env });
-  const calls: any[] = [];
+async function setup(opts: { env?: Record<string, string>; pidList?: () => Response } = {}) {
+  const cfg = testConfig({ ISSUER_MODE: 'external', ISSUER_API_BASE_URL: ISSUER, MOCK_MODE: 'false', ...opts.env });
+  const offers: any[] = [];
+  const fetched: string[] = [];
   const f = (async (url: string, init?: RequestInit) => {
     if (url === META_URL) return json(META);
-    calls.push({ url, body: JSON.parse(String(init?.body)) });
+    if (url === PID_LIST_URL) { fetched.push(url); return opts.pidList ? opts.pidList() : json(file('user_pid_claims.json')); }
+    if (url === BC_LIST_URL) { fetched.push(url); return json(file('birth_certificate_claims_sd_jwt.json')); }
+    offers.push(JSON.parse(String(init?.body)));
     return json({ uri: 'openid-credential-offer://?credential_offer=%7B%7D', tx_code: '135790', authorization_code: 'abc' });
   }) as unknown as typeof fetch;
   const svc = await createServices(cfg, f);
-  const app = createApp(cfg, svc);
-  return { app, svc, calls, agent: request.agent(app) };
+  const agent = request.agent(createApp(cfg, svc));
+  return { agent, offers, fetched, svc };
 }
+const login = (a: ReturnType<typeof request.agent>) => a.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
 
-const PID_FORM = { uc: 'pid', given_name: 'Amina', family_name: 'Koffi', birth_date: '1990-05-17', nationality: 'BJ', gender: '2' };
+const MATHIEU = { uc: 'pid', given_name: 'Mathieu', family_name: 'Ahouandjinou', birth_date: '1988-07-21', nationality: 'BJ', gender: '1' };
 
-const JPEG_B64 = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 16]), Buffer.from('JFIF fake body')]).toString('base64');
-
-describe('admin console (mock of an authentic source)', () => {
-  it('accepts only a small base64 JPEG as portrait', () => {
-    expect(validatePortrait('')).toEqual({ ok: true, portrait: undefined });
-    expect(validatePortrait(JPEG_B64)).toEqual({ ok: true, portrait: JPEG_B64 });
-    expect(validatePortrait(Buffer.from('<svg onload=x>').toString('base64'))).toEqual({ ok: false }); // not a JPEG
-    expect(validatePortrait('not base64 !!')).toEqual({ ok: false });
-    expect(validatePortrait(JPEG_B64 + 'A'.repeat(90_001))).toEqual({ ok: false }); // too large
-  });
-
+describe('record validation and matching', () => {
   it('validates attributes and derives age_over_18', () => {
-    expect(validateRecord('pid', PID_FORM)).toMatchObject({ ok: true, attributes: { given_name: 'Amina', age_over_18: 'True' } });
-    expect(validateRecord('pid', { ...PID_FORM, birth_date: '2099-01-01' })).toMatchObject({ ok: true, attributes: { age_over_18: 'False' } });
-    expect(validateRecord('pid', { ...PID_FORM, given_name: '' })).toMatchObject({ ok: false, errors: { given_name: 'admin.err.required' } });
-    expect(validateRecord('pid', { ...PID_FORM, birth_date: '17/05/1990' })).toMatchObject({ ok: false, errors: { birth_date: 'admin.err.date' } });
-    expect(validateRecord('pid', { ...PID_FORM, gender: '7' })).toMatchObject({ ok: false, errors: { gender: 'admin.err.choice' } });
-    expect(validateRecord('pid', { ...PID_FORM, family_name: '<script>' })).toMatchObject({ ok: false, errors: { family_name: 'admin.err.chars' } });
-    const r = validateRecord('pid', { ...PID_FORM, evil: 'x' });
-    expect(r.ok && 'evil' in r.attributes).toBe(false); // unknown fields are dropped
+    expect(validateRecord('pid', MATHIEU)).toMatchObject({ ok: true, attributes: { given_name: 'Mathieu', age_over_18: 'True' } });
+    expect(validateRecord('pid', { ...MATHIEU, given_name: '' })).toMatchObject({ ok: false, errors: { given_name: 'admin.err.required' } });
+    expect(validateRecord('pid', { ...MATHIEU, birth_date: '21/07/1988' })).toMatchObject({ ok: false, errors: { birth_date: 'admin.err.date' } });
+    expect(validateRecord('pid', { ...MATHIEU, gender: '7' })).toMatchObject({ ok: false, errors: { gender: 'admin.err.choice' } });
+    expect(validateRecord('pid', { ...MATHIEU, family_name: '<script>' })).toMatchObject({ ok: false, errors: { family_name: 'admin.err.chars' } });
+    const r = validateRecord('pid', { ...MATHIEU, evil: 'x' });
+    expect(r.ok && 'evil' in r.attributes).toBe(false);
   });
 
+  it('matches case- and accent-insensitively, and never on an empty entry', () => {
+    const recs = [{ attributes: { given_name: 'Mathieu', family_name: 'Ahouandjinou', birth_date: '1988-07-21' } }, { attributes: { given_name: 'Estelle', family_name: 'Houngbedji', birth_date: '2010-11-23' } }];
+    expect(matchRecords(recs, { given_name: 'MATHIEU', family_name: ' ahouandjinou ' })).toHaveLength(1);
+    expect(matchRecords(recs, { given_name: 'Éstelle', birth_date: '2010-11-23' })).toHaveLength(1);
+    expect(matchRecords(recs, { given_name: 'Mathieu', birth_date: '2010-11-23' })).toHaveLength(0);
+    expect(matchRecords(recs, { nationality: 'BJ' })).toHaveLength(0); // attribute the record does not have
+    expect(matchRecords(recs, {})).toEqual([]);
+  });
+});
+
+describe('admin console (mock of an authentic source check)', () => {
   it('is closed to normal users and opens with the admin password', async () => {
     const { agent } = await setup();
     expect((await agent.get('/demo-issuer/admin')).headers.location).toBe('/demo-issuer/admin/login');
-    expect((await agent.post('/demo-issuer/admin/offer').type('form').send(PID_FORM)).headers.location).toBe('/demo-issuer/admin/login');
+    expect((await agent.post('/demo-issuer/admin/check').type('form').send(MATHIEU)).headers.location).toBe('/demo-issuer/admin/login');
+    expect((await agent.post('/demo-issuer/admin/pick').type('form').send({ uc: 'pid', identifier: 'user-pid-mdoc-001' })).headers.location).toBe('/demo-issuer/admin/login');
     expect((await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'wrong' })).status).toBe(401);
     expect((await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'root', password: 'Admin123' })).status).toBe(401);
-    const ok = await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
-    expect(ok.status).toBe(302);
+    expect((await login(agent)).status).toBe(302);
     const page = await agent.get('/demo-issuer/admin');
     expect(page.status).toBe(200);
     expect(page.text).toContain('Authentic source (admin)');
-    expect(page.text).toContain('name="given_name"');
     expect(page.text).toContain('value="Mathieu"'); // pre-filled from the first sample record
+    expect(page.text).toContain('checked against those records');
     expect((await agent.post('/demo-issuer/admin/logout')).status).toBe(302);
     expect((await agent.get('/demo-issuer/admin')).headers.location).toBe('/demo-issuer/admin/login');
   });
 
   it('locks sign-in after repeated failures; the password is configurable', async () => {
-    const { agent } = await setup({ ADMIN_PASSWORD: 'S3cret!' });
+    const { agent } = await setup({ env: { ADMIN_PASSWORD: 'S3cret!' } });
     for (let i = 0; i < 5; i++) await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'nope' });
     expect((await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'S3cret!' })).status).toBe(429);
-    const fresh = (await setup({ ADMIN_PASSWORD: 'S3cret!' })).agent;
-    expect((await fresh.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' })).status).toBe(401);
+    const fresh = (await setup({ env: { ADMIN_PASSWORD: 'S3cret!' } })).agent;
+    expect((await login(fresh)).status).toBe(401);
     expect((await fresh.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'S3cret!' })).status).toBe(302);
   });
 
-  it('saves the record and creates the SIGMA offer for its identifier; the record service serves it', async () => {
-    const { agent, calls, app } = await setup();
-    await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
-    const bad = await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, given_name: '' });
+  it('a single matching record in the issuer\'s record store gets its SIGMA offer', async () => {
+    const { agent, offers, fetched } = await setup();
+    await login(agent);
+    const res = await agent.post('/demo-issuer/admin/check').type('form').send(MATHIEU);
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('135790');
+    expect(fetched).toEqual([PID_LIST_URL]); // read live
+    expect(offers).toHaveLength(1);
+    expect(offers[0]).toMatchObject({ identifier: 'user-pid-mdoc-001', authorization_details: [{ credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc', credential_identifiers: ['credential_id_1_mdoc'] }] });
+    // only the required fields, different case: still the same person
+    const loose = await agent.post('/demo-issuer/admin/check').type('form').send({ uc: 'pid', given_name: 'mathieu', family_name: 'AHOUANDJINOU', birth_date: '1988-07-21' });
+    expect(loose.status).toBe(200);
+    expect(offers[1].identifier).toBe('user-pid-mdoc-001');
+    // the second sample person
+    await agent.post('/demo-issuer/admin/check').type('form').send({ uc: 'pid', given_name: 'Estelle', family_name: 'Houngbedji', birth_date: '2010-11-23' });
+    expect(offers[2]).toMatchObject({ identifier: 'user-pid-mdoc-002', authorization_details: [{ credential_identifiers: ['credential_id_2_mdoc'] }] });
+  });
+
+  it('birth certificate uses its own configuration and record list', async () => {
+    const { agent, offers, fetched } = await setup();
+    await login(agent);
+    const res = await agent.post('/demo-issuer/admin/check').type('form').send({ uc: 'birth-certificate', given_name: 'Mathieu', family_name: 'Ahouandjinou', birth_date: '1988-07-21', birth_place: 'Cotonou' });
+    expect(res.status).toBe(200);
+    expect(fetched).toEqual([BC_LIST_URL]);
+    expect(offers[0]).toMatchObject({ identifier: 'user-bc-sd-jwt-001', authorization_details: [{ credential_configuration_id: 'eu.europa.ec.eudi.birth_certificate_vc_sd_jwt', credential_identifiers: ['birth_certificate_full_data'] }] });
+  });
+
+  it('shows "no record" with the available records, and creates no offer, when nothing matches', async () => {
+    const { agent, offers } = await setup();
+    await login(agent);
+    const res = await agent.post('/demo-issuer/admin/check').type('form').send({ ...MATHIEU, birth_date: '1999-01-01' });
+    expect(res.status).toBe(404);
+    expect(res.text).toContain('No record in the authentic source matches');
+    expect(res.text).toContain('user-pid-mdoc-002'); // lists what exists
+    expect(offers).toHaveLength(0);
+    // validation errors come back on the form, before any lookup
+    const bad = await agent.post('/demo-issuer/admin/check').type('form').send({ ...MATHIEU, given_name: '' });
     expect(bad.status).toBe(422);
     expect(bad.text).toContain('This field is required.');
-    expect(calls).toHaveLength(0);
-    const res = await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, via: 'sigma' });
-    expect(res.status).toBe(200);
-    expect(res.text).toContain('135790'); // transaction code
-    expect(res.text).toContain('Pre-authorised code');
-    expect(calls).toHaveLength(1);
-    expect(calls[0].url).toBe('https://issuer.sigma.prep.smartid.nuagein.io/offer');
-    const sent = calls[0].body;
-    expect(sent.identifier).toMatch(/^custom-pid-[0-9a-f]{8}$/);
-    expect(sent.authorization_details[0]).toMatchObject({ credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc', credential_identifiers: ['custom_pid_mdoc'] });
-    // the record service (same contract as the WalletTester's SoR) answers for it, and only for the right credential id / configuration
-    const sor = await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${sent.identifier}?credential_identifier=custom_pid_mdoc`);
-    expect(sor.status).toBe(200);
-    expect(sor.body.identifier).toBe(sent.identifier);
-    expect(sor.body.attributes).toContainEqual({ name: 'given_name', value: 'Amina' });
-    expect(sor.body.attributes).toContainEqual({ name: 'age_over_18', value: 'True' });
-    expect((await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${sent.identifier}?credential_identifier=other`)).status).toBe(404);
-    expect((await request(app).get(`/sor/eu.europa.ec.eudi.birth_certificate_vc_sd_jwt/sor/${sent.identifier}`)).status).toBe(404);
-    // sample records are served too, with their portrait
-    const sample = await request(app).get('/sor/eu.europa.ec.eudi.pid_mdoc/sor/user-pid-mdoc-001?credential_identifier=credential_id_1_mdoc');
-    expect(sample.status).toBe(200);
-    expect(sample.body.attributes.some((a: any) => a.name === 'portrait')).toBe(true);
-    expect((await request(app).get('/sor/eu.europa.ec.eudi.pid_mdoc/sor/')).status).toBe(404); // no list endpoint
-    // listed on the admin page; offer again, then delete
-    const page = await agent.get('/demo-issuer/admin');
-    expect(page.text).toContain(sent.identifier);
-    expect((await agent.post(`/demo-issuer/admin/records/${sent.identifier}/offer`).type('form').send({ via: 'sigma' })).status).toBe(200);
-    expect(calls).toHaveLength(2);
-    await agent.post(`/demo-issuer/admin/records/${sent.identifier}/delete`);
-    expect((await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${sent.identifier}`)).status).toBe(404);
   });
 
-  it('stores the portrait with the record, serves it from the record service and shows it in the list', async () => {
-    const { agent, calls, app } = await setup();
-    await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
-    const bad = await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, portrait: 'AAAA' });
-    expect(bad.status).toBe(422);
-    expect(bad.text).toContain('The portrait could not be used');
-    expect(calls).toHaveLength(0);
-    expect((await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, portrait: JPEG_B64, via: 'sigma' })).status).toBe(200);
-    const id = calls[0].body.identifier;
-    const sor = await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${id}`);
-    expect(sor.body.attributes).toContainEqual({ name: 'portrait', value: JPEG_B64 });
-    expect((await agent.get('/demo-issuer/admin')).text).toContain(`data:image/jpeg;base64,${JPEG_B64}`);
-    // a record without portrait serves none; the birth certificate never takes one
-    expect((await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, via: 'sigma' })).status).toBe(200);
-    const sor2 = await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${calls[1].body.identifier}`);
-    expect(sor2.body.attributes.some((a: any) => a.name === 'portrait')).toBe(false);
-    await agent.post('/demo-issuer/admin/offer').type('form').send({ uc: 'birth-certificate', given_name: 'A', family_name: 'B', birth_date: '1990-01-01', portrait: JPEG_B64, via: 'sigma' });
-    const sor3 = await request(app).get(`/sor/eu.europa.ec.eudi.birth_certificate_vc_sd_jwt/sor/${calls[2].body.identifier}`);
-    expect(sor3.body.attributes.some((a: any) => a.name === 'portrait')).toBe(false);
+  it('several matches: lists them and issues for the chosen one (looked up again on the server)', async () => {
+    const dup = JSON.parse(file('user_pid_claims.json'));
+    dup.push({ ...JSON.parse(JSON.stringify(dup[0])), identifier: 'user-pid-mdoc-009', credentialId: 'credential_id_9_mdoc' });
+    const { agent, offers } = await setup({ pidList: () => json(dup) });
+    await login(agent);
+    const res = await agent.post('/demo-issuer/admin/check').type('form').send(MATHIEU);
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Several records match');
+    expect(res.text).toContain('user-pid-mdoc-009');
+    expect(offers).toHaveLength(0);
+    expect((await agent.post('/demo-issuer/admin/pick').type('form').send({ uc: 'pid', identifier: 'user-pid-mdoc-009' })).status).toBe(200);
+    expect(offers[0]).toMatchObject({ identifier: 'user-pid-mdoc-009', authorization_details: [{ credential_identifiers: ['credential_id_9_mdoc'] }] });
+    expect((await agent.post('/demo-issuer/admin/pick').type('form').send({ uc: 'pid', identifier: 'ghost' })).headers.location).toBe('/demo-issuer/admin?uc=pid');
+    expect(offers).toHaveLength(1);
   });
 
-  it('birth certificate uses its own configuration', async () => {
-    const { agent, calls } = await setup();
-    await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
-    const res = await agent.post('/demo-issuer/admin/offer').type('form').send({ uc: 'birth-certificate', given_name: 'Amina', family_name: 'Koffi', birth_date: '1990-05-17', birth_place: 'Cotonou', via: 'sigma' });
-    expect(res.status).toBe(200);
-    expect(calls[0].body.identifier).toMatch(/^custom-bc-/);
-    expect(calls[0].body.authorization_details[0]).toMatchObject({ credential_configuration_id: 'eu.europa.ec.eudi.birth_certificate_vc_sd_jwt', credential_identifiers: ['custom_birth_certificate'] });
-  });
-
-  it('by default issues the typed values through the app\'s own issuer, by value, without calling SIGMA', async () => {
-    const { agent, calls, svc } = await setup();
-    await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
-    expect((await agent.get('/demo-issuer/admin')).text).toContain('own issuer (OpenID4VCI)');
-    const res = await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, family_name: 'Zoumarou' });
-    expect(res.status).toBe(200);
-    expect(calls).toHaveLength(0); // nothing sent to SIGMA
-    const link = /openid-credential-offer:\/\/\?credential_offer=[^"<\s]+/.exec(res.text.replace(/&amp;/g, '&'))![0];
-    const offer = JSON.parse(decodeURIComponent(link.split('credential_offer=')[1]!));
-    expect(offer.credential_issuer).toContain('/issuer');
-    const token = await request(createApp(testConfig({ MOCK_MODE: 'false' }), svc)).post('/issuer/token').type('form').send({ grant_type: 'urn:ietf:params:oauth:grant-type:pre-authorized_code', 'pre-authorized_code': offer.grants['urn:ietf:params:oauth:grant-type:pre-authorized_code']['pre-authorized_code'] });
-    expect(token.status).toBe(200); // the offer really is redeemable at our issuer
+  it('falls back to the saved copy of the sample records when the issuer\'s list cannot be read', async () => {
+    const { agent, offers } = await setup({ pidList: () => new Response('x', { status: 500 }) });
+    await login(agent);
+    expect((await agent.post('/demo-issuer/admin/check').type('form').send(MATHIEU)).status).toBe(200);
+    expect(offers[0].identifier).toBe('user-pid-mdoc-001');
+    const none = await agent.post('/demo-issuer/admin/check').type('form').send({ ...MATHIEU, given_name: 'Nobody' });
+    expect(none.text).toContain('saved copy of its sample records');
   });
 
   it('normal users still create offers from the sample records', async () => {
-    const { agent, calls } = await setup();
+    const { agent, offers } = await setup();
     expect((await agent.get('/demo-issuer')).text).toContain('Admin: enter records manually');
-    const res = await agent.post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'user-pid-mdoc-001' });
-    expect(res.status).toBe(200);
-    expect(calls[0].body.identifier).toBe('user-pid-mdoc-001');
+    expect((await agent.post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'user-pid-mdoc-001' })).status).toBe(200);
+    expect(offers[0].identifier).toBe('user-pid-mdoc-001');
   });
 });
 
 describe('admin console in mock mode', () => {
-  it('issues the entered values through the local demo issuer', async () => {
+  it('issues the typed values through the local demo issuer (no SIGMA)', async () => {
     const cfg = testConfig({ MOCK_MODE: 'true' });
-    const svc = await createServices(cfg);
-    const agent = request.agent(createApp(cfg, svc));
-    await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
-    const res = await agent.post('/demo-issuer/admin/offer').type('form').send(PID_FORM);
+    const agent = request.agent(createApp(cfg, await createServices(cfg)));
+    await login(agent);
+    const res = await agent.post('/demo-issuer/admin/check').type('form').send({ ...MATHIEU, given_name: 'Amina', family_name: 'Koffi' });
     expect(res.status).toBe(200);
     expect(res.text).toContain('openid-credential-offer://');
-    expect(res.text).not.toContain('SIGMA issuer fills'); // no record-service note in mock mode
   });
 });

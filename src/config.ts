@@ -115,8 +115,6 @@ export interface AppConfig {
   diagnostics: boolean;
   /** Password of the issuer portal's admin user ("authentic source" console). Default is the demo password; override with ADMIN_PASSWORD. */
   adminPassword: string;
-  /** Standalone record service the admin console writes to (and the SIGMA issuer reads from). Empty URL = in-process records. */
-  sor: { url: string | undefined; token: string | undefined };
   multiCredential: boolean;
   sessionSecret: string;
   verifier: VerifierConfig;
@@ -277,7 +275,6 @@ export function loadConfig(
     mockMode,
     diagnostics: parseBool(env.DIAGNOSTICS_ENDPOINT, true),
     adminPassword: env.ADMIN_PASSWORD || 'Admin123',
-    sor: { url: env.SOR_URL ? env.SOR_URL.replace(/\/+$/, '') : undefined, token: env.SOR_API_TOKEN || undefined },
     multiCredential: parseBool(env.MULTI_CREDENTIAL, false),
     sessionSecret,
     verifier,

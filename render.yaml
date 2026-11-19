@@ -1,11 +1,5 @@
 # Render Blueprint – https://render.com/docs/blueprint-spec
-# Two web services: the playground, and a standalone record service (system of record) that the credential issuer reads from.
-# Playground state (sessions, offers, verifier transactions) is in memory, so keep it at ONE instance.
-envVarGroups:
-  - name: record-service           # shared by both services so they agree on the write token
-    envVars:
-      - key: SOR_API_TOKEN
-        generateValue: true
+# One web service. State (sessions, offers, verifier transactions) is in memory, so keep it at ONE instance.
 services:
   - type: web
     name: eu-wallet-rp-playground
@@ -19,7 +13,6 @@ services:
     healthCheckPath: /healthz
     autoDeploy: true
     envVars:
-      - fromGroup: record-service
       # ---- runtime ----
       - key: NODE_VERSION
         value: 20
@@ -29,11 +22,6 @@ services:
 
       # ---- admin console ----
       - key: ADMIN_PASSWORD          # admin user of the issuer portal (user name: admin). Default when unset: Admin123 – change it on a public site.
-        sync: false
-      # Public URL of the standalone record service below, e.g. https://eu-wallet-record-service.onrender.com
-      # Set it once that service is up: the admin console then saves records there (instead of in memory) and shows the address
-      # the SIGMA team must configure as the issuer's system-of-record address.
-      - key: SOR_URL
         sync: false
 
       # ---- public URL ----
@@ -129,29 +117,3 @@ services:
         sync: false
       - key: BRAND_ACCENT
         sync: false
-
-  # ---- standalone record service (system of record for the credential issuer) ----
-  # Read contract (used by the issuer, no token):  GET /<credentialConfigurationId>/sor/<identifier>?credential_identifier=<id>
-  # Write API (used by the admin console, Bearer SOR_API_TOKEN):  PUT|GET|DELETE /records/<identifier>, GET /records
-  - type: web
-    name: eu-wallet-record-service
-    runtime: node
-    plan: starter            # always-on: the issuer calls it while a wallet is waiting
-    region: frankfurt
-    numInstances: 1          # the records live on one disk
-    buildCommand: npm ci --include=dev && npm run build
-    startCommand: node dist/sor/server.js
-    healthCheckPath: /healthz
-    autoDeploy: true
-    disk:
-      name: records
-      mountPath: /var/data
-      sizeGB: 1
-    envVars:
-      - fromGroup: record-service
-      - key: NODE_VERSION
-        value: 20
-      - key: NODE_ENV
-        value: production
-      - key: SOR_DATA_FILE
-        value: /var/data/records.json

@@ -30,7 +30,7 @@ const DEFINITIONS: Array<{ id: string; attestation: string; file: string; column
 
 interface RawUser { identifier?: unknown; credentialId?: unknown; credentialConfigurationId?: unknown; walletId?: unknown; attributes?: unknown }
 
-function parseUsers(raw: unknown): PortalUser[] {
+export function parseUsers(raw: unknown): PortalUser[] {
   if (!Array.isArray(raw)) return [];
   const users: PortalUser[] = [];
   for (const u of raw as RawUser[]) {
@@ -56,3 +56,7 @@ export function loadPortalUseCases(dir = path.join(ROOT_DIR, 'config', 'portal')
     return { id: d.id, attestation: d.attestation, columns: d.columns, users };
   });
 }
+
+/** Use-case ids of the issuer portal's record store (GET <issuer>/api/in-person-portal-sor/<id>/sor/ lists its records). */
+export const SOR_USE_CASE_ID: Record<string, string> = { pid: 'oid_pid_inp_uc1', 'birth-certificate': 'oid_birth_certificate_sd_jwt_uc1' };
+export const SOR_LIST_PATH = '/api/in-person-portal-sor';
