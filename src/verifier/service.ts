@@ -310,7 +310,7 @@ export class Verifier {
     }
     tx.result = { byType, issuers: [...issuers] };
     tx.status = 'complete';
-    this.record({ event: 'response_accepted', rp: tx.rpId, presentation: tx.presentationKey, types: Object.keys(byType), issuers: tx.result.issuers });
+    this.record({ event: 'response_accepted', rp: tx.rpId, presentation: tx.presentationKey, types: Object.keys(byType), issuers: tx.result.issuers, device: sameDevice ? 'same-device (redirect_uri returned)' : this.byValue ? 'cross-device (no redirect_uri returned)' : 'redirect_uri returned' });
     log.info('vp response accepted', { rp: tx.rpId, presentation: tx.presentationKey, types: Object.keys(byType), issuers: tx.result.issuers });
     // Cross-device (QR scanned from another screen): no redirect, the wallet just confirms and the original page continues by itself (OpenID4VP §8.2).
     if (this.byValue && !sameDevice) return {};

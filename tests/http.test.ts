@@ -108,6 +108,7 @@ describe('same-device vs cross-device response (redirect_uri scheme)', () => {
     const cross = await present((t) => t.state);
     expect(cross.post.status, JSON.stringify(cross.post.body)).toBe(200);
     expect(cross.post.body).toEqual({});
+    expect(svc.verifier.diagnostics().find((e) => e.event === 'response_accepted')!.device).toBe('cross-device (no redirect_uri returned)');
     // same-device (button): marker in state, the wallet is told where to go next
     const tx0 = await svc.verifier.createTransaction(rp, 'pid', '/bank/');
     expect(new URL(svc.verifier.walletLink(tx0, true)).searchParams.get('state')).toBe(`${tx0.state}.sd`);
