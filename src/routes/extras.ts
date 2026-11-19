@@ -35,7 +35,8 @@ export function extrasRouter(ctx: Ctx): Router {
     if (!bank) return void res.redirect('/');
     const mk = async () => svc.verifier.walletLink(await svc.verifier.createTransaction(bank, 'pid', '/'));
     const lean = await mk();
-    const full = (() => { const u = new URL(lean); return `${u.protocol}//${u.host}?${u.searchParams.toString()}`; })();
+    const fresh = await mk();
+    const full = (() => { const u = new URL(fresh); return `${u.protocol}//${u.host}?${u.searchParams.toString()}`; })(); // its own request: A is spent once the wallet answered it
     const variants = [
       { key: 'A', title: 'Current link (":" "/" "," left readable)', link: lean },
       { key: 'B', title: 'Fully percent-encoded (standard form-encoding)', link: full },
