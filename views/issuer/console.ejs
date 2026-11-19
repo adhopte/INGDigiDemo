@@ -31,6 +31,12 @@
             <% it.users.forEach(function (u) { %><option value="<%= u.identifier %>"><%= u.label %> (<%= u.identifier %>)</option><% }) %>
           </select>
         </div>
+        <details class="raw">
+          <summary><%= t('issuer.console.sigma_advanced') %></summary>
+          <p class="note"><%= t('issuer.console.sigma_advanced_hint') %></p>
+          <div class="field"><label for="ci-<%= it.type %>"><%= t('issuer.console.sigma_custom_id') %></label><input id="ci-<%= it.type %>" name="customIdentifier" type="text" maxlength="64" autocomplete="off" spellcheck="false"></div>
+          <div class="field"><label for="cc-<%= it.type %>"><%= t('issuer.console.sigma_custom_cred') %></label><input id="cc-<%= it.type %>" name="customCredentialIdentifier" type="text" maxlength="64" autocomplete="off" spellcheck="false"></div>
+        </details>
         <button class="btn" type="submit"><%= t('issuer.console.sigma_btn') %><span class="sr-only"> – <%= t('att.' + it.type + '.name') %></span></button>
       </form>
     <% }) %>

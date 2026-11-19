@@ -317,5 +317,9 @@
   "issuer.console.sigma_btn": "Oħloq offerta SIGMA",
   "issuer.console.sigma_note": "L-emittent jirritorna kodiċi tat-tranżazzjoni b’6 ċifri li l-kartiera tiegħek titlob.",
   "offer.fallback_note": "L-emittent SIGMA ma joffrix din l-attestazzjoni, għalhekk l-emittent lokali tad-demo joħroġha.",
-  "issuer.console.sigma_user": "utent tal-eżempju"
+  "issuer.console.sigma_user": "utent tal-eżempju",
+  "issuer.console.sigma_advanced": "Uża identifikaturi oħra",
+  "issuer.console.sigma_advanced_hint": "L-emittent jimla l-kredenzjal mir-reġistri tiegħu stess għal dawn l-identifikaturi. Identifikatur mhux magħruf joħloq kredenzjal vojt. Staqsi lill-emittent liema jeżistu.",
+  "issuer.console.sigma_custom_id": "Identifikatur",
+  "issuer.console.sigma_custom_cred": "Identifikatur tal-kredenzjal (mhux obbligatorju)"
 }

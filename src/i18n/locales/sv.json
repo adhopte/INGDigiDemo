@@ -317,5 +317,9 @@
   "issuer.console.sigma_btn": "Skapa SIGMA-erbjudande",
   "issuer.console.sigma_note": "Utfärdaren returnerar en sexsiffrig transaktionskod som din plånbok frågar efter.",
   "offer.fallback_note": "SIGMA-utfärdaren erbjuder inte det här intyget, så den lokala demoutfärdaren utfärdar det.",
-  "issuer.console.sigma_user": "exempelanvändare"
+  "issuer.console.sigma_user": "exempelanvändare",
+  "issuer.console.sigma_advanced": "Använd andra identifierare",
+  "issuer.console.sigma_advanced_hint": "Utfärdaren fyller i beviset från sina egna register för dessa identifierare. En okänd identifierare ger ett tomt bevis. Fråga utfärdaren vilka som finns.",
+  "issuer.console.sigma_custom_id": "Identifierare",
+  "issuer.console.sigma_custom_cred": "Bevisidentifierare (valfri)"
 }

@@ -51,15 +51,33 @@
       "externalUsers": [
         {
           "identifier": "user-001",
+          "credentialIdentifier": "credential_id_1",
           "label": "Sample user 001"
         },
         {
           "identifier": "user-002",
+          "credentialIdentifier": "credential_id_1",
           "label": "Sample user 002"
         },
         {
           "identifier": "user-003",
+          "credentialIdentifier": "credential_id_1",
           "label": "Sample user 003"
+        },
+        {
+          "identifier": "user-004",
+          "credentialIdentifier": "credential_id_1",
+          "label": "Sample user 004"
+        },
+        {
+          "identifier": "user-005",
+          "credentialIdentifier": "credential_id_1",
+          "label": "Sample user 005"
+        },
+        {
+          "identifier": "user-sd-jwt-001",
+          "credentialIdentifier": "credential_id_1",
+          "label": "Sample user sd-jwt-001"
         }
       ]
     },

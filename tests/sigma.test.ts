@@ -72,10 +72,16 @@ describe('console: offers through the SIGMA offer API', () => {
     expect(res.status).toBe(200);
     expect(calls).toHaveLength(1);
     expect(calls[0].url).toBe('https://issuer.sigma.prep.smartid.nuagein.io/offer');
-    expect(calls[0].body).toMatchObject({ identifier: 'user-002', authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc' }] });
+    expect(calls[0].body).toMatchObject({ identifier: 'user-002', authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc', credential_identifiers: ['credential_id_1'] }] }); // the PID needs its credential identifier too, or the issuer produces an empty credential
     expect(res.text).toContain('246810'); // the code the wallet asks for
     expect(res.text).toContain('openid-credential-offer://');
     expect(res.text).toContain('data:image/png');
+    // identifiers typed by hand are passed through (validated); unsafe input is refused
+    const custom = await request(app).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'user-001', customIdentifier: 'my-user_9', customCredentialIdentifier: 'cred.1' });
+    expect(custom.status).toBe(200);
+    expect(calls[1].body).toMatchObject({ identifier: 'my-user_9', authorization_details: [{ credential_identifiers: ['cred.1'] }] });
+    for (const bad of ['a b', '../x', 'x'.repeat(65), '<script>']) expect((await request(app).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', customIdentifier: bad })).status, bad).toBe(400);
+    expect(calls).toHaveLength(2);
     // API failure: error page, no crash
     const bad = await createServices(cfg, (async (url: string) => (url === META_URL ? json(META) : new Response('x', { status: 500 }))) as unknown as typeof fetch);
     expect((await request(createApp(cfg, bad)).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'user-001' })).status).toBe(502);
@@ -182,6 +188,7 @@ describe('connecting the attestation issuer to the SIGMA URL', () => {
     expect(consolePage).toContain('Credentials from the SIGMA issuer');
     expect(consolePage).toContain('user-001');
     expect(consolePage).toContain('user-bc-sd-jwt-002');
+    expect(consolePage).toContain('Use other identifiers');
     expect((await request(app).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'not-configured' })).status).toBe(400);
     // no metadata URL configured: no panel, no SIGMA button
     const plain = createApp(testConfig({ MOCK_MODE: 'true' }), await createServices(testConfig({ MOCK_MODE: 'true' })));

@@ -317,5 +317,9 @@
   "issuer.console.sigma_btn": "Crear oferta SIGMA",
   "issuer.console.sigma_note": "El emisor devuelve un código de transacción de 6 dígitos que le pedirá su cartera.",
   "offer.fallback_note": "El emisor SIGMA no ofrece esta atestación, así que la emite el emisor de demostración local.",
-  "issuer.console.sigma_user": "usuario de ejemplo"
+  "issuer.console.sigma_user": "usuario de ejemplo",
+  "issuer.console.sigma_advanced": "Usar otros identificadores",
+  "issuer.console.sigma_advanced_hint": "El emisor rellena la credencial con sus propios registros para estos identificadores. Un identificador desconocido genera una credencial vacía. Pregunte al emisor cuáles existen.",
+  "issuer.console.sigma_custom_id": "Identificador",
+  "issuer.console.sigma_custom_cred": "Identificador de la credencial (opcional)"
 }

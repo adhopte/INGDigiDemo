@@ -317,5 +317,9 @@
   "issuer.console.sigma_btn": "SIGMA-aanbod maken",
   "issuer.console.sigma_note": "De uitgever geeft een transactiecode van 6 cijfers terug waar uw wallet om vraagt.",
   "offer.fallback_note": "De SIGMA-uitgever biedt dit attest niet aan; de lokale demo-uitgever geeft het uit.",
-  "issuer.console.sigma_user": "voorbeeldgebruiker"
+  "issuer.console.sigma_user": "voorbeeldgebruiker",
+  "issuer.console.sigma_advanced": "Andere identifiers gebruiken",
+  "issuer.console.sigma_advanced_hint": "De uitgever vult het bewijs met zijn eigen registers voor deze identifiers. Een onbekende identifier geeft een leeg bewijs. Vraag de uitgever welke bestaan.",
+  "issuer.console.sigma_custom_id": "Identifier",
+  "issuer.console.sigma_custom_cred": "Credential-identifier (optioneel)"
 }

@@ -317,5 +317,9 @@
   "issuer.console.sigma_btn": "Créer l’offre SIGMA",
   "issuer.console.sigma_note": "L’émetteur renvoie un code de transaction à 6 chiffres, que votre portefeuille demande.",
   "offer.fallback_note": "L’émetteur SIGMA ne propose pas cette attestation : l’émetteur de démo local l’émet.",
-  "issuer.console.sigma_user": "utilisateur d’exemple"
+  "issuer.console.sigma_user": "utilisateur d’exemple",
+  "issuer.console.sigma_advanced": "Utiliser d’autres identifiants",
+  "issuer.console.sigma_advanced_hint": "L’émetteur remplit le justificatif à partir de ses propres registres pour ces identifiants. Un identifiant inconnu produit un justificatif vide. Demandez à l’émetteur lesquels existent.",
+  "issuer.console.sigma_custom_id": "Identifiant",
+  "issuer.console.sigma_custom_cred": "Identifiant du justificatif (facultatif)"
 }

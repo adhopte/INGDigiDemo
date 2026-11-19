@@ -317,5 +317,9 @@
   "issuer.console.sigma_btn": "Create SIGMA offer",
   "issuer.console.sigma_note": "The issuer returns a 6-digit transaction code, which your wallet asks for.",
   "offer.fallback_note": "The SIGMA issuer does not offer this attestation, so the local demo issuer issues it.",
-  "issuer.console.sigma_user": "sample user"
+  "issuer.console.sigma_user": "sample user",
+  "issuer.console.sigma_advanced": "Use other identifiers",
+  "issuer.console.sigma_advanced_hint": "The issuer fills the credential from its own records for these identifiers. An unknown identifier produces an empty credential. Ask the issuer which ones exist.",
+  "issuer.console.sigma_custom_id": "Identifier",
+  "issuer.console.sigma_custom_cred": "Credential identifier (optional)"
 }

@@ -317,5 +317,9 @@
   "issuer.console.sigma_btn": "Opret SIGMA-tilbud",
   "issuer.console.sigma_note": "Udstederen returnerer en 6-cifret transaktionskode, som din wallet beder om.",
   "offer.fallback_note": "SIGMA-udstederen tilbyder ikke dette attest, så den lokale demo-udsteder udsteder det.",
-  "issuer.console.sigma_user": "eksempelbruger"
+  "issuer.console.sigma_user": "eksempelbruger",
+  "issuer.console.sigma_advanced": "Brug andre identifikatorer",
+  "issuer.console.sigma_advanced_hint": "Udstederen udfylder beviset fra sine egne registre for disse identifikatorer. En ukendt identifikator giver et tomt bevis. Spørg udstederen, hvilke der findes.",
+  "issuer.console.sigma_custom_id": "Identifikator",
+  "issuer.console.sigma_custom_cred": "Bevis-identifikator (valgfri)"
 }

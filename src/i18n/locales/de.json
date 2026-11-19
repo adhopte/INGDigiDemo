@@ -317,5 +317,9 @@
   "issuer.console.sigma_btn": "SIGMA-Angebot erstellen",
   "issuer.console.sigma_note": "Der Aussteller liefert einen 6-stelligen Transaktionscode, nach dem Ihre Wallet fragt.",
   "offer.fallback_note": "Der SIGMA-Aussteller bietet diesen Nachweis nicht an; der lokale Demo-Aussteller stellt ihn aus.",
-  "issuer.console.sigma_user": "Beispielnutzer"
+  "issuer.console.sigma_user": "Beispielnutzer",
+  "issuer.console.sigma_advanced": "Andere Kennungen verwenden",
+  "issuer.console.sigma_advanced_hint": "Der Aussteller befüllt den Nachweis aus seinen eigenen Registern zu diesen Kennungen. Eine unbekannte Kennung ergibt einen leeren Nachweis. Fragen Sie den Aussteller, welche existieren.",
+  "issuer.console.sigma_custom_id": "Kennung",
+  "issuer.console.sigma_custom_cred": "Nachweis-Kennung (optional)"
 }

@@ -51,14 +51,19 @@ export function extrasRouter(ctx: Ctx): Router {
     const s = await svc.remote?.summary();
     const att = cfg.attestations[q(req.body?.type) ?? ''];
     const rc = att && s?.reachable ? matchConfig(att, s.configs) : undefined;
-    const user = att?.externalUsers.find((u) => u.identifier === q(req.body?.identifier));
+    // a configured sample user, or identifiers typed in by hand (only the issuer knows which records exist)
+    const SAFE = /^[A-Za-z0-9._:@-]{1,64}$/;
+    const customId = (q(req.body?.customIdentifier) ?? '').trim();
+    const customCred = (q(req.body?.customCredentialIdentifier) ?? '').trim();
+    const sample = att?.externalUsers.find((u) => u.identifier === q(req.body?.identifier));
+    const user = customId ? (SAFE.test(customId) && (!customCred || SAFE.test(customCred)) ? { identifier: customId, credentialIdentifier: customCred || undefined } : undefined) : sample;
     if (!att || !rc || !user || !s?.issuer) return void res.status(400).render('error', { title: res.locals.t('error.title'), message: res.locals.t('error.generic'), retryHref: '/demo-issuer' });
     const external = createIssuerProvider(
       { ...cfg, issuer: { ...cfg.issuer, mode: 'external', fallbackLocal: false, external: { ...cfg.issuer.external, apiBaseUrl: cfg.issuer.external.apiBaseUrl ?? s.issuer } } },
       svc.local, svc.fetchImpl, svc.remote,
     );
     try {
-      const offer = await external.createOffer(att.key, {}, { identifier: user.identifier });
+      const offer = await external.createOffer(att.key, {}, { identifier: user.identifier, ...(user.credentialIdentifier ? { credentialIdentifier: user.credentialIdentifier } : {}) });
       res.render('offer', { title: res.locals.t(`att.${att.key}.name`), attestationKey: att.key, offer, returnTo: '/demo-issuer', canSimulate: false, rp: undefined });
     } catch {
       res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer' });
