@@ -185,9 +185,9 @@ describe('external issuer adapter (SIGMA offer API)', () => {
       identifier: 'user-bc-sd-jwt-001', businessId: 'biz-1',
       authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.birth_certificate_vc_sd_jwt', credential_identifiers: ['birth_certificate_full_data'] }],
     });
-    expect(buildRequest(c.attestations.pid!, { identifier: 'user-002', walletIdentifier: 'w-002' }, 'biz-2')).toEqual({
-      identifier: 'user-002', businessId: 'biz-2', walletIdentifier: 'w-002',
-      authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc', credential_identifiers: ['credential_id_1'] }],
+    expect(buildRequest(c.attestations.pid!, { identifier: 'user-pid-mdoc-002', walletIdentifier: 'w-002' }, 'biz-2')).toEqual({
+      identifier: 'user-pid-mdoc-002', businessId: 'biz-2', walletIdentifier: 'w-002',
+      authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc', credential_identifiers: ['credential_id_2_mdoc'] }],
     });
     // PID via IdP login: fixed placeholder identifier + wallet id + the eMRTD configuration, no credential identifier
     expect(buildRequest(c.attestations.pid!, { identifier: 'xyz-198772', walletIdentifier: 'w-001', configurationId: 'eu.europa.ec.eudi.pid_mdoc_emrtd' }, 'biz-3')).toEqual({

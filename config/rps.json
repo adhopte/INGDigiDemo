@@ -50,34 +50,14 @@
       "externalConfigurationId": "eu.europa.ec.eudi.pid_mdoc",
       "externalUsers": [
         {
-          "identifier": "user-001",
-          "credentialIdentifier": "credential_id_1",
-          "label": "Sample user 001 – stored record (pre-authorised, needs a record at the issuer)"
+          "identifier": "user-pid-mdoc-001",
+          "credentialIdentifier": "credential_id_1_mdoc",
+          "label": "Mathieu Ahouandjinou, adult (user-pid-mdoc-001) – from the issuer's own portal sample data"
         },
         {
-          "identifier": "user-002",
-          "credentialIdentifier": "credential_id_1",
-          "label": "Sample user 002 – stored record (pre-authorised, needs a record at the issuer)"
-        },
-        {
-          "identifier": "user-003",
-          "credentialIdentifier": "credential_id_1",
-          "label": "Sample user 003 – stored record (pre-authorised, needs a record at the issuer)"
-        },
-        {
-          "identifier": "user-004",
-          "credentialIdentifier": "credential_id_1",
-          "label": "Sample user 004 – stored record (pre-authorised, needs a record at the issuer)"
-        },
-        {
-          "identifier": "user-005",
-          "credentialIdentifier": "credential_id_1",
-          "label": "Sample user 005 – stored record (pre-authorised, needs a record at the issuer)"
-        },
-        {
-          "identifier": "user-sd-jwt-001",
-          "credentialIdentifier": "credential_id_1",
-          "label": "Sample user sd-jwt-001 – stored record (pre-authorised, needs a record at the issuer)"
+          "identifier": "user-pid-mdoc-002",
+          "credentialIdentifier": "credential_id_2_mdoc",
+          "label": "Estelle Houngbedji, minor (user-pid-mdoc-002) – from the issuer's own portal sample data"
         }
       ]
     },
@@ -133,12 +113,12 @@
         {
           "identifier": "user-bc-sd-jwt-001",
           "credentialIdentifier": "birth_certificate_full_data",
-          "label": "Sample user 001"
+          "label": "Sample user 001 – full data"
         },
         {
           "identifier": "user-bc-sd-jwt-002",
-          "credentialIdentifier": "birth_certificate_full_data",
-          "label": "Sample user 002"
+          "credentialIdentifier": "birth_certificate_mandatory_only",
+          "label": "Sample user 002 – mandatory claims only"
         }
       ]
     }
