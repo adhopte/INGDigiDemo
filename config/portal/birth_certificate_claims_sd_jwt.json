@@ -1,0 +1,46 @@
+[
+  {
+    "identifier": "user-bc-sd-jwt-001",
+    "credentialConfigurationId": "eu.europa.ec.eudi.birth_certificate_vc_sd_jwt",
+    "credentialId": "birth_certificate_full_data",
+    "attributes": [
+      { "name": "family_name", "value": "Ahouandjinou" },
+      { "name": "given_name", "value": "Mathieu" },
+      { "name": "family_name_birth", "value": "Ahouandjinou" },
+      { "name": "given_name_birth", "value": "Mathieu" },
+      { "name": "birth_date", "value": "1988-07-21" },
+      { "name": "birth_place", "value": "Cotonou" },
+      { "name": "birth_country", "value": "BJ" },
+      { "name": "birth_state", "value": "Littoral" },
+      { "name": "birth_city", "value": "Cotonou" },
+      { "name": "gender", "value": 1 },
+      { "name": "mother_family_name", "value": "Adjovi" },
+      { "name": "mother_given_name", "value": "Clarisse" },
+      { "name": "father_family_name", "value": "Ahouandjinou" },
+      { "name": "father_given_name", "value": "Serge" },
+      { "name": "birth_record_reference", "value": "COT-1988-013742" },
+      { "name": "issuance_date", "value": "2026-09-18" },
+      { "name": "issuing_authority", "value": "ANIP" },
+      { "name": "registration_date", "value": "1988-07-23" },
+      { "name": "registration_place", "value": "Cotonou" },
+      { "name": "declarant_name", "value": "Serge Ahouandjinou" },
+      { "name": "declarant_relationship", "value": "Père" },
+      { "name": "marginal_mentions1", "value": "MARR-COT-2016-004812" },
+      { "name": "marginal_mentions2", "value": "NAME-COT-2018-082732" },
+      { "name": "document_number", "value": "EX-NAISS-2026-013742" }
+    ]
+  },
+  {
+    "identifier": "user-bc-sd-jwt-002",
+    "credentialConfigurationId": "eu.europa.ec.eudi.birth_certificate_vc_sd_jwt",
+    "credentialId": "birth_certificate_mandatory_only",
+    "attributes": [
+      { "name": "family_name", "value": "Houngbedji" },
+      { "name": "given_name", "value": "Estelle" },
+      { "name": "birth_date", "value": "2010-11-23" },
+      { "name": "birth_record_reference", "value": "PNO-2010-007314" },
+      { "name": "issuance_date", "value": "2010-11-25" },
+      { "name": "issuing_authority", "value": "ANIP" }
+    ]
+  }
+]

@@ -22,6 +22,8 @@ import { deeplinkForOfferObject, deeplinkForOfferUri } from './offer.js';
 export interface ExternalOffer {
   deeplink: string;
   txCode: string | undefined;
+  /** The pre-authorised code (also inside the deeplink), shown on the issuer portal like the WalletTester does. */
+  authorizationCode?: string;
   expiresAt: Date;
 }
 
@@ -85,7 +87,8 @@ export function parseResponse(json: Record<string, unknown>): ExternalOffer {
   if (!deeplink) throw new Error('Issuer reply contains no credential offer');
   const ttl = typeof json.expires_in === 'number' ? json.expires_in : 600; // not reported by the issuer: assume 10 minutes
   const tx = json.tx_code;
-  return { deeplink, txCode: typeof tx === 'string' || typeof tx === 'number' ? String(tx) : undefined, expiresAt: new Date(Date.now() + ttl * 1000) };
+  const ac = json.authorization_code;
+  return { deeplink, txCode: typeof tx === 'string' || typeof tx === 'number' ? String(tx) : undefined, ...(typeof ac === 'string' ? { authorizationCode: ac } : {}), expiresAt: new Date(Date.now() + ttl * 1000) };
 }
 
 export async function createExternalOffer(cfg: AppConfig, attestation: AttestationConfig, opts: ExternalOfferOptions = {}, fetchImpl: typeof fetch = fetch): Promise<ExternalOffer> {

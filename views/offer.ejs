@@ -20,9 +20,13 @@
     <% if (offer.txCode) { %>
       <p class="alert alert-info" role="note"><%= t('offer.txcode') %> <strong class="txcode"><%= offer.txCode %></strong></p>
     <% } %>
+    <% if (offer.authorizationCode) { %>
+      <p class="note"><%= t('offer.authcode') %> <code class="break"><%= offer.authorizationCode %></code></p>
+    <% } %>
     <details class="raw">
       <summary><%= t('verify.show_link') %></summary>
-      <p><code class="break"><%= offer.deeplink %></code></p>
+      <p><code class="break" id="deeplink-text"><%= offer.deeplink %></code></p>
+      <p><button type="button" class="btn btn-small btn-secondary" data-copy="deeplink-text" data-done="<%= t('offer.copied') %>" hidden><%= t('offer.copy') %></button></p>
     </details>
     <p class="note"><%= t('offer.expires', { time: new Intl.DateTimeFormat(locale, { timeStyle: 'short' }).format(offer.expiresAt) }) %></p>
   </section>
@@ -42,4 +46,5 @@
 
   <p><a class="btn btn-secondary" href="<%= returnTo %>"><%= t('btn.back') %></a></p>
 </div>
+<script src="/js/copy.js?v=<%= v %>" defer></script>
 <%- include('partials/foot') %>

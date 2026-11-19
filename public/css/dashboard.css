@@ -19,3 +19,34 @@
 
 .brand-group { display: flex; align-items: center; gap: 1.1rem; }
 .brand-in img { height: 54px; width: auto; }
+
+/* Issuer portal (use-case selection, sample records, offer) */
+.portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1.4rem; align-items: start; }
+.panel.titled { padding: 0; overflow: hidden; }
+.panel.titled > :not(.titlebar) { margin-left: 1.4rem; margin-right: 1.4rem; }
+.panel.titled > :last-child { margin-bottom: 1.4rem; }
+.titlebar { margin: 0 0 1.1rem; padding: .75rem 1.4rem; background: #002f87; color: #fff; font-size: 1.05rem; letter-spacing: .02em; border-bottom: 4px solid #e4032e; }
+.skin-dashboard .panel.titled h2.titlebar { color: #fff; margin-top: 0; }
+.portal-form { display: grid; gap: 1rem; max-width: 34rem; }
+.portal-steps { padding-left: 1.3rem; }
+.portal-steps li { margin: .35rem 0; }
+.scroll-x { position: relative; overflow-x: auto; max-width: 100%; }
+.scroll-x:focus-visible { outline: 3px solid #002f87; outline-offset: 2px; }
+.portal-table td, .portal-table th { padding: .7rem .6rem; }
+.portal-table td { overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  /* one card per record instead of a wide table */
+  .portal-table, .portal-table tbody, .portal-table tr, .portal-table td { display: block; width: 100%; }
+  .portal-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .portal-table tr { border: 1px solid #cfd8ea; border-radius: 12px; margin: 0 0 1rem; padding: .4rem .2rem; background: #fff; }
+  .portal-table td { display: flex; justify-content: space-between; gap: 1rem; border: 0; padding: .35rem .8rem; text-align: right; }
+  .portal-table td::before { content: attr(data-label); font-weight: 800; color: #001f5c; text-align: left; flex: none; }
+  .portal-table td.cell-portrait { justify-content: flex-start; }
+  .portal-table td.cell-portrait::before { content: none; }
+  .portal-table td.cell-action { justify-content: flex-end; padding-top: .7rem; }
+  .portal-table td.cell-action::before { content: none; }
+}
+.avatar { display: block; border-radius: 6px; object-fit: cover; border: 1px solid #cfd8ea; }
+.crumbs { margin: 1.2rem 0 0; font-size: .95rem; }
+.muted { color: #4b5873; }
+.skin-dashboard .wrap > h1:first-child { margin-top: 1.8rem; }

@@ -1,0 +1,73 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <h1><%= t('portal.title') %></h1>
+  <p class="lead"><%= t('portal.intro') %></p>
+
+  <% if (!reachable) { %><p class="alert alert-error" role="alert"><%= t('dash.sigma.unreachable') %></p><% } %>
+
+  <div class="portal-grid">
+    <section class="panel titled" aria-labelledby="uc-h">
+      <h2 class="titlebar" id="uc-h"><%= t('portal.select.title') %></h2>
+      <% if (useCases.length) { %>
+      <form method="get" action="/demo-issuer/go" class="portal-form">
+        <div class="field">
+          <label for="useCase"><%= t('portal.select.label') %></label>
+          <select id="useCase" name="useCase">
+            <% useCases.forEach(function (u) { %><option value="<%= u.id %>"><%= t('att.' + u.attestation + '.name') %></option><% }) %>
+          </select>
+        </div>
+        <button class="btn" type="submit"><%= t('portal.go') %></button>
+      </form>
+      <% } else { %><p><%= t('portal.none') %></p><% } %>
+    </section>
+
+    <section class="panel titled" aria-labelledby="ds-h">
+      <h2 class="titlebar" id="ds-h"><%= t('portal.desc.title') %></h2>
+      <p><%= t('portal.desc.body') %></p>
+      <ol class="portal-steps">
+        <li><%= t('portal.step1') %></li>
+        <li><%= t('portal.step2') %></li>
+        <li><%= t('portal.step3') %></li>
+        <li><%= t('portal.step4') %></li>
+      </ol>
+    </section>
+  </div>
+
+  <% if (advanced && useCases.length) { %>
+  <section class="panel" aria-labelledby="adv-h">
+    <details class="raw">
+    <summary id="adv-h"><%= t('issuer.console.sigma_advanced') %></summary>
+    <p class="note"><%= t('issuer.console.sigma_advanced_hint') %></p>
+    <form method="post" action="/demo-issuer/sigma-offer" class="portal-form">
+      <div class="field">
+        <label for="adv-type"><%= t('portal.select.label') %></label>
+        <select id="adv-type" name="type">
+          <% useCases.forEach(function (u) { %><option value="<%= u.attestation %>"><%= t('att.' + u.attestation + '.name') %></option><% }) %>
+        </select>
+      </div>
+      <div class="field"><label for="adv-id"><%= t('issuer.console.sigma_custom_id') %></label><input id="adv-id" name="customIdentifier" type="text" maxlength="64" autocomplete="off" spellcheck="false" required></div>
+      <div class="field"><label for="adv-cred"><%= t('issuer.console.sigma_custom_cred') %></label><input id="adv-cred" name="customCredentialIdentifier" type="text" maxlength="64" autocomplete="off" spellcheck="false"></div>
+      <button class="btn btn-secondary" type="submit"><%= t('portal.create') %></button>
+    </form>
+    </details>
+  </section>
+  <% } %>
+
+  <% types.forEach(function (type) { %>
+  <section class="panel panel-mock" aria-labelledby="t-<%= type %>">
+    <h2 id="t-<%= type %>"><%= t('mockw.badge') %> – <%= t('att.' + type + '.name') %></h2>
+    <p><%= t('issuer.console.' + type) %></p>
+    <form method="post" action="/demo-issuer/offer" class="inline-form">
+      <input type="hidden" name="type" value="<%= type %>">
+      <div class="field">
+        <label for="persona-<%= type %>"><%= t('mockw.persona') %></label>
+        <select id="persona-<%= type %>" name="persona">
+          <% personas.forEach(function (p) { %><option value="<%= p.id %>"><%= p.given %> <%= p.family %> – <%= regionName(p.id) %></option><% }) %>
+        </select>
+      </div>
+      <button class="btn" type="submit"><%= t('issuer.console.create') %></button>
+    </form>
+  </section>
+  <% }) %>
+</div>
+<%- include('../partials/foot') %>

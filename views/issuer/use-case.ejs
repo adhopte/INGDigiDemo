@@ -1,0 +1,50 @@
+<%- include('../partials/head') %>
+<% const L = function (n) { const k = 'claim.' + n; const v = t(k); return v === k ? n.replace(/_/g, ' ') : v; }; %>
+<div class="wrap">
+  <p class="crumbs"><a href="/demo-issuer"><%= t('portal.title') %></a> › <%= t('att.' + uc.attestation + '.name') %></p>
+  <h1><%= t('att.' + uc.attestation + '.name') %></h1>
+  <p class="lead"><%= t('portal.users.intro') %></p>
+
+  <section class="panel titled" aria-labelledby="us-h">
+    <h2 class="titlebar" id="us-h"><%= t('portal.users.title') %></h2>
+    <div class="scroll-x" role="region" aria-labelledby="us-h" tabindex="0">
+      <table class="table portal-table">
+        <caption class="sr-only"><%= t('portal.users.title') %></caption>
+        <thead>
+          <tr>
+            <% if (uc.users.some(function (u) { return u.portrait; })) { %><th scope="col"><span class="sr-only"><%= t('portal.portrait') %></span></th><% } %>
+            <% uc.columns.forEach(function (c) { %><th scope="col"><%= L(c) %></th><% }) %>
+            <th scope="col"><%= t('portal.col.action') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% uc.users.forEach(function (u) { %>
+          <tr>
+            <% if (uc.users.some(function (x) { return x.portrait; })) { %><td class="cell-portrait"><% if (u.portrait) { %><img class="avatar" src="data:image/jpeg;base64,<%= u.portrait %>" width="48" height="60" alt=""><% } %></td><% } %>
+            <% uc.columns.forEach(function (c) { %><td data-label="<%= L(c) %>"><%= u.attributes[c] === undefined ? '—' : fmtClaim(c, u.attributes[c]) %></td><% }) %>
+            <td class="cell-action">
+              <form method="post" action="/demo-issuer/sigma-offer">
+                <input type="hidden" name="type" value="<%= uc.attestation %>">
+                <input type="hidden" name="identifier" value="<%= u.identifier %>">
+                <button class="btn btn-small" type="submit"><%= t('portal.create') %><span class="sr-only"> – <%= u.attributes.given_name || '' %> <%= u.attributes.family_name || '' %> (<%= u.identifier %>)</span></button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% uc.users.forEach(function (u) { %>
+    <details class="raw">
+      <summary><%= t('portal.all_attrs') %>: <%= u.attributes.given_name || '' %> <%= u.attributes.family_name || '' %> <span class="muted">(<%= u.identifier %>)</span></summary>
+      <dl class="claims">
+        <% Object.keys(u.attributes).forEach(function (k) { %><div class="claim-row"><dt><%= L(k) %></dt><dd><%= fmtClaim(k, u.attributes[k]) %></dd></div><% }) %>
+      </dl>
+      <p class="note"><%= t('portal.record_ids', { id: u.identifier, cred: u.credentialId }) %></p>
+    </details>
+    <% }) %>
+  </section>
+  <p class="note"><%= t('issuer.console.sigma_note') %></p>
+  <p><a class="btn btn-secondary" href="/demo-issuer"><%= t('btn.back') %></a></p>
+</div>
+<%- include('../partials/foot') %>

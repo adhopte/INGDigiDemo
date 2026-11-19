@@ -12,6 +12,7 @@ export interface IssuedOffer {
   deeplink: string;
   qr: string;
   txCode: string | undefined;
+  authorizationCode?: string;
   expiresAt: Date;
   provider: 'local' | 'external';
   /** External mode only: the external issuer does not offer this attestation, so the local demo issuer issued it. */
@@ -49,7 +50,7 @@ export function createIssuerProvider(cfg: AppConfig, local: LocalIssuer | undefi
         if (!offeredRemotely && cfg.issuer.fallbackLocal && local) return localOffer(key, claims, true);
         const o = await createExternalOffer(cfg, { ...att, externalConfigurationId: configId ?? att.externalConfigurationId }, options, fetchImpl);
         log.info('offer created', { provider: 'external', attestation: key, configuration: configId });
-        return { id: undefined, deeplink: o.deeplink, qr: await qrDataUrl(o.deeplink), txCode: o.txCode, expiresAt: o.expiresAt, provider: 'external' };
+        return { id: undefined, deeplink: o.deeplink, qr: await qrDataUrl(o.deeplink), txCode: o.txCode, ...(o.authorizationCode ? { authorizationCode: o.authorizationCode } : {}), expiresAt: o.expiresAt, provider: 'external' };
       },
     };
   }

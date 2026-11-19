@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { createIssuerProvider } from '../issuer/provider.js';
 import { matchConfig } from '../issuer/remote.js';
+import { loadPortalUseCases } from '../issuer/portal.js';
 import { PERSONAS, demoClaims, heldClaims, personaFor, redeemOffer } from '../mock/wallet.js';
 import type { Ctx } from '../rps/context.js';
 import { q } from '../rps/context.js';
@@ -34,16 +35,31 @@ export function extrasRouter(ctx: Ctx): Router {
     });
   });
 
-  r.get('/demo-issuer', async (_req, res) => {
+  const portal = loadPortalUseCases();
+  /** Use cases the connected issuer really offers (its live catalogue), each with its sample records. */
+  const availableUseCases = async () => {
     const s = await svc.remote?.summary();
-    // credentials the connected SIGMA issuer offers AND that we know sample identifiers for
-    const sigmaItems = s?.reachable
-      ? Object.values(cfg.attestations).flatMap((a) => {
-          const rc = matchConfig(a, s.configs);
-          return rc && a.externalUsers.length ? [{ type: a.key, config: rc.id, users: a.externalUsers }] : [];
-        })
-      : [];
-    res.render('issuer/console', { title: res.locals.t('issuer.console.title'), personas: PERSONAS, types: cfg.mockMode ? ['pid', 'birth_certificate'] : [], sigmaItems });
+    if (!s?.reachable) return { reachable: false, useCases: [] as typeof portal };
+    return { reachable: true, useCases: portal.filter((u) => { const a = cfg.attestations[u.attestation]; return !!a && !!matchConfig(a, s.configs) && u.users.length > 0; }) };
+  };
+
+  // Issuer portal (in the spirit of the issuer's own in-person portal): 1. pick a use case, 2. pick a record, 3. create the offer.
+  r.get('/demo-issuer', async (_req, res) => {
+    const { reachable, useCases } = await availableUseCases();
+    res.render('issuer/portal', { title: res.locals.t('portal.title'), useCases, reachable, personas: PERSONAS, types: cfg.mockMode ? ['pid', 'birth_certificate'] : [], advanced: reachable });
+  });
+
+  r.get('/demo-issuer/use-case/:id', async (req, res) => {
+    const { useCases } = await availableUseCases();
+    const uc = useCases.find((u) => u.id === req.params.id);
+    if (!uc) return void res.redirect('/demo-issuer');
+    res.render('issuer/use-case', { title: res.locals.t(`att.${uc.attestation}.name`), uc });
+  });
+
+  // the home page form sends the chosen use case here (a plain GET keeps the page shareable)
+  r.get('/demo-issuer/go', (req, res) => {
+    const id = q(req.query.useCase) ?? '';
+    res.redirect(portal.some((u) => u.id === id) ? `/demo-issuer/use-case/${encodeURIComponent(id)}` : '/demo-issuer');
   });
 
   /** A REAL pre-authorised offer from the SIGMA issuer's offer API for a known sample identifier. */
@@ -66,7 +82,8 @@ export function extrasRouter(ctx: Ctx): Router {
     );
     try {
       const offer = await external.createOffer(att.key, {}, { identifier: user.identifier, ...(user.credentialIdentifier ? { credentialIdentifier: user.credentialIdentifier } : {}), ...(user.walletIdentifier ? { walletIdentifier: user.walletIdentifier } : {}), ...(user.configurationId ? { configurationId: user.configurationId } : {}) });
-      res.render('offer', { title: res.locals.t(`att.${att.key}.name`), attestationKey: att.key, offer, returnTo: '/demo-issuer', canSimulate: false, rp: undefined });
+      const uc = portal.find((u) => u.attestation === att.key);
+      res.render('offer', { title: res.locals.t(`att.${att.key}.name`), attestationKey: att.key, offer, returnTo: uc && !customId ? `/demo-issuer/use-case/${uc.id}` : '/demo-issuer', canSimulate: false, rp: undefined });
     } catch {
       res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer' });
     }

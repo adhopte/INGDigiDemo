@@ -74,6 +74,7 @@ describe('console: offers through the SIGMA offer API', () => {
     expect(calls[0].url).toBe('https://issuer.sigma.prep.smartid.nuagein.io/offer');
     expect(calls[0].body).toMatchObject({ identifier: 'user-pid-mdoc-002', authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc', credential_identifiers: ['credential_id_2_mdoc'] }] }); // the PID needs its credential identifier too, or the issuer produces an empty credential
     expect(res.text).toContain('246810'); // the code the wallet asks for
+    expect(res.text).toContain('Pre-authorised code'); // shown like the WalletTester does
     expect(res.text).toContain('openid-credential-offer://');
     expect(res.text).toContain('data:image/png');
     // identifiers typed by hand are passed through (validated); unsafe input is refused
@@ -183,16 +184,41 @@ describe('connecting the attestation issuer to the SIGMA URL', () => {
     expect(home).toContain('eu.europa.ec.eudi.pid_mdoc');
     expect(home).toContain('eu.europa.ec.eudi.birth_certificate_vc_sd_jwt');
     expect(home).toContain('Not offered by SIGMA');
-    // console: lists the sample users and creates a REAL pre-authorised offer through the issuer's offer API
-    const consolePage = (await request(app).get('/demo-issuer')).text;
-    expect(consolePage).toContain('Credentials from the SIGMA issuer');
-    expect(consolePage).toContain('user-pid-mdoc-001');
-    expect(consolePage).toContain('user-bc-sd-jwt-002');
-    expect(consolePage).toContain('Use other identifiers');
+    // issuer portal: use-case selection -> sample records -> create the offer (SIGMA offer API)
+    const portalPage = (await request(app).get('/demo-issuer')).text;
+    expect(portalPage).toContain('Use case selection');
+    expect(portalPage).toContain('value="pid"');
+    expect(portalPage).toContain('value="birth-certificate"');
+    expect(portalPage).toContain('Use other identifiers');
+    expect((await request(app).get('/demo-issuer/go?useCase=pid')).headers.location).toBe('/demo-issuer/use-case/pid');
+    expect((await request(app).get('/demo-issuer/go?useCase=nope')).headers.location).toBe('/demo-issuer');
+    const pidPage = (await request(app).get('/demo-issuer/use-case/pid')).text;
+    expect(pidPage).toContain('user-pid-mdoc-001');
+    expect(pidPage).toContain('Mathieu');
+    expect(pidPage).toContain('data:image/jpeg;base64,'); // portrait
+    expect(pidPage).toContain('Create offer');
+    const bcPage = (await request(app).get('/demo-issuer/use-case/birth-certificate')).text;
+    expect(bcPage).toContain('user-bc-sd-jwt-002');
+    expect((await request(app).get('/demo-issuer/use-case/unknown')).headers.location).toBe('/demo-issuer');
     expect((await request(app).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'not-configured' })).status).toBe(400);
     // no metadata URL configured: no panel, no SIGMA button
     const plain = createApp(testConfig({ MOCK_MODE: 'true' }), await createServices(testConfig({ MOCK_MODE: 'true' })));
     expect((await request(plain).get('/')).text).not.toContain('Connected SIGMA issuer');
     expect((await request(plain).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'user-pid-mdoc-001' })).status).toBe(400);
+  });
+});
+
+describe('issuer portal sample data', () => {
+  it('matches the sample users configured in rps.json and shows the same person on matching PID / birth certificate', async () => {
+    const { loadPortalUseCases } = await import('../src/issuer/portal.js');
+    const { loadConfig } = await import('../src/config.js');
+    const cfg = loadConfig({});
+    const ucs = loadPortalUseCases();
+    for (const uc of ucs) {
+      const configured = cfg.attestations[uc.attestation]!.externalUsers.map((u) => `${u.identifier}|${u.credentialIdentifier}`).sort();
+      expect(uc.users.map((u) => `${u.identifier}|${u.credentialId}`).sort(), uc.id).toEqual(configured);
+    }
+    const pid = ucs.find((u) => u.id === 'pid')!.users[0]!, bc = ucs.find((u) => u.id === 'birth-certificate')!.users[0]!;
+    expect([pid.attributes.given_name, pid.attributes.family_name, pid.attributes.birth_date]).toEqual([bc.attributes.given_name, bc.attributes.family_name, bc.attributes.birth_date]);
   });
 });
