@@ -149,7 +149,7 @@ describe('connecting the attestation issuer to the SIGMA URL', () => {
     for (const key of ['account', 'payment']) {
       const offer = await svc.issuer.createOffer(key, { x: 1 });
       expect(offer).toMatchObject({ provider: 'local', fallback: true });
-      expect(offer.deeplink).toContain('credential_offer_uri=');
+      expect(offer.deeplink).toContain('credential_offer=');
     }
     const off = await createServices(testConfig({ ...env, ISSUER_FALLBACK_LOCAL: 'false' }), fetchMeta);
     await expect(off.issuer.createOffer('account', {})).rejects.toThrow(); // no fallback: the external API has nothing to issue

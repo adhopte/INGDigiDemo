@@ -4,7 +4,7 @@ import type { Claims } from '../sdjwt/index.js';
 import { createExternalOffer, type ExternalOfferOptions } from './external.js';
 import type { RemoteIssuerMetadata } from './remote.js';
 import type { LocalIssuer } from './local/service.js';
-import { deeplinkForOfferUri, qrDataUrl } from './offer.js';
+import { deeplinkForOfferObject, deeplinkForOfferUri, qrDataUrl } from './offer.js';
 
 export interface IssuedOffer {
   /** Local offer id (lets the simulated wallet redeem it); undefined for external issuers. */
@@ -29,7 +29,9 @@ export function createIssuerProvider(cfg: AppConfig, local: LocalIssuer | undefi
   const localOffer = async (key: string, claims: Claims, fallback: boolean): Promise<IssuedOffer> => {
     if (!local) throw new Error('Local issuer not initialised');
     const o = local.createOffer(key, claims);
-    const deeplink = deeplinkForOfferUri(o.offerUri);
+    // By value (like the SIGMA issuer's offers): wallets that do not resolve credential_offer_uri still accept it.
+    const obj = local.offerObject(o.id);
+    const deeplink = obj ? deeplinkForOfferObject(obj) : deeplinkForOfferUri(o.offerUri);
     log.info('offer created', { provider: 'local', attestation: key, fallback });
     return { id: o.id, deeplink, qr: await qrDataUrl(deeplink), txCode: o.txCode, expiresAt: o.expiresAt, provider: 'local', ...(fallback ? { fallback: true } : {}) };
   };
