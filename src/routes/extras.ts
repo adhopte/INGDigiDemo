@@ -43,7 +43,7 @@ export function extrasRouter(ctx: Ctx): Router {
           return rc && a.externalUsers.length ? [{ type: a.key, config: rc.id, users: a.externalUsers }] : [];
         })
       : [];
-    res.render('issuer/console', { title: res.locals.t('issuer.console.title'), personas: PERSONAS, types: ['pid', 'birth_certificate'], sigmaItems });
+    res.render('issuer/console', { title: res.locals.t('issuer.console.title'), personas: PERSONAS, types: cfg.mockMode ? ['pid', 'birth_certificate'] : [], sigmaItems });
   });
 
   /** A REAL pre-authorised offer from the SIGMA issuer's offer API for a known sample identifier. */
@@ -73,6 +73,7 @@ export function extrasRouter(ctx: Ctx): Router {
   });
 
   r.post('/demo-issuer/offer', async (req, res) => {
+    if (!cfg.mockMode) return void res.sendStatus(404); // live mode: credentials come from the connected issuer only
     const type = q(req.body?.type);
     if (type !== 'pid' && type !== 'birth_certificate') return void res.sendStatus(400);
     const offer = await localProvider.createOffer(type, demoClaims(type, personaFor(q(req.body?.persona))));
