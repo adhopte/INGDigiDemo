@@ -146,6 +146,10 @@
           ],
           "minClaims": [
             "given_name",
+            "family_name"
+          ],
+          "compactClaims": [
+            "given_name",
             "family_name",
             "birth_date"
           ]
@@ -203,6 +207,7 @@
             "pid"
           ],
           "anyVct": true,
+          "probe": true,
           "formats": [
             "mso_mdoc"
           ],
@@ -210,6 +215,9 @@
             "family_name"
           ],
           "minClaims": [
+            "family_name"
+          ],
+          "mdocElements": [
             "family_name"
           ]
         },
@@ -229,7 +237,8 @@
           ],
           "minClaims": [
             "family_name"
-          ]
+          ],
+          "probe": true
         },
         "probe_pid_sd_urn": {
           "types": [
@@ -247,7 +256,8 @@
           ],
           "minClaims": [
             "family_name"
-          ]
+          ],
+          "probe": true
         },
         "probe_pid_sd_eu": {
           "types": [
@@ -265,7 +275,8 @@
           ],
           "minClaims": [
             "family_name"
-          ]
+          ],
+          "probe": true
         },
         "probe_bc_sd": {
           "types": [
@@ -283,6 +294,64 @@
           ],
           "minClaims": [
             "family_name"
+          ],
+          "probe": true
+        },
+        "probe_pid_mdoc_given": {
+          "types": [
+            "pid"
+          ],
+          "anyVct": true,
+          "probe": true,
+          "formats": [
+            "mso_mdoc"
+          ],
+          "claims": [
+            "family_name"
+          ],
+          "minClaims": [
+            "family_name"
+          ],
+          "mdocElements": [
+            "given_name"
+          ]
+        },
+        "probe_pid_mdoc_birth_date": {
+          "types": [
+            "pid"
+          ],
+          "anyVct": true,
+          "probe": true,
+          "formats": [
+            "mso_mdoc"
+          ],
+          "claims": [
+            "family_name"
+          ],
+          "minClaims": [
+            "family_name"
+          ],
+          "mdocElements": [
+            "birth_date"
+          ]
+        },
+        "probe_pid_mdoc_birthdate": {
+          "types": [
+            "pid"
+          ],
+          "anyVct": true,
+          "probe": true,
+          "formats": [
+            "mso_mdoc"
+          ],
+          "claims": [
+            "family_name"
+          ],
+          "minClaims": [
+            "family_name"
+          ],
+          "mdocElements": [
+            "birthdate"
           ]
         }
       },
@@ -396,6 +465,10 @@
             "resident_address"
           ],
           "minClaims": [
+            "given_name",
+            "family_name"
+          ],
+          "compactClaims": [
             "given_name",
             "family_name",
             "birth_date"

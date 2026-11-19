@@ -11,6 +11,10 @@ export interface RequestedCredential {
   anyVct: boolean;
   /** Probe: exact vct_values to request. */
   vctValues: string[];
+  probe: boolean;
+  mdocElements: string[];
+  /** By-value requests: preferred claims (fallback = minClaims). */
+  compactClaims: string[];
   /** Formats actually requested (presentation override, else the attestation's). */
   formats: string[];
 }
@@ -22,7 +26,7 @@ export function requestedCredentials(presentation: PresentationConfig, attestati
     const subset = presentation.claims.filter((c) => attestation.claims.includes(c));
     const claims = subset.length ? subset : attestation.claims;
     const min = presentation.minClaims.filter((c) => claims.includes(c));
-    return { type, attestation, claims, minClaims: min.length && min.length < claims.length ? min : claims, anyVct: presentation.anyVct, vctValues: presentation.vctValues, formats: presentation.formats.length ? presentation.formats : attestation.formats };
+    return { type, attestation, claims, minClaims: min.length && min.length < claims.length ? min : claims, anyVct: presentation.anyVct, vctValues: presentation.vctValues, probe: presentation.probe, mdocElements: presentation.mdocElements, compactClaims: presentation.compactClaims.filter((c) => claims.includes(c)), formats: presentation.formats.length ? presentation.formats : attestation.formats };
   });
 }
 
@@ -42,9 +46,9 @@ function claimsPart(names: string[], r: RequestedCredential, path: (n: string) =
 }
 
 /** DCQL (OpenID4VP 1.0). Types offered in several formats become alternatives in `credential_sets`. */
-/** `compact` (by-value requests that must fit in a QR code): ask only for the minimum claims, without claim_sets. */
+/** `compact` (by-value requests that must fit in a QR code): ask only for the compact set, falling back to the minimum claims. */
 export function buildDcql(allReqs: RequestedCredential[], compact = false) {
-  const reqs = compact ? allReqs.map((r) => ({ ...r, claims: r.minClaims })) : allReqs;
+  const reqs = compact ? allReqs.map((r) => ({ ...r, claims: r.compactClaims.length ? [...new Set([...r.compactClaims, ...r.minClaims])] : r.minClaims })) : allReqs;
   const credentials: unknown[] = [];
   const sets: { options: string[][] }[] = [];
   for (const r of reqs) {
@@ -57,10 +61,11 @@ export function buildDcql(allReqs: RequestedCredential[], compact = false) {
       } else if (fmt === 'mso_mdoc' && r.attestation.mdoc) {
         const m = r.attestation.mdoc;
         const mapped = r.claims.filter((c) => m.elements[c]);
+        const raw = r.mdocElements.length ? r.mdocElements : undefined; // probes ask for exact mdoc element identifiers
         const mapR = { ...r, claims: mapped, minClaims: r.minClaims.filter((c) => m.elements[c]) };
         credentials.push({
           id: mdocQueryId(r.type), format: 'mso_mdoc', meta: { doctype_value: m.docType },
-          ...claimsPart(mapped.map((c) => m.elements[c]!), { ...mapR, minClaims: mapR.minClaims.map((c) => m.elements[c]!) }, (n) => [m.namespace, n]),
+          ...claimsPart(raw ?? mapped.map((c) => m.elements[c]!), { ...mapR, claims: raw ?? mapR.claims, minClaims: raw ?? mapR.minClaims.map((c) => m.elements[c]!) }, (n) => [m.namespace, n]),
         });
         ids.push(mdocQueryId(r.type));
       }

@@ -53,7 +53,7 @@ describe('SIGMA issuer catalogue vs. what the RPs request', () => {
     const bv = await createServices(testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' }));
     const link = new URL(bv.verifier.walletLink(await bv.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/')));
     expect(JSON.parse(link.searchParams.get('dcql_query')!).credentials.map((c: any) => c.format)).toEqual(['mso_mdoc']);
-    expect(bv.verifier.walletLink(await bv.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/')).length).toBeLessThan(1400);
+    expect(bv.verifier.walletLink(await bv.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/')).length).toBeLessThan(1700);
   });
 });
 

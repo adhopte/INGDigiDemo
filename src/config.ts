@@ -11,6 +11,12 @@ export interface PresentationConfig {
   anyVct: boolean;
   /** Probe: exact vct_values to request (overrides the attestation's list). */
   vctValues: string[];
+  /** Probe: any verified answer counts as success (no claim checks). */
+  probe: boolean;
+  /** Probe: raw mdoc element identifiers to request (overrides the claim mapping). */
+  mdocElements: string[];
+  /** Claims requested when the request is passed by value (QR-sized): preferred set, with `minClaims` as the fallback. */
+  compactClaims: string[];
   /** Restrict the credential formats requested by this presentation (overrides the attestation's). */
   formats: string[];
   /** Fallback claim set accepted when the wallet's credential lacks some of `claims` (DCQL claim_sets). */
@@ -176,6 +182,9 @@ export function buildRpConfigs(raw: unknown, attestations: Record<string, Attest
         types: strList(p.types),
         anyVct: p.anyVct === true,
         vctValues: strList(p.vctValues),
+        probe: p.probe === true,
+        mdocElements: strList(p.mdocElements),
+        compactClaims: strList(p.compactClaims),
         formats: strList(p.formats),
         minClaims: env[`${P}_${upper(pk)}_MIN_CLAIMS`] ? env[`${P}_${upper(pk)}_MIN_CLAIMS`]!.split(',').map((x) => x.trim()).filter(Boolean) : strList(p.minClaims),
         claims: env[`${P}_${upper(pk)}_CLAIMS`] ? env[`${P}_${upper(pk)}_CLAIMS`]!.split(',').map((x) => x.trim()).filter(Boolean) : strList(p.claims),

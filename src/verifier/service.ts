@@ -292,7 +292,7 @@ export class Verifier {
     for (const req of tx.reqs) {
       const match = verified.find((v) => (v.vct !== undefined && (req.anyVct || req.attestation.acceptedVct.includes('*') || req.attestation.acceptedVct.includes(v.vct))) || (v.docType !== undefined && v.docType === req.attestation.mdoc?.docType));
       if (!match) this.fail(tx, 'missing_credential', `No credential for type ${req.type}`);
-      const absent = req.minClaims.filter((c) => match.claims[c] === undefined);
+      const absent = req.probe ? [] : req.minClaims.filter((c) => match.claims[c] === undefined);
       if (absent.length) this.fail(tx, 'missing_credential', `Credential lacks required claims: ${absent.join(', ')}`);
       // Data minimisation: keep only what was asked for, even if the wallet disclosed more.
       byType[req.type] = Object.fromEntries(req.claims.filter((k) => match.claims[k] !== undefined).map((k) => [k, match.claims[k]])); // request order, not the issuer's shuffled order

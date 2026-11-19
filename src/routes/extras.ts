@@ -18,7 +18,10 @@ export function extrasRouter(ctx: Ctx): Router {
 
   // Technical page: which credential does the wallet actually hold? One probe per credential type.
   const PROBES = [
-    { key: 'probe_pid_mdoc', label: 'PID as mdoc', detail: 'docType eu.europa.ec.eudi.pid.1 (the SIGMA issuer’s PID)' },
+    { key: 'probe_pid_mdoc', label: 'PID as mdoc – family_name', detail: 'docType eu.europa.ec.eudi.pid.1, element family_name (the SIGMA issuer’s PID)' },
+    { key: 'probe_pid_mdoc_given', label: 'PID as mdoc – given_name', detail: 'element given_name' },
+    { key: 'probe_pid_mdoc_birth_date', label: 'PID as mdoc – birth_date', detail: 'element birth_date' },
+    { key: 'probe_pid_mdoc_birthdate', label: 'PID as mdoc – birthdate (SD-JWT spelling)', detail: 'element birthdate (no underscore), in case the issuer’s records use the SD-JWT name' },
     { key: 'probe_pid_sd_benin', label: 'PID as SD-JWT, Benin rulebook type', detail: 'vct https://credentials.benin.example/pid' },
     { key: 'probe_pid_sd_urn', label: 'PID as SD-JWT, ARF type', detail: 'vct urn:eudi:pid:1' },
     { key: 'probe_pid_sd_eu', label: 'PID as SD-JWT, EUDI reference type', detail: 'vct urn:eu.europa.ec.eudi:pid:1' },

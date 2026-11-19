@@ -152,7 +152,7 @@ describe('phone-camera hand-off and QR scannability', () => {
     const { app, svc, cfg } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_BY_VALUE_FORMATS: 'mso_mdoc' });
     for (const [rp, p] of [['bank', 'pid'], ['electricity', 'pid'], ['university', 'pid'], ['university', 'bc'], ['eshop', 'payment']] as const) {
       const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, p, '/');
-      expect(svc.verifier.walletLink(tx).length, `${rp}/${p}`).toBeLessThan(1500);
+      expect(svc.verifier.walletLink(tx).length, `${rp}/${p}`).toBeLessThan(1700);
     }
     const a = request.agent(app);
     const loc = (await a.get('/bank/verify?p=pid&returnTo=/bank/kyc')).headers.location!;

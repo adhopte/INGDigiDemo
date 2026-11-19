@@ -143,6 +143,38 @@ describe('mdoc (mso_mdoc) PID presentation', () => {
     expect(Object.keys(md.client_metadata.vp_formats_supported)).toEqual(['mso_mdoc']);
   });
 
+  it('by-value requests ask for name + date of birth, falling back to the name alone (claim_sets), so a PID without birth_date still matches', async () => {
+    const { cfg } = await setup();
+    const live = await createServices(testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' }));
+    const bank = cfg.rps.find((r) => r.id === 'bank')!;
+    const link = new URL(live.verifier.walletLink(await live.verifier.createTransaction(bank, 'pid', '/')));
+    const md = JSON.parse(link.searchParams.get('dcql_query')!).credentials[0];
+    expect(md.format).toBe('mso_mdoc');
+    expect(md.claims.map((c: any) => c.path[1])).toEqual(['given_name', 'family_name', 'birth_date']);
+    expect(md.claim_sets).toEqual([['given_name', 'family_name', 'birth_date'], ['given_name', 'family_name']]);
+    // a PID that only has the two names is accepted
+    const ca = await makeCa(); const dsc = await makeDsc(ca);
+    const svc = await createServices(testConfig({ MOCK_MODE: 'false', VP_RESPONSE_MODE: 'direct_post.jwt', TRUSTED_CA_PEM: ca.cert.toString('pem') }));
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
+    await respondToVerifier(svc.verifier, tx, { vp_token: { pid_mdoc: [buildDeviceResponse({ elements: { family_name: 'KOSSI', given_name: 'Jean' }, dsc, sessionTranscript: await transcriptFor(svc, tx) })] } });
+    expect(Object.keys(tx.result!.byType.pid!)).toEqual(['given_name', 'family_name']);
+  });
+
+  it('mdoc probes request one raw element and any verified answer counts (no claim checks)', async () => {
+    const ca = await makeCa(); const dsc = await makeDsc(ca);
+    const { cfg, svc } = await setup({ TRUSTED_CA_PEM: ca.cert.toString('pem') });
+    const bank = cfg.rps.find((r) => r.id === 'bank')!;
+    for (const [key, element] of [['probe_pid_mdoc', 'family_name'], ['probe_pid_mdoc_given', 'given_name'], ['probe_pid_mdoc_birth_date', 'birth_date'], ['probe_pid_mdoc_birthdate', 'birthdate']] as const) {
+      const tx = await svc.verifier.createTransaction(bank, key, '/');
+      const q = (svc.verifier.requestParams(tx) as any).dcql_query;
+      expect(q.credentials).toHaveLength(1);
+      expect(q.credentials[0].claims).toEqual([{ path: ['eu.europa.ec.eudi.pid.1', element] }]);
+      expect(q.credentials[0].claim_sets).toBeUndefined();
+      await respondToVerifier(svc.verifier, tx, { vp_token: { pid_mdoc: [buildDeviceResponse({ elements: { [element]: 'x' }, dsc, sessionTranscript: await transcriptFor(svc, tx) })] } });
+      expect(tx.status, key).toBe('complete');
+    }
+  });
+
   it('unit: chain validator and primitives', async () => {
     const ca = await makeCa(); const dsc = await makeDsc(ca);
     const leaf = Buffer.from(dsc.cert.rawData);
