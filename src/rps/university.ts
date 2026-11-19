@@ -14,11 +14,15 @@ export function universityRouter(ctx: Ctx, rp: RpConfig): Router {
   const bc = (req: Request) => claimsOfType(req.session, rp.id, 'birth_certificate');
   const norm = (v: unknown) => str(v).trim().toLowerCase();
 
-  /** PID and birth certificate must describe the same person. */
-  const identityMatches = (req: Request) => {
+  /** Do the PID and the birth certificate describe the same person (name + date of birth)? */
+  const sameName = (req: Request) => {
     const p = pid(req), b = bc(req);
     return !!p && !!b && norm(p.given_name) === norm(b.given_name) && norm(p.family_name) === norm(b.family_name) && str(p.birth_date) === str(b.birth_date);
   };
+
+  /** The check blocks enrolment only when UNIVERSITY_REQUIRE_MATCH is on; otherwise a difference is just pointed out. */
+  const identityMatches = (req: Request) => !ctx.cfg.universityRequireMatch || sameName(req);
+  const differs = (req: Request) => !!pid(req) && !!bc(req) && !sameName(req);
 
   router.get('/', (req, res) => res.render('university/home', { title: 'Demo University', enrolled: !!req.session.enrolment }));
 
@@ -29,7 +33,7 @@ export function universityRouter(ctx: Ctx, rp: RpConfig): Router {
   });
 
   router.get('/documents', (req, res) =>
-    res.render('university/documents', { title: res.locals.t('uni.docs.title'), hasPid: !!pid(req), hasBc: !!bc(req), multi: ctx.cfg.multiCredential, mismatch: !!pid(req) && !!bc(req) && !identityMatches(req) }),
+    res.render('university/documents', { title: res.locals.t('uni.docs.title'), hasPid: !!pid(req), hasBc: !!bc(req), multi: ctx.cfg.multiCredential, mismatch: differs(req) && ctx.cfg.universityRequireMatch, differs: differs(req) && !ctx.cfg.universityRequireMatch }),
   );
 
   /** Forget the documents presented so far (e.g. PID and birth certificate of different people) and begin again. */

@@ -116,6 +116,8 @@ export interface AppConfig {
   /** Password of the issuer portal's admin user ("authentic source" console). Default is the demo password; override with ADMIN_PASSWORD. */
   adminPassword: string;
   multiCredential: boolean;
+  /** University: require the PID and the birth certificate to describe the same person (name + date of birth). Off by default. */
+  universityRequireMatch: boolean;
   sessionSecret: string;
   verifier: VerifierConfig;
   brand: BrandConfig;
@@ -276,6 +278,7 @@ export function loadConfig(
     diagnostics: parseBool(env.DIAGNOSTICS_ENDPOINT, true),
     adminPassword: env.ADMIN_PASSWORD || 'Admin123',
     multiCredential: parseBool(env.MULTI_CREDENTIAL, false),
+    universityRequireMatch: parseBool(env.UNIVERSITY_REQUIRE_MATCH, false),
     sessionSecret,
     verifier,
     brand: {

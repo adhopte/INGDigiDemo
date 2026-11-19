@@ -392,5 +392,6 @@
   "admin.result.matches": "Passende records",
   "admin.result.available": "Beschikbare records in de authentieke bron",
   "admin.result.snapshot": "De recordlijst van de uitgever kon niet live worden gelezen, dus is een opgeslagen kopie van de voorbeeldrecords gebruikt.",
-  "admin.sigma_note": "De SIGMA-uitgever geeft alleen uit wat in zijn eigen records staat. Uw waarden worden daarom met die records vergeleken en het aanbod wordt gemaakt voor de passende persoon."
+  "admin.sigma_note": "De SIGMA-uitgever geeft alleen uit wat in zijn eigen records staat. Uw waarden worden daarom met die records vergeleken en het aanbod wordt gemaakt voor de passende persoon.",
+  "uni.docs.differs": "De naam of geboortedatum op de PID en de geboorteakte verschilt. De controle staat uit, dus u kunt doorgaan."
 }

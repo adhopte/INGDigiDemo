@@ -40,6 +40,8 @@ services:
         value: "false"
       - key: MULTI_CREDENTIAL        # university: true = one PID+BC request, false = two requests in a row
         value: "false"
+      - key: UNIVERSITY_REQUIRE_MATCH   # university: true = PID and birth certificate must show the same name + date of birth (default: off)
+        value: "false"
 
       # ---- OpenID4VP verifier ----
       # redirect_uri = unsigned request passed by value: no verifier certificate needed (wallets cannot reject an untrusted one).

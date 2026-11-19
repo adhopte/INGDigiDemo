@@ -392,5 +392,6 @@
   "admin.result.matches": "Records li jaqblu",
   "admin.result.available": "Records disponibbli fis-sors awtentiku",
   "admin.result.snapshot": "Il-lista tar-records tal-emittent ma setgħetx tinqara diretta, għalhekk intużat kopja salvata tar-records tal-eżempju tiegħu.",
-  "admin.sigma_note": "L-emittent SIGMA joħroġ biss dak li hemm fir-records tiegħu stess. Għalhekk il-valuri tiegħek jiġu mqabbla ma’ dawk ir-records u l-offerta titfassal għall-persuna li taqbel."
+  "admin.sigma_note": "L-emittent SIGMA joħroġ biss dak li hemm fir-records tiegħu stess. Għalhekk il-valuri tiegħek jiġu mqabbla ma’ dawk ir-records u l-offerta titfassal għall-persuna li taqbel.",
+  "uni.docs.differs": "L-isem jew id-data tat-twelid fuq il-PID u ċ-ċertifikat tat-twelid huma differenti. Il-kontroll mitfi, allura tista’ tkompli."
 }

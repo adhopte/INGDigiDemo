@@ -3,6 +3,7 @@
   <h1><%= t('uni.docs.title') %></h1>
   <p class="lead"><%= t('uni.docs.intro') %></p>
   <% if (mismatch) { %><div class="alert alert-error" role="alert"><%= t('uni.docs.mismatch') %></div><% } %>
+  <% if (differs) { %><div class="alert alert-info" role="note"><%= t('uni.docs.differs') %></div><% } %>
   <ol class="stepper">
     <li class="<%= hasPid ? 'done' : 'todo' %>">
       <h2><span class="step-state"><%= hasPid ? '✔' : '1' %><span class="sr-only"> (<%= hasPid ? t('uni.step.done') : t('uni.step.todo') %>)</span></span> <%= t('att.pid.name') %></h2>

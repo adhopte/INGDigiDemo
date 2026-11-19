@@ -386,6 +386,32 @@ describe('RP flows in the browser session', () => {
     expect((await request(one.app).get('/university/start')).headers.location).toContain('/university/verify?p=pid_bc');
   });
 
+  it('university: a PID and birth certificate of different people only block enrolment when UNIVERSITY_REQUIRE_MATCH is on', async () => {
+    for (const strict of [false, true]) {
+      const { app } = await boot({ MOCK_MODE: 'true', UNIVERSITY_REQUIRE_MATCH: String(strict) });
+      const a = request.agent(app);
+      const present = async (p: 'pid' | 'bc', type: 'pid' | 'birth_certificate', persona: string) => {
+        const loc = (await a.get(`/university/verify?p=${p}&returnTo=/university/documents`)).headers.location!;
+        const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(loc)![1]!;
+        await a.post(`/university/verify/wallet/${id}/add`).type('form').send({ type, persona });
+        await a.get((await a.post(`/university/verify/wallet/${id}/share`)).headers.location!); // the finish page records the verified claims
+      };
+      await present('pid', 'pid', 'fr');
+      await present('bc', 'birth_certificate', 'de'); // a different person
+      const docs = (await a.get('/university/documents')).text;
+      const enrol = await a.get('/university/enrol');
+      if (strict) {
+        expect(docs).toContain('do not match');
+        expect(docs).not.toContain('/university/enrol');
+        expect(enrol.headers.location).toBe('/university/documents');
+      } else {
+        expect(docs).toContain('The check is switched off');
+        expect(docs).toContain('/university/enrol');
+        expect(enrol.status).toBe(200);
+      }
+    }
+  });
+
   it('unknown presentation is a 400, not a crash', async () => {
     const { app } = await boot();
     const r = await request(app).get('/bank/verify?p=nope');
