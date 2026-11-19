@@ -40,6 +40,8 @@ export interface Transaction {
   errorDetail?: string;
   result?: TxResult;
   consumed: boolean;
+  /** The result was handed to a browser that presented the response_code (the wallet's own browser, e.g. the phone's default one). */
+  codeBound?: boolean;
   enc?: { privateKey: CryptoKey; publicJwk: JWK };
 }
 

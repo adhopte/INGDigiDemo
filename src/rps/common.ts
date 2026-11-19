@@ -41,8 +41,24 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
     const tx = svc.verifier.get(id);
     if (!tx || tx.rpId !== rp.id) return void res.status(404).render('error', { title: res.locals.t('error.title'), message: res.locals.t('verify.err.unknown'), retryHref: `/${rp.id}/` });
     if (!owns(req, id)) {
-      // e.g. the wallet opened the follow-up page in a browser that did not start the flow: that is not an error if the request was answered
-      if (q(req.query.response_code) === tx.responseCode && tx.status === 'complete') return void res.render('verify-elsewhere', { title: res.locals.t('verify.elsewhere.title'), rpHref: `/${rp.id}/` });
+      // The wallet opens this page in ITS browser (the phone's default one), which is not necessarily the browser that started the flow.
+      // The response_code only ever reached the wallet, so presenting it entitles this browser to continue with the verified result (once).
+      if (q(req.query.response_code) === tx.responseCode && tx.status === 'complete' && tx.result) {
+        if (!tx.codeBound) {
+          tx.codeBound = true;
+          if (tx.presentationKey.startsWith('probe_')) {
+            req.session.probes = { ...req.session.probes, [tx.presentationKey]: { at: new Date().toISOString(), issuer: tx.result.issuers[0] ?? '' } };
+            return void res.redirect('/wallet-check');
+          }
+          req.session.disclosed = {
+            ...req.session.disclosed,
+            [rp.id]: { ...req.session.disclosed?.[rp.id], [tx.presentationKey]: { presentation: tx.presentationKey, byType: tx.result.byType, issuers: tx.result.issuers, at: new Date().toISOString(), mock: cfg.mockMode } },
+          };
+          log.info('verification bound to the wallet-opened browser', { rp: rp.id, presentation: tx.presentationKey });
+          return void res.redirect(tx.returnTo);
+        }
+        return void res.render('verify-elsewhere', { title: res.locals.t('verify.elsewhere.title'), rpHref: `/${rp.id}/` });
+      }
       return void res.status(403).render('error', { title: res.locals.t('error.title'), message: res.locals.t('verify.err.other_browser'), retryHref: `/${rp.id}/` });
     }
     const code = q(req.query.response_code);

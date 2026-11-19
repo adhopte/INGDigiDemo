@@ -117,11 +117,18 @@ describe('same-device vs cross-device response (redirect_uri scheme)', () => {
     expect(same.post.body.redirect_uri).toContain(`/bank/verify/finish/${same.tx.id}?response_code=`);
     // anything else is still a state mismatch
     expect((await present((t) => `${t.state}.x`)).post.status).toBe(400);
-    // a browser that did not start the flow: friendly page with the right code, error without it
-    const stranger = request(app);
-    expect((await stranger.get(`/bank/verify/finish/${same.tx.id}?response_code=${same.tx.responseCode}`)).text).toContain('Verification complete');
-    expect((await stranger.get(`/bank/verify/finish/${same.tx.id}`)).status).toBe(403);
-    expect((await stranger.get(`/bank/verify/finish/${same.tx.id}?response_code=wrong`)).status).toBe(403);
+    // The wallet opens the follow-up page in ITS browser (not the one that started the flow). Without the code: refused.
+    expect((await request(app).get(`/bank/verify/finish/${same.tx.id}`)).status).toBe(403);
+    expect((await request(app).get(`/bank/verify/finish/${same.tx.id}?response_code=wrong`)).status).toBe(403);
+    // With the code it continues there: the result is bound to that browser and it lands on the page the flow was heading to.
+    const walletBrowser = request.agent(app);
+    const landed = await walletBrowser.get(`/bank/verify/finish/${same.tx.id}?response_code=${same.tx.responseCode}`);
+    expect(landed.status).toBe(302);
+    expect(landed.headers.location).toBe('/bank/');
+    expect((await request(app).get('/bank/kyc')).status).not.toBe(200); // a browser without the result cannot see the page
+    expect((await walletBrowser.get('/bank/kyc')).status).toBe(200); // verified PID is available in this browser
+    // ... but only once: a second browser with the same code just sees the friendly page
+    expect((await request(app).get(`/bank/verify/finish/${same.tx.id}?response_code=${same.tx.responseCode}`)).text).toContain('Verification complete');
   });
 });
 
