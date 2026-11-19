@@ -392,5 +392,9 @@
   "claim.declarant_name": "Dikjarant",
   "claim.declarant_relationship": "Relazzjoni tad-dikjarant",
   "claim.marginal_mentions1": "Anness marġinali 1",
-  "claim.marginal_mentions2": "Anness marġinali 2"
+  "claim.marginal_mentions2": "Anness marġinali 2",
+  "admin.portrait": "Ritratt",
+  "admin.portrait_hint": "Ritratt fakultattiv għall-PID. Jitnaqqas għal JPEG żgħir fil-browser tiegħek qabel jintbagħat.",
+  "admin.portrait_remove": "Neħħi r-ritratt",
+  "admin.err.portrait": "Ir-ritratt ma setax jintuża. Agħżel stampa JPEG, PNG jew simili."
 }

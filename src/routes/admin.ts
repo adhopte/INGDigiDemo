@@ -3,7 +3,7 @@ import { Router, type NextFunction, type Request, type Response } from 'express'
 import { createIssuerProvider, type IssuedOffer } from '../issuer/provider.js';
 import { loadPortalUseCases } from '../issuer/portal.js';
 import { matchConfig } from '../issuer/remote.js';
-import { RECORD_FIELDS, validateRecord, type CustomRecord } from '../issuer/records.js';
+import { RECORD_FIELDS, validatePortrait, validateRecord, type CustomRecord } from '../issuer/records.js';
 import type { Ctx } from '../rps/context.js';
 import { q } from '../rps/context.js';
 
@@ -29,7 +29,7 @@ export function sorRouter(ctx: Ctx): Router {
     const custom = svc.records.get(identifier);
     const sample = samples.flatMap((u) => u.users).find((u) => u.identifier === identifier);
     const found = custom && att && custom.useCase === (att.key === 'pid' ? 'pid' : 'birth-certificate')
-      ? { credentialId: custom.credentialId, attributes: custom.attributes, portrait: undefined as string | undefined }
+      ? { credentialId: custom.credentialId, attributes: custom.attributes, portrait: custom.portrait }
       : sample && sample.configurationId === req.params.configId ? { credentialId: sample.credentialId, attributes: sample.attributes, portrait: sample.portrait } : undefined;
     if (!found || (credentialId !== undefined && credentialId !== found.credentialId)) return void res.status(404).type('text/plain').send('User not found by identifier');
     res.json({ identifier, attributes: [...Object.entries(found.attributes).map(([name, value]) => ({ name, value })), ...(found.portrait ? [{ name: 'portrait', value: found.portrait }] : [])] });
@@ -114,12 +114,14 @@ export function adminRouter(ctx: Ctx): Router {
   r.post('/demo-issuer/admin/offer', needAdmin, async (req, res) => {
     const uc = ucOf(req.body?.uc);
     const v = validateRecord(uc, (req.body ?? {}) as Record<string, unknown>);
-    if (!v.ok) {
+    const pt = uc === 'pid' ? validatePortrait(req.body?.portrait) : { ok: true as const, portrait: undefined };
+    if (!v.ok || !pt.ok) {
       const values: Record<string, string> = {};
       for (const f of RECORD_FIELDS[uc]!) values[f.name] = q(req.body?.[f.name]) ?? '';
-      return renderAdmin(req, res, uc, values, v.errors, 422);
+      if (pt.ok && pt.portrait) values.portrait = pt.portrait;
+      return renderAdmin(req, res, uc, values, { ...(v.ok ? {} : v.errors), ...(pt.ok ? {} : { portrait: 'admin.err.portrait' }) }, 422);
     }
-    await showOffer(req, res, svc.records.add(uc, v.attributes));
+    await showOffer(req, res, svc.records.add(uc, v.attributes, pt.portrait));
   });
 
   r.post('/demo-issuer/admin/records/:id/offer', needAdmin, async (req, res) => {

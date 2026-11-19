@@ -57,3 +57,9 @@
 .admin-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
 .admin-actions form { margin: 0; }
 .admin-link { margin-top: 2rem; }
+
+.portrait-field { border: 1px solid #cfd8ea; border-radius: 12px; padding: .8rem 1.2rem 1.1rem; margin: 0 0 1.2rem; }
+.portrait-field legend { font-weight: 800; padding: 0 .4rem; }
+.portrait-row { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
+.portrait-row .avatar[hidden], .portrait-row button[hidden] { display: none; }
+#portrait-preview { object-fit: contain; background: #fff; }

@@ -392,5 +392,9 @@
   "claim.declarant_name": "Déclarant",
   "claim.declarant_relationship": "Lien du déclarant",
   "claim.marginal_mentions1": "Mention marginale 1",
-  "claim.marginal_mentions2": "Mention marginale 2"
+  "claim.marginal_mentions2": "Mention marginale 2",
+  "admin.portrait": "Portrait",
+  "admin.portrait_hint": "Photo facultative pour le PID. Elle est réduite en petit JPEG dans votre navigateur avant l’envoi.",
+  "admin.portrait_remove": "Retirer le portrait",
+  "admin.err.portrait": "Le portrait n’a pas pu être utilisé. Choisissez une image JPEG, PNG ou similaire."
 }

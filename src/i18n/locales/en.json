@@ -392,5 +392,9 @@
   "claim.declarant_name": "Declarant",
   "claim.declarant_relationship": "Declarant’s relationship",
   "claim.marginal_mentions1": "Marginal mention 1",
-  "claim.marginal_mentions2": "Marginal mention 2"
+  "claim.marginal_mentions2": "Marginal mention 2",
+  "admin.portrait": "Portrait",
+  "admin.portrait_hint": "Optional photo for the PID. It is shrunk to a small JPEG in your browser before it is sent.",
+  "admin.portrait_remove": "Remove portrait",
+  "admin.err.portrait": "The portrait could not be used. Choose a JPEG, PNG or similar image."
 }

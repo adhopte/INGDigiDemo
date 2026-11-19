@@ -392,5 +392,9 @@
   "claim.declarant_name": "Aangever",
   "claim.declarant_relationship": "Relatie van de aangever",
   "claim.marginal_mentions1": "Kantmelding 1",
-  "claim.marginal_mentions2": "Kantmelding 2"
+  "claim.marginal_mentions2": "Kantmelding 2",
+  "admin.portrait": "Pasfoto",
+  "admin.portrait_hint": "Optionele foto voor de PID. Wordt in uw browser verkleind tot een kleine JPEG voordat ze wordt verzonden.",
+  "admin.portrait_remove": "Pasfoto verwijderen",
+  "admin.err.portrait": "De pasfoto kon niet worden gebruikt. Kies een JPEG-, PNG- of vergelijkbare afbeelding."
 }

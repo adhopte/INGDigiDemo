@@ -29,6 +29,8 @@ export interface CustomRecord {
   credentialId: string;
   useCase: string;
   attributes: Record<string, string>;
+  /** Base64 JPEG portrait (PID only). */
+  portrait?: string;
   createdAt: string;
 }
 
@@ -39,6 +41,18 @@ const ageOver18 = (birthDate: string, now = new Date()): boolean => {
   const cutoff = new Date(Date.UTC(now.getUTCFullYear() - 18, now.getUTCMonth(), now.getUTCDate()));
   return b.getTime() <= cutoff.getTime();
 };
+
+/** Max length of the base64 portrait (the browser shrinks the photo before sending it; keeps the form post small). */
+export const PORTRAIT_MAX_CHARS = 90_000;
+
+/** A portrait must be base64 and really a JPEG (starts with FFD8FF). Empty means none. */
+export function validatePortrait(raw: unknown): { ok: true; portrait: string | undefined } | { ok: false } {
+  const v = typeof raw === 'string' ? raw.trim() : '';
+  if (!v) return { ok: true, portrait: undefined };
+  if (v.length > PORTRAIT_MAX_CHARS || !/^[A-Za-z0-9+/]+={0,2}$/.test(v)) return { ok: false };
+  const head = Buffer.from(v.slice(0, 8), 'base64');
+  return head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff ? { ok: true, portrait: v } : { ok: false };
+}
 
 export type Validated = { ok: true; attributes: Record<string, string> } | { ok: false; errors: Record<string, string> };
 
@@ -67,11 +81,11 @@ export class RecordStore {
   private records = new Map<string, CustomRecord>();
   static readonly MAX = 100;
 
-  add(useCase: string, attributes: Record<string, string>): CustomRecord {
+  add(useCase: string, attributes: Record<string, string>, portrait?: string): CustomRecord {
     if (this.records.size >= RecordStore.MAX) this.records.delete(this.records.keys().next().value as string); // drop the oldest
     const suffix = randomBytes(4).toString('hex'); // unguessable: the record service answers to anyone who knows the identifier
     const identifier = `custom-${useCase === 'pid' ? 'pid' : 'bc'}-${suffix}`;
-    const rec: CustomRecord = { identifier, credentialId: useCase === 'pid' ? 'custom_pid_mdoc' : 'custom_birth_certificate', useCase, attributes, createdAt: new Date().toISOString() };
+    const rec: CustomRecord = { identifier, credentialId: useCase === 'pid' ? 'custom_pid_mdoc' : 'custom_birth_certificate', useCase, attributes, ...(portrait ? { portrait } : {}), createdAt: new Date().toISOString() };
     this.records.set(identifier, rec);
     return rec;
   }

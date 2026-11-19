@@ -392,5 +392,9 @@
   "claim.declarant_name": "Anzeigender",
   "claim.declarant_relationship": "Beziehung des Anzeigenden",
   "claim.marginal_mentions1": "Randvermerk 1",
-  "claim.marginal_mentions2": "Randvermerk 2"
+  "claim.marginal_mentions2": "Randvermerk 2",
+  "admin.portrait": "Porträt",
+  "admin.portrait_hint": "Optionales Foto für die PID. Es wird in Ihrem Browser zu einem kleinen JPEG verkleinert, bevor es gesendet wird.",
+  "admin.portrait_remove": "Porträt entfernen",
+  "admin.err.portrait": "Das Porträt konnte nicht verwendet werden. Wählen Sie ein JPEG-, PNG- oder ähnliches Bild."
 }

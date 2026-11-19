@@ -18,7 +18,7 @@
   <% if (Object.keys(errors).length) { %>
     <div class="alert alert-error" role="alert">
       <p><strong><%= t('form.err.summary') %></strong></p>
-      <ul><% Object.keys(errors).forEach(function (k) { %><li><a href="#f-<%= k %>"><%= L(k) %>: <%= t(errors[k]) %></a></li><% }) %></ul>
+      <ul><% Object.keys(errors).forEach(function (k) { %><li><a href="#<%= k === 'portrait' ? 'f-portrait-file' : 'f-' + k %>"><%= k === 'portrait' ? t('admin.portrait') : L(k) %>: <%= t(errors[k]) %></a></li><% }) %></ul>
     </div>
   <% } %>
 
@@ -49,6 +49,22 @@
         </div>
         <% }) %>
       </div>
+      <% if (uc === 'pid') { %>
+      <fieldset class="portrait-field<%= errors.portrait ? ' has-error' : '' %>">
+        <legend><%= t('admin.portrait') %></legend>
+        <p class="note" id="portrait-hint"><%= t('admin.portrait_hint') %></p>
+        <div class="portrait-row">
+          <img id="portrait-preview" class="avatar" width="72" height="90" alt="" <% if (values.portrait) { %>src="data:image/jpeg;base64,<%= values.portrait %>"<% } else { %>hidden<% } %>>
+          <div>
+            <label class="sr-only" for="f-portrait-file"><%= t('admin.portrait') %></label>
+            <input id="f-portrait-file" type="file" accept="image/*" aria-describedby="portrait-hint<%= errors.portrait ? ' e-portrait' : '' %>">
+            <button type="button" id="portrait-clear" class="btn btn-small btn-secondary" <% if (!values.portrait) { %>hidden<% } %>><%= t('admin.portrait_remove') %></button>
+          </div>
+        </div>
+        <input type="hidden" id="f-portrait" name="portrait" value="<%= values.portrait || '' %>">
+        <% if (errors.portrait) { %><p class="field-error" id="e-portrait"><%= t(errors.portrait) %></p><% } %>
+      </fieldset>
+      <% } %>
       <p><button class="btn btn-large" type="submit"><%= t('admin.create') %></button></p>
     </form>
   </section>
@@ -67,10 +83,11 @@
     <% if (!records.length) { %><p><%= t('admin.saved_none') %></p><% } else { %>
     <div class="scroll-x" role="region" aria-labelledby="saved-h" tabindex="0">
       <table class="table">
-        <thead><tr><th scope="col"><%= t('admin.identifier') %></th><th scope="col"><%= t('claim.given_name') %></th><th scope="col"><%= t('claim.family_name') %></th><th scope="col"><%= t('portal.col.action') %></th></tr></thead>
+        <thead><tr><th scope="col"><span class="sr-only"><%= t('portal.portrait') %></span></th><th scope="col"><%= t('admin.identifier') %></th><th scope="col"><%= t('claim.given_name') %></th><th scope="col"><%= t('claim.family_name') %></th><th scope="col"><%= t('portal.col.action') %></th></tr></thead>
         <tbody>
           <% records.forEach(function (rec) { %>
           <tr>
+            <td><% if (rec.portrait) { %><img class="avatar" src="data:image/jpeg;base64,<%= rec.portrait %>" width="36" height="45" alt=""><% } %></td>
             <td><code><%= rec.identifier %></code></td>
             <td><%= rec.attributes.given_name %></td>
             <td><%= rec.attributes.family_name %></td>
@@ -87,4 +104,5 @@
     <% } %>
   </section>
 </div>
+<script src="/js/portrait.js?v=<%= v %>" defer></script>
 <%- include('../partials/foot') %>

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
-import { validateRecord } from '../src/issuer/records.js';
+import { validatePortrait, validateRecord } from '../src/issuer/records.js';
 import { createServices } from '../src/services.js';
 import { testConfig } from './helpers.js';
 
@@ -25,7 +25,17 @@ async function setup(env: Record<string, string> = {}) {
 
 const PID_FORM = { uc: 'pid', given_name: 'Amina', family_name: 'Koffi', birth_date: '1990-05-17', nationality: 'BJ', gender: '2' };
 
+const JPEG_B64 = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 16]), Buffer.from('JFIF fake body')]).toString('base64');
+
 describe('admin console (mock of an authentic source)', () => {
+  it('accepts only a small base64 JPEG as portrait', () => {
+    expect(validatePortrait('')).toEqual({ ok: true, portrait: undefined });
+    expect(validatePortrait(JPEG_B64)).toEqual({ ok: true, portrait: JPEG_B64 });
+    expect(validatePortrait(Buffer.from('<svg onload=x>').toString('base64'))).toEqual({ ok: false }); // not a JPEG
+    expect(validatePortrait('not base64 !!')).toEqual({ ok: false });
+    expect(validatePortrait(JPEG_B64 + 'A'.repeat(90_001))).toEqual({ ok: false }); // too large
+  });
+
   it('validates attributes and derives age_over_18', () => {
     expect(validateRecord('pid', PID_FORM)).toMatchObject({ ok: true, attributes: { given_name: 'Amina', age_over_18: 'True' } });
     expect(validateRecord('pid', { ...PID_FORM, birth_date: '2099-01-01' })).toMatchObject({ ok: true, attributes: { age_over_18: 'False' } });
@@ -99,6 +109,27 @@ describe('admin console (mock of an authentic source)', () => {
     expect(calls).toHaveLength(2);
     await agent.post(`/demo-issuer/admin/records/${sent.identifier}/delete`);
     expect((await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${sent.identifier}`)).status).toBe(404);
+  });
+
+  it('stores the portrait with the record, serves it from the record service and shows it in the list', async () => {
+    const { agent, calls, app } = await setup();
+    await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
+    const bad = await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, portrait: 'AAAA' });
+    expect(bad.status).toBe(422);
+    expect(bad.text).toContain('The portrait could not be used');
+    expect(calls).toHaveLength(0);
+    expect((await agent.post('/demo-issuer/admin/offer').type('form').send({ ...PID_FORM, portrait: JPEG_B64 })).status).toBe(200);
+    const id = calls[0].body.identifier;
+    const sor = await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${id}`);
+    expect(sor.body.attributes).toContainEqual({ name: 'portrait', value: JPEG_B64 });
+    expect((await agent.get('/demo-issuer/admin')).text).toContain(`data:image/jpeg;base64,${JPEG_B64}`);
+    // a record without portrait serves none; the birth certificate never takes one
+    expect((await agent.post('/demo-issuer/admin/offer').type('form').send(PID_FORM)).status).toBe(200);
+    const sor2 = await request(app).get(`/sor/eu.europa.ec.eudi.pid_mdoc/sor/${calls[1].body.identifier}`);
+    expect(sor2.body.attributes.some((a: any) => a.name === 'portrait')).toBe(false);
+    await agent.post('/demo-issuer/admin/offer').type('form').send({ uc: 'birth-certificate', given_name: 'A', family_name: 'B', birth_date: '1990-01-01', portrait: JPEG_B64 });
+    const sor3 = await request(app).get(`/sor/eu.europa.ec.eudi.birth_certificate_vc_sd_jwt/sor/${calls[2].body.identifier}`);
+    expect(sor3.body.attributes.some((a: any) => a.name === 'portrait')).toBe(false);
   });
 
   it('birth certificate uses its own configuration', async () => {
