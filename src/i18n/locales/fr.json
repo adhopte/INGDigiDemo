@@ -396,5 +396,8 @@
   "admin.portrait": "Portrait",
   "admin.portrait_hint": "Photo facultative pour le PID. Elle est réduite en petit JPEG dans votre navigateur avant l’envoi.",
   "admin.portrait_remove": "Retirer le portrait",
-  "admin.err.portrait": "Le portrait n’a pas pu être utilisé. Choisissez une image JPEG, PNG ou similaire."
+  "admin.err.portrait": "Le portrait n’a pas pu être utilisé. Choisissez une image JPEG, PNG ou similaire.",
+  "admin.sor_unreachable": "Le service de dossiers est injoignable : le dossier n’a pas été enregistré. Vérifiez SOR_URL et SOR_API_TOKEN.",
+  "admin.store_error": "Le service de dossiers est injoignable. Les dossiers enregistrés ne peuvent pas être affichés ni modifiés pour le moment.",
+  "admin.standalone_note": "Les dossiers sont stockés dans le service de dossiers autonome, que l’émetteur interroge. Ils y restent jusqu’à leur suppression ou jusqu’à la perte du stockage de ce service."
 }

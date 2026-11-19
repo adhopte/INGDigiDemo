@@ -3,7 +3,7 @@ import { createIssuerProvider, type IssuerProvider } from './issuer/provider.js'
 import { RemoteIssuerMetadata } from './issuer/remote.js';
 import { loadOrGenerateKey } from './issuer/local/keys.js';
 import { LocalIssuer } from './issuer/local/service.js';
-import { RecordStore } from './issuer/records.js';
+import { RecordStore, RemoteRecordStore, type RecordBackend } from './issuer/records.js';
 import { log } from './logger.js';
 import { createVerifierIdentity } from './verifier/identity.js';
 import { Verifier } from './verifier/service.js';
@@ -19,7 +19,7 @@ export interface Services {
   /** HTTP client used for all outbound calls (injectable in tests). */
   fetchImpl: typeof fetch;
   /** Records entered by the admin (the demo's mock of an authentic source). In memory only. */
-  records: RecordStore;
+  records: RecordBackend;
 }
 
 export async function createServices(cfg: AppConfig, fetchImpl: typeof fetch = fetch): Promise<Services> {
@@ -30,5 +30,5 @@ export async function createServices(cfg: AppConfig, fetchImpl: typeof fetch = f
   const issuer = createIssuerProvider(cfg, local, fetchImpl, remote);
   const identity = await createVerifierIdentity(cfg);
   const verifier = new Verifier(cfg, identity, createIssuerKeyResolver(cfg, local, fetchImpl));
-  return { local, issuer, verifier, remote, fetchImpl, records: new RecordStore() };
+  return { local, issuer, verifier, remote, fetchImpl, records: cfg.sor.url ? new RemoteRecordStore(cfg.sor.url, cfg.sor.token, fetchImpl) : new RecordStore() };
 }

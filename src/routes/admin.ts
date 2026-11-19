@@ -3,7 +3,7 @@ import { Router, type NextFunction, type Request, type Response } from 'express'
 import { createIssuerProvider, type IssuedOffer } from '../issuer/provider.js';
 import { loadPortalUseCases } from '../issuer/portal.js';
 import { matchConfig } from '../issuer/remote.js';
-import { RECORD_FIELDS, validatePortrait, validateRecord, type CustomRecord } from '../issuer/records.js';
+import { RECORD_FIELDS, sorLookup, validatePortrait, validateRecord, type CustomRecord } from '../issuer/records.js';
 import type { Ctx } from '../rps/context.js';
 import { q } from '../rps/context.js';
 
@@ -22,17 +22,11 @@ export function sorRouter(ctx: Ctx): Router {
   const r = Router();
   const samples = loadPortalUseCases();
   r.use((_req, res, next) => { res.set('Access-Control-Allow-Origin', '*').set('Cache-Control', 'no-store'); next(); });
-  r.get('/:configId/sor/:identifier', (req, res) => {
-    const att = Object.values(cfg.attestations).find((a) => a.externalConfigurationId === req.params.configId);
+  r.get('/:configId/sor/:identifier', async (req, res) => {
     const identifier = String(req.params.identifier);
-    const credentialId = q(req.query.credential_identifier);
-    const custom = svc.records.get(identifier);
-    const sample = samples.flatMap((u) => u.users).find((u) => u.identifier === identifier);
-    const found = custom && att && custom.useCase === (att.key === 'pid' ? 'pid' : 'birth-certificate')
-      ? { credentialId: custom.credentialId, attributes: custom.attributes, portrait: custom.portrait }
-      : sample && sample.configurationId === req.params.configId ? { credentialId: sample.credentialId, attributes: sample.attributes, portrait: sample.portrait } : undefined;
-    if (!found || (credentialId !== undefined && credentialId !== found.credentialId)) return void res.status(404).type('text/plain').send('User not found by identifier');
-    res.json({ identifier, attributes: [...Object.entries(found.attributes).map(([name, value]) => ({ name, value })), ...(found.portrait ? [{ name: 'portrait', value: found.portrait }] : [])] });
+    const found = sorLookup(await Promise.resolve(svc.records.get(identifier)).catch(() => undefined), samples.flatMap((u) => u.users), String(req.params.configId), identifier, q(req.query.credential_identifier));
+    if (!found) return void res.status(404).type('text/plain').send('User not found by identifier');
+    res.json(found);
   });
   return r;
 }
@@ -75,15 +69,19 @@ export function adminRouter(ctx: Ctx): Router {
 
   const sampleValues = (uc: string) => samples.find((s) => s.id === uc)?.users[0]?.attributes ?? {};
 
-  const renderAdmin = (req: Request, res: Response, uc: string, values: Record<string, string>, errors: Record<string, string>, status = 200) =>
-    void res.status(status).render('issuer/admin', {
-      title: res.locals.t('admin.title'), uc, fields: RECORD_FIELDS[uc], values, errors,
-      records: svc.records.list(), recordService: `${cfg.publicBaseUrl}/sor`, configId: attOf(uc).externalConfigurationId, mockMode: cfg.mockMode,
+  const renderAdmin = async (req: Request, res: Response, uc: string, values: Record<string, string>, errors: Record<string, string>, status = 200) => {
+    let records: CustomRecord[] = [];
+    let storeError = false;
+    try { records = await svc.records.list(); } catch { storeError = true; } // standalone record service unreachable
+    res.status(status).render('issuer/admin', {
+      title: res.locals.t('admin.title'), uc, fields: RECORD_FIELDS[uc], values, errors, records, storeError,
+      recordService: cfg.sor.url ?? `${cfg.publicBaseUrl}/sor`, standalone: !!cfg.sor.url, configId: attOf(uc).externalConfigurationId, mockMode: cfg.mockMode,
     });
+  };
 
-  r.get('/demo-issuer/admin', needAdmin, (req, res) => {
+  r.get('/demo-issuer/admin', needAdmin, async (req, res) => {
     const uc = ucOf(req.query.uc);
-    renderAdmin(req, res, uc, sampleValues(uc), {});
+    await renderAdmin(req, res, uc, sampleValues(uc), {});
   });
 
   /** The issuer creates the credential from the record: SIGMA's offer API (live) or the local demo issuer (mock mode). */
@@ -119,20 +117,22 @@ export function adminRouter(ctx: Ctx): Router {
       const values: Record<string, string> = {};
       for (const f of RECORD_FIELDS[uc]!) values[f.name] = q(req.body?.[f.name]) ?? '';
       if (pt.ok && pt.portrait) values.portrait = pt.portrait;
-      return renderAdmin(req, res, uc, values, { ...(v.ok ? {} : v.errors), ...(pt.ok ? {} : { portrait: 'admin.err.portrait' }) }, 422);
+      return void (await renderAdmin(req, res, uc, values, { ...(v.ok ? {} : v.errors), ...(pt.ok ? {} : { portrait: 'admin.err.portrait' }) }, 422));
     }
-    await showOffer(req, res, svc.records.add(uc, v.attributes, pt.portrait));
+    let rec: CustomRecord;
+    try { rec = await svc.records.add(uc, v.attributes, pt.portrait); } catch { return void res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('admin.sor_unreachable'), retryHref: '/demo-issuer/admin' }); }
+    await showOffer(req, res, rec);
   });
 
   r.post('/demo-issuer/admin/records/:id/offer', needAdmin, async (req, res) => {
-    const rec = svc.records.get(String(req.params.id));
+    const rec = await Promise.resolve(svc.records.get(String(req.params.id))).catch(() => undefined);
     if (!rec) return void res.redirect('/demo-issuer/admin');
     await showOffer(req, res, rec);
   });
 
-  r.post('/demo-issuer/admin/records/:id/delete', needAdmin, (req, res) => {
-    const rec = svc.records.get(String(req.params.id));
-    svc.records.delete(String(req.params.id));
+  r.post('/demo-issuer/admin/records/:id/delete', needAdmin, async (req, res) => {
+    const rec = await Promise.resolve(svc.records.get(String(req.params.id))).catch(() => undefined);
+    await Promise.resolve(svc.records.delete(String(req.params.id))).catch(() => undefined);
     res.redirect(`/demo-issuer/admin?uc=${rec?.useCase ?? 'pid'}`);
   });
 

@@ -396,5 +396,8 @@
   "admin.portrait": "Ritratt",
   "admin.portrait_hint": "Ritratt fakultattiv għall-PID. Jitnaqqas għal JPEG żgħir fil-browser tiegħek qabel jintbagħat.",
   "admin.portrait_remove": "Neħħi r-ritratt",
-  "admin.err.portrait": "Ir-ritratt ma setax jintuża. Agħżel stampa JPEG, PNG jew simili."
+  "admin.err.portrait": "Ir-ritratt ma setax jintuża. Agħżel stampa JPEG, PNG jew simili.",
+  "admin.sor_unreachable": "Is-servizz tar-records ma setax jintlaħaq, għalhekk ir-record ma ġiex salvat. Iċċekkja SOR_URL u SOR_API_TOKEN.",
+  "admin.store_error": "Is-servizz tar-records ma setax jintlaħaq. Ir-records salvati ma jistgħux jintwerew jew jinbidlu bħalissa.",
+  "admin.standalone_note": "Ir-records jinżammu fis-servizz tar-records indipendenti li minnu jaqra l-emittent. Jibqgħu hemm sakemm jitħassru jew sakemm dak is-servizz jitlef l-ħażna tiegħu."
 }

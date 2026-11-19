@@ -396,5 +396,8 @@
   "admin.portrait": "Pasfoto",
   "admin.portrait_hint": "Optionele foto voor de PID. Wordt in uw browser verkleind tot een kleine JPEG voordat ze wordt verzonden.",
   "admin.portrait_remove": "Pasfoto verwijderen",
-  "admin.err.portrait": "De pasfoto kon niet worden gebruikt. Kies een JPEG-, PNG- of vergelijkbare afbeelding."
+  "admin.err.portrait": "De pasfoto kon niet worden gebruikt. Kies een JPEG-, PNG- of vergelijkbare afbeelding.",
+  "admin.sor_unreachable": "De recordservice is niet bereikbaar, dus het record is niet opgeslagen. Controleer SOR_URL en SOR_API_TOKEN.",
+  "admin.store_error": "De recordservice is niet bereikbaar. Opgeslagen records kunnen nu niet worden getoond of gewijzigd.",
+  "admin.standalone_note": "Records worden bewaard in de zelfstandige recordservice waaruit de uitgever leest. Ze blijven daar staan tot ze worden verwijderd of die service zijn opslag verliest."
 }

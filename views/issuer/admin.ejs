@@ -15,6 +15,7 @@
     </ul>
   </nav>
 
+  <% if (storeError) { %><div class="alert alert-error" role="alert"><%= t('admin.store_error') %></div><% } %>
   <% if (Object.keys(errors).length) { %>
     <div class="alert alert-error" role="alert">
       <p><strong><%= t('form.err.summary') %></strong></p>
@@ -80,7 +81,7 @@
 
   <section class="panel" aria-labelledby="saved-h">
     <h2 id="saved-h"><%= t('admin.saved') %></h2>
-    <% if (!records.length) { %><p><%= t('admin.saved_none') %></p><% } else { %>
+    <% if (!records.length) { %><p><%= t('admin.saved_none') %></p><% if (standalone) { %><p class="note"><%= t('admin.standalone_note') %></p><% } %><% } else { %>
     <div class="scroll-x" role="region" aria-labelledby="saved-h" tabindex="0">
       <table class="table">
         <thead><tr><th scope="col"><span class="sr-only"><%= t('portal.portrait') %></span></th><th scope="col"><%= t('admin.identifier') %></th><th scope="col"><%= t('claim.given_name') %></th><th scope="col"><%= t('claim.family_name') %></th><th scope="col"><%= t('portal.col.action') %></th></tr></thead>
@@ -100,7 +101,7 @@
         </tbody>
       </table>
     </div>
-    <p class="note"><%= t('admin.saved_note') %></p>
+    <p class="note"><%= standalone ? t('admin.standalone_note') : t('admin.saved_note') %></p>
     <% } %>
   </section>
 </div>

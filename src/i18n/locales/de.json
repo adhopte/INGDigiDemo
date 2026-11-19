@@ -396,5 +396,8 @@
   "admin.portrait": "Porträt",
   "admin.portrait_hint": "Optionales Foto für die PID. Es wird in Ihrem Browser zu einem kleinen JPEG verkleinert, bevor es gesendet wird.",
   "admin.portrait_remove": "Porträt entfernen",
-  "admin.err.portrait": "Das Porträt konnte nicht verwendet werden. Wählen Sie ein JPEG-, PNG- oder ähnliches Bild."
+  "admin.err.portrait": "Das Porträt konnte nicht verwendet werden. Wählen Sie ein JPEG-, PNG- oder ähnliches Bild.",
+  "admin.sor_unreachable": "Der Datensatzdienst ist nicht erreichbar, der Datensatz wurde nicht gespeichert. Prüfen Sie SOR_URL und SOR_API_TOKEN.",
+  "admin.store_error": "Der Datensatzdienst ist nicht erreichbar. Gespeicherte Datensätze können derzeit weder angezeigt noch geändert werden.",
+  "admin.standalone_note": "Datensätze liegen im eigenständigen Datensatzdienst, aus dem der Aussteller liest. Sie bleiben dort, bis sie gelöscht werden oder der Dienst seinen Speicher verliert."
 }

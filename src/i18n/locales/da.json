@@ -396,5 +396,8 @@
   "admin.portrait": "Portræt",
   "admin.portrait_hint": "Valgfrit foto til PID. Det formindskes til en lille JPEG i din browser, før det sendes.",
   "admin.portrait_remove": "Fjern portræt",
-  "admin.err.portrait": "Portrættet kunne ikke bruges. Vælg et JPEG-, PNG- eller lignende billede."
+  "admin.err.portrait": "Portrættet kunne ikke bruges. Vælg et JPEG-, PNG- eller lignende billede.",
+  "admin.sor_unreachable": "Postservicen kunne ikke nås, så posten blev ikke gemt. Tjek SOR_URL og SOR_API_TOKEN.",
+  "admin.store_error": "Postservicen kunne ikke nås. Gemte poster kan ikke vises eller ændres lige nu.",
+  "admin.standalone_note": "Poster gemmes i den selvstændige postservice, som udstederen læser fra. De bliver der, indtil de slettes, eller servicen mister sin lagring."
 }

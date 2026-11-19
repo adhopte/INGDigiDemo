@@ -1,4 +1,6 @@
 import { randomBytes } from 'node:crypto';
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 
 export type FieldKind = 'text' | 'date' | 'gender' | 'boolean';
 export interface FieldDef { name: string; kind: FieldKind; required?: boolean; max?: number }
@@ -76,20 +78,101 @@ export function validateRecord(useCase: string, input: Record<string, unknown>):
   return Object.keys(errors).length ? { ok: false, errors } : { ok: true, attributes };
 }
 
+export const USE_CASE_CONFIG: Record<string, string> = {
+  pid: 'eu.europa.ec.eudi.pid_mdoc',
+  'birth-certificate': 'eu.europa.ec.eudi.birth_certificate_vc_sd_jwt',
+};
+const CREDENTIAL_ID: Record<string, string> = { pid: 'custom_pid_mdoc', 'birth-certificate': 'custom_birth_certificate' };
+export const SAFE_ID = /^[A-Za-z0-9._:@-]{1,64}$/;
+
+/** A new record with an unguessable identifier (the record service answers to anyone who knows it). */
+export function buildRecord(useCase: string, attributes: Record<string, string>, portrait?: string, identifier?: string): CustomRecord {
+  const id = identifier ?? `custom-${useCase === 'pid' ? 'pid' : 'bc'}-${randomBytes(4).toString('hex')}`;
+  return { identifier: id, credentialId: CREDENTIAL_ID[useCase] ?? 'custom_credential', useCase, attributes, ...(portrait ? { portrait } : {}), createdAt: new Date().toISOString() };
+}
+
+type MaybePromise<T> = T | Promise<T>;
+/** Where the admin console keeps its records: in memory, or in a standalone record service. */
+export interface RecordBackend {
+  add(useCase: string, attributes: Record<string, string>, portrait?: string): MaybePromise<CustomRecord>;
+  get(identifier: string): MaybePromise<CustomRecord | undefined>;
+  delete(identifier: string): MaybePromise<boolean>;
+  list(): MaybePromise<CustomRecord[]>;
+}
+
 /** In-memory records entered by the admin. Lost on restart. */
-export class RecordStore {
-  private records = new Map<string, CustomRecord>();
+export class RecordStore implements RecordBackend {
+  protected records = new Map<string, CustomRecord>();
   static readonly MAX = 100;
 
-  add(useCase: string, attributes: Record<string, string>, portrait?: string): CustomRecord {
-    if (this.records.size >= RecordStore.MAX) this.records.delete(this.records.keys().next().value as string); // drop the oldest
-    const suffix = randomBytes(4).toString('hex'); // unguessable: the record service answers to anyone who knows the identifier
-    const identifier = `custom-${useCase === 'pid' ? 'pid' : 'bc'}-${suffix}`;
-    const rec: CustomRecord = { identifier, credentialId: useCase === 'pid' ? 'custom_pid_mdoc' : 'custom_birth_certificate', useCase, attributes, ...(portrait ? { portrait } : {}), createdAt: new Date().toISOString() };
-    this.records.set(identifier, rec);
+  /** Hook for subclasses that persist. */
+  protected changed(): void {}
+
+  put(rec: CustomRecord): CustomRecord {
+    if (!this.records.has(rec.identifier) && this.records.size >= RecordStore.MAX) this.records.delete(this.records.keys().next().value as string); // drop the oldest
+    this.records.set(rec.identifier, rec);
+    this.changed();
     return rec;
   }
+  add(useCase: string, attributes: Record<string, string>, portrait?: string): CustomRecord { return this.put(buildRecord(useCase, attributes, portrait)); }
   get(identifier: string): CustomRecord | undefined { return this.records.get(identifier); }
-  delete(identifier: string): boolean { return this.records.delete(identifier); }
+  delete(identifier: string): boolean { const ok = this.records.delete(identifier); if (ok) this.changed(); return ok; }
   list(): CustomRecord[] { return [...this.records.values()].reverse(); }
+}
+
+/** Records kept in a JSON file (survives restarts of the service as far as the file system does). */
+export class FileRecordStore extends RecordStore {
+  constructor(private readonly file: string) {
+    super();
+    try {
+      const raw = JSON.parse(readFileSync(file, 'utf8')) as CustomRecord[];
+      for (const r of Array.isArray(raw) ? raw : []) if (r && SAFE_ID.test(r.identifier) && RECORD_FIELDS[r.useCase]) this.records.set(r.identifier, r);
+    } catch { /* no file yet */ }
+  }
+  protected override changed(): void {
+    mkdirSync(path.dirname(this.file), { recursive: true });
+    const tmp = `${this.file}.tmp`;
+    writeFileSync(tmp, JSON.stringify([...this.records.values()]), { mode: 0o600 });
+    renameSync(tmp, this.file);
+  }
+}
+
+/** Client of the standalone record service (src/sor): the admin console writes there, the SIGMA issuer reads from there. */
+export class RemoteRecordStore implements RecordBackend {
+  constructor(private readonly baseUrl: string, private readonly token: string | undefined, private readonly fetchImpl: typeof fetch = fetch) {}
+  private async call(method: string, p: string, body?: unknown): Promise<Response> {
+    const res = await this.fetchImpl(`${this.baseUrl}${p}`, {
+      method,
+      headers: { ...(this.token ? { authorization: `Bearer ${this.token}` } : {}), ...(body ? { 'content-type': 'application/json' } : {}), accept: 'application/json' },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok && res.status !== 404) throw new Error(`Record service answered ${res.status}`);
+    return res;
+  }
+  async add(useCase: string, attributes: Record<string, string>, portrait?: string): Promise<CustomRecord> {
+    const rec = buildRecord(useCase, attributes, portrait);
+    await this.call('PUT', `/records/${encodeURIComponent(rec.identifier)}`, { useCase, attributes, ...(portrait ? { portrait } : {}) });
+    return rec;
+  }
+  async get(identifier: string): Promise<CustomRecord | undefined> {
+    const res = await this.call('GET', `/records/${encodeURIComponent(identifier)}`);
+    return res.status === 404 ? undefined : ((await res.json()) as CustomRecord);
+  }
+  async delete(identifier: string): Promise<boolean> { return (await this.call('DELETE', `/records/${encodeURIComponent(identifier)}`)).status !== 404; }
+  async list(): Promise<CustomRecord[]> { return (await (await this.call('GET', '/records')).json()) as CustomRecord[]; }
+}
+
+/** The record-service contract (same as the WalletTester's SoR server): one record by identifier [and credential identifier], without internal fields. */
+export function sorLookup(
+  custom: CustomRecord | undefined,
+  samples: Array<{ identifier: string; credentialId: string; configurationId: string; attributes: Record<string, string>; portrait?: string | undefined }>,
+  configId: string,
+  identifier: string,
+  credentialId?: string,
+): { identifier: string; attributes: Array<{ name: string; value: string }> } | undefined {
+  const sample = samples.find((u) => u.identifier === identifier && u.configurationId === configId);
+  const found = custom && USE_CASE_CONFIG[custom.useCase] === configId ? { credentialId: custom.credentialId, attributes: custom.attributes, portrait: custom.portrait } : sample;
+  if (!found || (credentialId !== undefined && credentialId !== found.credentialId)) return undefined;
+  return { identifier, attributes: [...Object.entries(found.attributes).map(([name, value]) => ({ name, value })), ...(found.portrait ? [{ name: 'portrait', value: found.portrait }] : [])] };
 }

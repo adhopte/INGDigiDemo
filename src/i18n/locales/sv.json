@@ -396,5 +396,8 @@
   "admin.portrait": "Porträtt",
   "admin.portrait_hint": "Valfritt foto till PID. Det förminskas till en liten JPEG i din webbläsare innan det skickas.",
   "admin.portrait_remove": "Ta bort porträttet",
-  "admin.err.portrait": "Porträttet kunde inte användas. Välj en JPEG-, PNG- eller liknande bild."
+  "admin.err.portrait": "Porträttet kunde inte användas. Välj en JPEG-, PNG- eller liknande bild.",
+  "admin.sor_unreachable": "Posttjänsten kunde inte nås, så posten sparades inte. Kontrollera SOR_URL och SOR_API_TOKEN.",
+  "admin.store_error": "Posttjänsten kunde inte nås. Sparade poster kan inte visas eller ändras just nu.",
+  "admin.standalone_note": "Poster lagras i den fristående posttjänsten som utfärdaren läser från. De finns kvar där tills de tas bort eller tjänsten förlorar sin lagring."
 }
