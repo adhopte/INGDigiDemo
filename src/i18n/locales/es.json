@@ -298,7 +298,7 @@
   "claim.birth_record_reference": "Referencia del acta de nacimiento",
   "verify.qr_too_long": "Esta solicitud es demasiado grande para un código QR. Ábrala en este dispositivo con el botón.",
   "verify.phone_title": "¿No funciona el escaneo?",
-  "verify.phone_hint": "Escanee este código pequeño con la cámara del móvil. Abre una página con un botón que inicia su cartera.",
+  "verify.phone_hint": "Use la cámara normal de su teléfono para este código pequeño, no el escáner de la cartera. Abre una página con un botón que inicia su cartera.",
   "verify.phone_alt": "Pequeño código QR que abre una página con el botón de la cartera",
   "open.title": "Abra su cartera",
   "open.hint": "{rp} le pide que comparta datos de su EU Wallet. Pulse el botón en este móvil.",

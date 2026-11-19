@@ -136,7 +136,7 @@ describe('QR fallback for long links', () => {
   it('a payload too large for any QR code yields undefined (link-only page), normal ones render', async () => {
     const { qrDataUrlOrUndefined } = await import('../src/issuer/offer.js');
     expect(await qrDataUrlOrUndefined('x'.repeat(4000))).toBeUndefined();
-    expect(await qrDataUrlOrUndefined('openid4vp://authorize?x=1')).toMatch(/^data:image\/png/);
+    expect(await qrDataUrlOrUndefined('openid4vp://authorize?x=1')).toMatch(/^data:image\/svg\+xml/); // vector: stays sharp at any size
     // the combined university request now fits as well
     const { app } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri', MULTI_CREDENTIAL: 'true' });
     const a = request.agent(app);
@@ -152,14 +152,14 @@ describe('phone-camera hand-off and QR scannability', () => {
     const { app, svc, cfg } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_BY_VALUE_FORMATS: 'mso_mdoc' });
     for (const [rp, p] of [['bank', 'pid'], ['electricity', 'pid'], ['university', 'pid'], ['university', 'bc'], ['eshop', 'payment']] as const) {
       const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, p, '/');
-      expect(svc.verifier.walletLink(tx).length, `${rp}/${p}`).toBeLessThan(1700);
+      expect(svc.verifier.walletLink(tx).length, `${rp}/${p}`).toBeLessThan(1500);
     }
     const a = request.agent(app);
     const loc = (await a.get('/bank/verify?p=pid&returnTo=/bank/kyc')).headers.location!;
-    const id = /\/verify\/([0-9a-f-]{36})/.exec(loc)![1]!;
+    const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(loc)![1]!;
     const page = (await a.get(loc)).text;
     expect(page).toContain('Scanning not working?');
-    expect((page.match(/data:image\/png/g) ?? []).length).toBe(2); // main QR + small phone QR
+    expect((page.match(/data:image\/svg\+xml/g) ?? []).length).toBe(2); // main QR + small phone QR
     const open = await request(app).get(`/bank/verify/open/${id}`); // no session cookie: a different device
     expect(open.status).toBe(200);
     expect(open.text).toContain('openid4vp://authorize?');
@@ -340,10 +340,10 @@ describe('RP flows in the browser session', () => {
     expect(start.status).toBe(302);
     const verify = await a.get(start.headers.location!);
     expect(verify.status).toBe(200);
-    expect(verify.text).toContain('openid4vp://authorize?client_id=x509_hash%3A');
-    expect(verify.text).toContain('data:image/png;base64');
+    expect(verify.text).toContain('openid4vp://authorize?client_id=x509_hash:');
+    expect(verify.text).toContain('data:image/svg+xml;base64');
     expect(verify.text).toContain('alt="QR code for the wallet presentation request');
-    const id = /\/verify\/([0-9a-f-]{36})/.exec(start.headers.location!)![1]!;
+    const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(start.headers.location!)![1]!;
     expect((await a.get(`/bank/verify/status/${id}`)).body.status).toBe('pending');
     expect((await request(app).get(`/bank/verify/status/${id}`)).status).toBe(404); // another browser
     expect((await request(app).get(`/bank/verify/finish/${id}`)).status).toBe(403);

@@ -298,7 +298,7 @@
   "claim.birth_record_reference": "Aktereferentie",
   "verify.qr_too_long": "Dit verzoek is te groot voor een QR-code. Open het op dit apparaat met de knop.",
   "verify.phone_title": "Scannen lukt niet?",
-  "verify.phone_hint": "Scan deze kleine code met de camera van uw telefoon. Er opent een pagina met een knop die uw wallet start.",
+  "verify.phone_hint": "Gebruik voor deze kleine code de gewone camera-app van uw telefoon, niet de scanner van de wallet. Hij opent een pagina met een knop die uw wallet start.",
   "verify.phone_alt": "Kleine QR-code die een pagina met de wallet-knop opent",
   "open.title": "Open uw wallet",
   "open.hint": "{rp} vraagt u gegevens uit uw EU Wallet te delen. Tik op de knop op deze telefoon.",

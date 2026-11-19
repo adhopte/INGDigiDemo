@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import { SignJWT, calculateJwkThumbprint, compactDecrypt, exportJWK, generateKeyPair, type CryptoKey, type JWK } from 'jose';
 import { looksLikeDeviceResponse, normalizeMdocClaims, openId4VpSessionTranscripts, verifyDeviceResponse } from '../mdoc/index.js';
 import type { AppConfig, RpConfig } from '../config.js';
@@ -96,7 +96,7 @@ export class Verifier {
     this.sweep();
     if (this.txs.size >= MAX_TRANSACTIONS) throw new VpError(503, 'temporarily_unavailable', 'Too many open requests, please retry shortly');
     const tx: Transaction = {
-      id: randomUUID(),
+      id: randomBytes(12).toString('base64url'), // 16 chars: the id appears twice in the wallet link
       rpId: rp.id,
       rpName: rp.displayName,
       presentationKey,
@@ -209,7 +209,9 @@ export class Verifier {
       // unsigned, by value (redirect_uri scheme)
       for (const [k, val] of Object.entries(this.requestParams(tx, undefined, true))) if (k !== 'client_id') q.set(k, typeof val === 'string' ? val : JSON.stringify(val));
     }
-    return `${base}?${q.toString()}`;
+    // Shorter than URLSearchParams: ':' '/' ',' are legal in a query string and need no escaping (a leaner link = a QR code a wallet can scan).
+    const lean = (v: string) => encodeURIComponent(v).replace(/%3A/gi, ':').replace(/%2F/gi, '/').replace(/%2C/gi, ',');
+    return `${base}?${[...q.entries()].map(([k, v]) => `${k}=${lean(v)}`).join('&')}`;
   }
 
   private audiences(tx: Transaction): string[] {

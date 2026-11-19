@@ -298,7 +298,7 @@
   "claim.birth_record_reference": "Birth record reference",
   "verify.qr_too_long": "This request is too large for a QR code. Open it on this device with the button.",
   "verify.phone_title": "Scanning not working?",
-  "verify.phone_hint": "Scan this small code with your phone camera. It opens a page with a button that starts your wallet.",
+  "verify.phone_hint": "Use your phone’s normal camera app for this small code, not the wallet’s scanner. It opens a page with a button that starts your wallet.",
   "verify.phone_alt": "Small QR code that opens a page with the wallet button",
   "open.title": "Open your wallet",
   "open.hint": "{rp} asks you to share data from your EU Wallet. Tap the button on this phone.",

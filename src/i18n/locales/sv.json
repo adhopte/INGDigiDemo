@@ -298,7 +298,7 @@
   "claim.birth_record_reference": "Födelseregistrets referens",
   "verify.qr_too_long": "Den här begäran är för stor för en QR-kod. Öppna den på den här enheten med knappen.",
   "verify.phone_title": "Fungerar inte skanningen?",
-  "verify.phone_hint": "Skanna den här lilla koden med telefonens kamera. Den öppnar en sida med en knapp som startar din plånbok.",
+  "verify.phone_hint": "Använd telefonens vanliga kamera-app för den här lilla koden, inte plånbokens skanner. Den öppnar en sida med en knapp som startar din plånbok.",
   "verify.phone_alt": "Liten QR-kod som öppnar en sida med plånboksknappen",
   "open.title": "Öppna din plånbok",
   "open.hint": "{rp} ber dig dela uppgifter från din EU Wallet. Tryck på knappen på den här telefonen.",

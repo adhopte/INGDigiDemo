@@ -150,7 +150,7 @@ describe('request object', () => {
     expect(p.wallet_nonce).toBe('wn');
     const link = svc.verifier.walletLink(tx);
     expect(link.startsWith('openid4vp://authorize?')).toBe(true);
-    expect(link).toContain(encodeURIComponent(`https://rp.example.test/vp/request/${tx.id}`));
+    expect(link).toContain(`request_uri=https://rp.example.test/vp/request/${tx.id}`); // ':' and '/' are left unescaped to keep the link (and its QR code) short
     void SignJWT;
   });
 

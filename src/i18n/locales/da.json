@@ -298,7 +298,7 @@
   "claim.birth_record_reference": "Fødselsattestens reference",
   "verify.qr_too_long": "Denne anmodning er for stor til en QR-kode. Åbn den på denne enhed med knappen.",
   "verify.phone_title": "Virker scanningen ikke?",
-  "verify.phone_hint": "Scan denne lille kode med din telefons kamera. Den åbner en side med en knap, der starter din wallet.",
+  "verify.phone_hint": "Brug telefonens almindelige kamera-app til denne lille kode, ikke walletens scanner. Den åbner en side med en knap, der starter din wallet.",
   "verify.phone_alt": "Lille QR-kode, der åbner en side med wallet-knappen",
   "open.title": "Åbn din wallet",
   "open.hint": "{rp} beder dig dele data fra din EU Wallet. Tryk på knappen på denne telefon.",
