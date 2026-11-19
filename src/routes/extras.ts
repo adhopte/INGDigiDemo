@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { createIssuerProvider } from '../issuer/provider.js';
 import { matchConfig } from '../issuer/remote.js';
 import { loadPortalUseCases } from '../issuer/portal.js';
+import { qrDataUrlOrUndefined } from '../issuer/offer.js';
 import { PERSONAS, demoClaims, heldClaims, personaFor, redeemOffer } from '../mock/wallet.js';
 import type { Ctx } from '../rps/context.js';
 import { q } from '../rps/context.js';
@@ -28,6 +29,22 @@ export function extrasRouter(ctx: Ctx): Router {
     { key: 'probe_pid_sd_eu', label: 'PID as SD-JWT, EUDI reference type', detail: 'vct urn:eu.europa.ec.eudi:pid:1' },
     { key: 'probe_bc_sd', label: 'Birth certificate as SD-JWT', detail: 'vct urn:eudi:birth_certificate:1 (the SIGMA issuer’s birth certificate)' },
   ];
+  // Which QR content does the wallet's own scanner accept? The same bank PID request, in four forms (scan each with the wallet).
+  r.get('/qr-test', async (_req, res) => {
+    const bank = cfg.rps.find((x) => x.id === 'bank');
+    if (!bank) return void res.redirect('/');
+    const mk = async () => svc.verifier.walletLink(await svc.verifier.createTransaction(bank, 'pid', '/'));
+    const lean = await mk();
+    const full = (() => { const u = new URL(lean); return `${u.protocol}//${u.host}?${u.searchParams.toString()}`; })();
+    const variants = [
+      { key: 'A', title: 'Current link (":" "/" "," left readable)', link: lean },
+      { key: 'B', title: 'Fully percent-encoded (standard form-encoding)', link: full },
+      { key: 'C', title: 'Same as A, wallet-specific scheme haip-vp://', link: (await mk()).replace(/^[a-z0-9+.-]+:\/\/authorize/i, 'haip-vp://authorize') },
+      { key: 'D', title: 'Minimal link, scheme only (tiny QR; is the scheme accepted at all?)', link: 'openid4vp://authorize?client_id=qr-test' },
+    ];
+    res.render('qr-test', { title: 'QR scan test', variants: await Promise.all(variants.map(async (v) => ({ ...v, length: v.link.length, qr: await qrDataUrlOrUndefined(v.link) }))) });
+  });
+
   r.get('/wallet-check', (req, res) => {
     res.render('wallet-check', {
       title: 'Wallet compatibility check',

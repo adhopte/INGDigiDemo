@@ -168,6 +168,17 @@ describe('phone-camera hand-off and QR scannability', () => {
   });
 });
 
+describe('QR scan test page', () => {
+  it('shows the same request in four forms, including a scheme-only link', async () => {
+    const { app } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri', MOCK_MODE: 'false' });
+    const page = (await request(app).get('/qr-test')).text;
+    for (const k of ['A', 'B', 'C', 'D']) expect(page).toContain(`${k} – `);
+    expect(page).toContain('haip-vp://authorize?');
+    expect(page).toContain('openid4vp://authorize?client_id=qr-test');
+    expect((page.match(/data:image\/svg\+xml/g) ?? []).length).toBeGreaterThanOrEqual(4);
+  });
+});
+
 describe('diagnostics and caching', () => {
   it('/vp/diagnostics exists only when enabled and records wallet metadata and rejections without claim values', async () => {
     const off = await boot({ DIAGNOSTICS_ENDPOINT: 'false' });

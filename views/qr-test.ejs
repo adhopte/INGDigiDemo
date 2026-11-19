@@ -1,0 +1,21 @@
+<%- include('partials/head') %>
+<div class="wrap narrow">
+  <h1>QR scan test</h1>
+  <p class="lead">Open this page on a laptop or second screen. Scan each code below with the <strong>wallet's own scanner</strong> and note what happens. The same bank PID request is encoded four ways, so we can tell what the scanner accepts.</p>
+  <ul class="plain">
+    <li><strong>The wallet shows the share / consent screen</strong> → this form works.</li>
+    <li><strong>"An error happened while trying to process the QR code"</strong> → the wallet read the code but refused its content.</li>
+    <li><strong>Nothing happens</strong> → the wallet could not read the code (too dense).</li>
+    <li>Any other message (for example "invalid request"): note its text. The content was understood.</li>
+  </ul>
+  <% variants.forEach(function (v) { %>
+  <section class="panel" aria-labelledby="v-<%= v.key %>">
+    <h2 id="v-<%= v.key %>"><%= v.key %> – <%= v.title %></h2>
+    <p class="note"><%= v.length %> characters</p>
+    <% if (v.qr) { %><img class="qr <%= v.length > 400 ? 'qr-wide' : 'qr-small' %>" src="<%= v.qr %>" width="<%= v.length > 400 ? 720 : 240 %>" height="<%= v.length > 400 ? 720 : 240 %>" alt="QR code for variant <%= v.key %>"><% } %>
+    <details class="raw"><summary>Show link</summary><p><code class="break"><%= v.link %></code></p></details>
+  </section>
+  <% }) %>
+  <p class="note">Technical page for integrators. Each code starts a real (unsigned) verification request that expires after a few minutes.</p>
+</div>
+<%- include('partials/foot') %>
