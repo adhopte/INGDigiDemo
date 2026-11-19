@@ -150,7 +150,7 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
     const qrLink = svc.verifier.walletLink(tx); // the QR code is scanned from another device: no redirect afterwards
     res.render('verify', {
       title: res.locals.t('verify.title'),
-      tx, link, byValue: svc.verifier.byValue, qr: await qrDataUrlOrUndefined(qrLink),
+      tx, link, shownLink: qrLink, byValue: svc.verifier.byValue, qr: await qrDataUrlOrUndefined(qrLink),
       phoneQr: await qrDataUrlOrUndefined(`${cfg.publicBaseUrl}/${rp.id}/verify/open/${tx.id}`),
       expiresAt: new Date(tx.expiresAt),
       statusUrl: `/${rp.id}/verify/status/${id}`,

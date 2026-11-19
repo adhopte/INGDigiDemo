@@ -147,10 +147,12 @@ export class Verifier {
       const parsed = parseRegistrationCert(rp.registrationCert ?? this.cfg.verifier.registrationCert, this.now());
       if (!parsed) return [rp.id, { configured: false }];
       if (!parsed.ok) return [rp.id, { configured: true, readable: false, error: parsed.error, sent: false }];
-      const sent = !this.byValue || this.cfg.verifier.registrationByValue;
+      const mode = this.cfg.verifier.registrationByValue;
+      const sent = !this.byValue || mode !== 'off';
       return [rp.id, {
         configured: true, readable: true, sent,
-        ...(sent ? {} : { not_sent_because: 'requests are passed by value (client_id scheme redirect_uri): the certificate is too large for a QR code and a wallet only trusts it next to an X.509 access certificate. Switch VP_CLIENT_ID_SCHEME to x509_hash or x509_san_dns, or try VP_REGISTRATION_BY_VALUE=true (button / phone-camera link only, no QR code).' }),
+        sent_in: !this.byValue ? 'signed request object' : mode === 'all' ? 'every wallet link (no QR code possible)' : mode === 'button' ? 'the Open-in-wallet button only (QR code stays small)' : 'nowhere',
+        ...(sent ? {} : { not_sent_because: 'requests are passed by value (client_id scheme redirect_uri): the certificate is too large for a QR code and a wallet only trusts it next to an X.509 access certificate. Switch VP_CLIENT_ID_SCHEME to x509_hash or x509_san_dns, or set VP_REGISTRATION_BY_VALUE to button / all.' }),
         name: parsed.info.name, purpose: parsed.info.purposes, subject: parsed.info.subject, type: parsed.info.type, issued_at: parsed.info.issuedAt, expires_at: parsed.info.expiresAt, expired: parsed.info.expired, size_bytes: parsed.info.sizeBytes,
         matches_access_certificate: accessCertOrgId && parsed.info.subject ? accessCertOrgId === parsed.info.subject : undefined,
         warnings: parsed.warnings,
@@ -217,7 +219,7 @@ export class Verifier {
     };
     const reg = this.registrationFor(tx.rpId);
     // Too big for a QR code / unsigned link, and a wallet only trusts it next to an X.509 access certificate: signed requests (or the by-value experiment).
-    if (reg && (!this.byValue || this.cfg.verifier.registrationByValue)) params.verifier_info = verifierInfo(reg.jwt);
+    if (reg && (!this.byValue || this.cfg.verifier.registrationByValue === 'all')) params.verifier_info = verifierInfo(reg.jwt);
     if (v.queryLanguage === 'pex') params.presentation_definition = buildPresentationDefinition(tx.reqs, tx.id);
     else params.dcql_query = buildDcql(tx.reqs, compact);
     if (walletNonce) params.wallet_nonce = walletNonce;
@@ -242,6 +244,9 @@ export class Verifier {
     } else {
       // unsigned, by value (redirect_uri scheme)
       for (const [k, val] of Object.entries(this.requestParams(tx, undefined, true))) if (k !== 'client_id') q.set(k, typeof val === 'string' ? val : JSON.stringify(val));
+      // The registration certificate is ~15 KB: only the button (never a QR code) may carry it in button mode.
+      const reg = this.registrationFor(tx.rpId);
+      if (reg && sameDevice && this.cfg.verifier.registrationByValue === 'button') q.set('verifier_info', JSON.stringify(verifierInfo(reg.jwt)));
       // The wallet echoes `state`: a marker tells us the user tapped the button on THIS device, so the wallet may open the follow-up page in its browser.
       if (sameDevice) q.set('state', `${tx.state}${SAME_DEVICE}`);
     }

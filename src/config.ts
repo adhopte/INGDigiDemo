@@ -91,7 +91,7 @@ export interface VerifierConfig {
   trustAnyIssuer: boolean;
   /** Registration certificate (JWT) sent as `verifier_info` for RPs without their own (VP_REGISTRATION_CERT). Needs signed requests (x509 client id schemes). */
   registrationCert: string | undefined;
-  registrationByValue: boolean;
+  registrationByValue: 'off' | 'button' | 'all';
   /** Verifier identity (secrets, env only). When absent a self-signed demo identity is generated at startup. */
   signingKeyJwk: string | undefined;
   certChainPem: string | undefined;
@@ -267,8 +267,8 @@ export function loadConfig(
     trustAnyIssuer: parseBool(env.TRUST_ANY_ISSUER, false),
     // default: config/registration-cert.jwt (the test registration certificate); VP_REGISTRATION_CERT overrides it, "none" turns it off
     registrationCert: env.VP_REGISTRATION_CERT === 'none' ? undefined : env.VP_REGISTRATION_CERT || defaultRegistrationCert(),
-    // EXPERIMENT: also put it in unsigned by-value links (redirect_uri scheme). ~15 KB: no QR code, only the button / phone-camera page.
-    registrationByValue: parseBool(env.VP_REGISTRATION_BY_VALUE, false),
+    // Unsigned by-value links (redirect_uri scheme): off | button (only the "Open in wallet" button of the page, the QR code stays small) | all (every link: ~15 KB, no QR code).
+    registrationByValue: ((v) => (v === 'all' || v === 'true' ? 'all' : v === 'off' || v === 'false' ? 'off' : 'button'))((env.VP_REGISTRATION_BY_VALUE ?? '').toLowerCase()),
     signingKeyJwk: env.VERIFIER_SIGNING_KEY_JWK || undefined,
     certChainPem: env.VERIFIER_CERT_CHAIN_PEM ? env.VERIFIER_CERT_CHAIN_PEM.replace(/\\n/g, '\n') : undefined,
   };
