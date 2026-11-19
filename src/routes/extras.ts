@@ -56,14 +56,16 @@ export function extrasRouter(ctx: Ctx): Router {
     const customId = (q(req.body?.customIdentifier) ?? '').trim();
     const customCred = (q(req.body?.customCredentialIdentifier) ?? '').trim();
     const sample = att?.externalUsers.find((u) => u.identifier === q(req.body?.identifier));
-    const user = customId ? (SAFE.test(customId) && (!customCred || SAFE.test(customCred)) ? { identifier: customId, credentialIdentifier: customCred || undefined } : undefined) : sample;
-    if (!att || !rc || !user || !s?.issuer) return void res.status(400).render('error', { title: res.locals.t('error.title'), message: res.locals.t('error.generic'), retryHref: '/demo-issuer' });
+    const user: { identifier: string; credentialIdentifier?: string | undefined; walletIdentifier?: string | undefined; configurationId?: string | undefined } | undefined = customId ? (SAFE.test(customId) && (!customCred || SAFE.test(customCred)) ? { identifier: customId, credentialIdentifier: customCred || undefined } : undefined) : sample;
+    // a sample may pin another configuration of the same issuer (it must exist in the issuer's catalogue)
+    const pinnedOk = !user?.configurationId || !!s?.configs.some((c) => c.id === user.configurationId);
+    if (!att || !rc || !user || !pinnedOk || !s?.issuer) return void res.status(400).render('error', { title: res.locals.t('error.title'), message: res.locals.t('error.generic'), retryHref: '/demo-issuer' });
     const external = createIssuerProvider(
       { ...cfg, issuer: { ...cfg.issuer, mode: 'external', fallbackLocal: false, external: { ...cfg.issuer.external, apiBaseUrl: cfg.issuer.external.apiBaseUrl ?? s.issuer } } },
       svc.local, svc.fetchImpl, svc.remote,
     );
     try {
-      const offer = await external.createOffer(att.key, {}, { identifier: user.identifier, ...(user.credentialIdentifier ? { credentialIdentifier: user.credentialIdentifier } : {}) });
+      const offer = await external.createOffer(att.key, {}, { identifier: user.identifier, ...(user.credentialIdentifier ? { credentialIdentifier: user.credentialIdentifier } : {}), ...(user.walletIdentifier ? { walletIdentifier: user.walletIdentifier } : {}), ...(user.configurationId ? { configurationId: user.configurationId } : {}) });
       res.render('offer', { title: res.locals.t(`att.${att.key}.name`), attestationKey: att.key, offer, returnTo: '/demo-issuer', canSimulate: false, rp: undefined });
     } catch {
       res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer' });

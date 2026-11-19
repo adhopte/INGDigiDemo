@@ -189,6 +189,11 @@ describe('external issuer adapter (SIGMA offer API)', () => {
       identifier: 'user-002', businessId: 'biz-2', walletIdentifier: 'w-002',
       authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc', credential_identifiers: ['credential_id_1'] }],
     });
+    // PID via IdP login: fixed placeholder identifier + wallet id + the eMRTD configuration, no credential identifier
+    expect(buildRequest(c.attestations.pid!, { identifier: 'xyz-198772', walletIdentifier: 'w-001', configurationId: 'eu.europa.ec.eudi.pid_mdoc_emrtd' }, 'biz-3')).toEqual({
+      identifier: 'xyz-198772', businessId: 'biz-3', walletIdentifier: 'w-001',
+      authorization_details: [{ type: 'openid_credential', credential_configuration_id: 'eu.europa.ec.eudi.pid_mdoc_emrtd' }],
+    });
     expect(buildRequest(c.attestations.pid!).businessId).toMatch(/^[0-9a-f-]{36}$/);
     expect(() => buildRequest(c.attestations.account!)).toThrow(/No identifier/); // no sample users configured for a type the issuer does not know
     expect(buildRequest(c.attestations.account!, { identifier: 'x' }).authorization_details[0]!.credential_configuration_id).toBe('demo_bank_account');

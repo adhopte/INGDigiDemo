@@ -32,7 +32,7 @@ export interface AttestationConfig {
   /** Credential configuration id at the EXTERNAL issuer (SIGMA), when it differs. */
   externalConfigurationId: string | undefined;
   /** Identifiers (and their credential identifier) known to the external issuer's system of record. */
-  externalUsers: { identifier: string; credentialIdentifier: string | undefined; walletIdentifier: string | undefined; label: string }[];
+  externalUsers: { identifier: string; credentialIdentifier: string | undefined; walletIdentifier: string | undefined; configurationId: string | undefined; label: string }[];
   vct: string;
   /** Extra vct values the verifier accepts for this credential type. */
   acceptedVct: string[];
@@ -146,7 +146,7 @@ export function buildAttestations(raw: unknown, env: Env): Record<string, Attest
     out[key] = {
       key,
       credentialConfigurationId: env[`ATTESTATION_${upper(key)}_CONFIG_ID`] ?? str(a.credentialConfigurationId, `attestations.${key}.credentialConfigurationId`),
-      externalUsers: Array.isArray(a.externalUsers) ? a.externalUsers.map((u: any) => ({ identifier: str(u.identifier, `attestations.${key}.externalUsers[].identifier`), credentialIdentifier: typeof u.credentialIdentifier === 'string' ? u.credentialIdentifier : undefined, walletIdentifier: typeof u.walletIdentifier === 'string' ? u.walletIdentifier : undefined, label: typeof u.label === 'string' ? u.label : u.identifier })) : [],
+      externalUsers: Array.isArray(a.externalUsers) ? a.externalUsers.map((u: any) => ({ identifier: str(u.identifier, `attestations.${key}.externalUsers[].identifier`), credentialIdentifier: typeof u.credentialIdentifier === 'string' ? u.credentialIdentifier : undefined, walletIdentifier: typeof u.walletIdentifier === 'string' ? u.walletIdentifier : undefined, configurationId: typeof u.configurationId === 'string' ? u.configurationId : undefined, label: typeof u.label === 'string' ? u.label : u.identifier })) : [],
       externalConfigurationId: env[`ATTESTATION_${upper(key)}_EXTERNAL_CONFIG_ID`] ?? (typeof a.externalConfigurationId === 'string' ? a.externalConfigurationId : undefined),
       vct,
       acceptedVct: env[`ATTESTATION_${upper(key)}_ACCEPTED_VCT`] ? env[`ATTESTATION_${upper(key)}_ACCEPTED_VCT`]!.split(',').map((x) => x.trim()).filter(Boolean) : [...new Set([vct, ...strList(a.acceptedVct)])],

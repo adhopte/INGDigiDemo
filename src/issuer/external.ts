@@ -30,6 +30,8 @@ export interface ExternalOfferOptions {
   identifier?: string;
   credentialIdentifier?: string;
   walletIdentifier?: string;
+  /** Use this credential configuration of the external issuer instead of the attestation's default (e.g. the IdP-login PID). */
+  configurationId?: string;
 }
 
 let cachedToken: { value: string; exp: number } | undefined;
@@ -68,7 +70,7 @@ export function buildRequest(attestation: AttestationConfig, opts: ExternalOffer
     authorization_details: [
       {
         type: 'openid_credential',
-        credential_configuration_id: attestation.externalConfigurationId ?? attestation.credentialConfigurationId,
+        credential_configuration_id: opts.configurationId ?? user?.configurationId ?? attestation.externalConfigurationId ?? attestation.credentialConfigurationId,
         ...(credentialIdentifier ? { credential_identifiers: [credentialIdentifier] } : {}),
       },
     ],
