@@ -47,6 +47,8 @@ export interface RpConfig {
   id: string;
   displayName: string;
   themeColor: string;
+  /** Registration certificate (JWT) of this RP (RP_<ID>_REGISTRATION_CERT or "registrationCertificate" in rps.json). */
+  registrationCert?: string | undefined;
   presentations: Record<string, PresentationConfig>;
   /** Keys into AppConfig.attestations that this RP can issue. */
   attestations: string[];
@@ -87,6 +89,8 @@ export interface VerifierConfig {
   trustedCaPem: string[];
   /** DEMO ONLY: accept credentials from any issuer (signature still checked against the credential's own key/certificate). */
   trustAnyIssuer: boolean;
+  /** Registration certificate (JWT) sent as `verifier_info` for RPs without their own (VP_REGISTRATION_CERT). Needs signed requests (x509 client id schemes). */
+  registrationCert: string | undefined;
   /** Verifier identity (secrets, env only). When absent a self-signed demo identity is generated at startup. */
   signingKeyJwk: string | undefined;
   certChainPem: string | undefined;
@@ -202,6 +206,7 @@ export function buildRpConfigs(raw: unknown, attestations: Record<string, Attest
       id,
       displayName: str(e.displayName, `${where}.displayName`),
       themeColor,
+      registrationCert: env[`${P}_REGISTRATION_CERT`] || (typeof e.registrationCertificate === 'string' ? e.registrationCertificate : undefined),
       presentations,
       attestations: atts,
     };
@@ -250,6 +255,7 @@ export function loadConfig(
     trustedIssuers: (env.TRUSTED_ISSUERS ?? '').split(',').map((x) => x.trim().replace(/\/+$/, '')).filter(Boolean),
     trustedCaPem: pems(env.TRUSTED_CA_PEM),
     trustAnyIssuer: parseBool(env.TRUST_ANY_ISSUER, false),
+    registrationCert: env.VP_REGISTRATION_CERT || undefined,
     signingKeyJwk: env.VERIFIER_SIGNING_KEY_JWK || undefined,
     certChainPem: env.VERIFIER_CERT_CHAIN_PEM ? env.VERIFIER_CERT_CHAIN_PEM.replace(/\\n/g, '\n') : undefined,
   };

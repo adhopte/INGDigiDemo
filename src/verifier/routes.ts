@@ -30,7 +30,11 @@ export function vpRouter(verifier: Verifier, diagnosticsEnabled = false): Router
     const leafDer = id.x5c[0] ? Buffer.from(id.x5c[0], 'base64') : undefined;
     const cert = leafDer ? new X509Certificate(leafDer) : undefined;
     const pemOf = (b64: string) => `-----BEGIN CERTIFICATE-----\n${b64.match(/.{1,64}/g)?.join('\n')}\n-----END CERTIFICATE-----\n`;
+    // what the wallet will be told about each RP (registration certificate in `verifier_info`)
+    const orgId = /(?:organizationIdentifier|2\.5\.4\.97)=([^,+\n]+)/i.exec(cert?.subject ?? '')?.[1]?.trim();
+    const registration = verifier.registrationReport(orgId);
     res.json({
+      registration_certificates: registration,
       client_id_scheme: verifier.byValue ? 'redirect_uri' : id.clientId.split(':')[0],
       client_id: verifier.byValue ? 'redirect_uri:<response_uri of each request>' : id.clientId,
       x509_hash_client_id: leafDer ? `x509_hash:${createHash('sha256').update(leafDer).digest('base64url')}` : undefined,

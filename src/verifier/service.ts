@@ -7,6 +7,7 @@ import { SdJwtError, verifySdJwtPresentation, type Claims, type IssuerKeyResolve
 import type { VerifierIdentity } from './identity.js';
 import { buildDcql, buildPresentationDefinition, requestedCredentials, type RequestedCredential } from './query.js';
 import { canonicalizeClaims } from './claims.js';
+import { parseRegistrationCert, verifierInfo } from './registration.js';
 import { createMdocChainValidator, TrustError } from './trust.js';
 
 const TX_TTL_MS = 10 * 60 * 1000;
@@ -133,6 +134,30 @@ export class Verifier {
     });
   }
 
+  /** The registration certificate configured for an RP (its own, else the global one); undefined when none or unreadable. */
+  registrationFor(rpId: string) {
+    const raw = this.cfg.rps.find((r) => r.id === rpId)?.registrationCert ?? this.cfg.verifier.registrationCert;
+    const parsed = parseRegistrationCert(raw, this.now());
+    return parsed?.ok ? parsed : undefined;
+  }
+
+  /** Per RP: what the wallet will be told through `verifier_info`, for /vp/verifier. `accessCertOrgId` = organizationIdentifier of the request-signing certificate. */
+  registrationReport(accessCertOrgId?: string): Record<string, unknown> {
+    return Object.fromEntries(this.cfg.rps.map((rp) => {
+      const parsed = parseRegistrationCert(rp.registrationCert ?? this.cfg.verifier.registrationCert, this.now());
+      if (!parsed) return [rp.id, { configured: false }];
+      if (!parsed.ok) return [rp.id, { configured: true, readable: false, error: parsed.error, sent: false }];
+      const sent = !this.byValue;
+      return [rp.id, {
+        configured: true, readable: true, sent,
+        ...(sent ? {} : { not_sent_because: 'requests are passed by value (client_id scheme redirect_uri): the certificate is too large for a QR code and a wallet only trusts it next to an X.509 access certificate. Switch VP_CLIENT_ID_SCHEME to x509_hash or x509_san_dns.' }),
+        name: parsed.info.name, purpose: parsed.info.purposes, subject: parsed.info.subject, type: parsed.info.type, issued_at: parsed.info.issuedAt, expires_at: parsed.info.expiresAt, expired: parsed.info.expired, size_bytes: parsed.info.sizeBytes,
+        matches_access_certificate: accessCertOrgId && parsed.info.subject ? accessCertOrgId === parsed.info.subject : undefined,
+        warnings: parsed.warnings,
+      }];
+    }));
+  }
+
   /** True when requests are passed by value, unsigned (client_id scheme redirect_uri). */
   get byValue(): boolean {
     return this.cfg.verifier.clientIdScheme === 'redirect_uri';
@@ -190,6 +215,9 @@ export class Verifier {
       state: tx.state,
       client_metadata: clientMetadata,
     };
+    const reg = this.registrationFor(tx.rpId);
+    // Too big for a QR code / unsigned link, and a wallet only trusts it next to an X.509 access certificate: signed requests only.
+    if (reg && !this.byValue) params.verifier_info = verifierInfo(reg.jwt);
     if (v.queryLanguage === 'pex') params.presentation_definition = buildPresentationDefinition(tx.reqs, tx.id);
     else params.dcql_query = buildDcql(tx.reqs, compact);
     if (walletNonce) params.wallet_nonce = walletNonce;

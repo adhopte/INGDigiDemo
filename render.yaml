@@ -65,6 +65,10 @@ services:
         sync: false
       - key: TRUSTED_CA_PEM          # PEM trust anchor(s) for credentials carrying an x5c chain (use \n for newlines)
         sync: false
+      - key: VP_REGISTRATION_CERT        # registration certificate (JWT, rc-wrp+jwt) shown by the wallet as the RP's name/purpose. Signed requests only (x509 scheme)
+        sync: false
+      - key: RP_BANK_REGISTRATION_CERT   # per-RP override (also RP_ESHOP_…, RP_UNIVERSITY_…, RP_ELECTRICITY_…); else VP_REGISTRATION_CERT is used
+        sync: false
       - key: VERIFIER_SIGNING_KEY_JWK    # SECRET: private ES256 JWK of the verifier certificate (npm run keygen)
         sync: false
       - key: VERIFIER_CERT_CHAIN_PEM     # certificate chain for that key, SAN dNSName = this host (use \n for newlines)
