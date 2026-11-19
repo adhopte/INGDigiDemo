@@ -57,6 +57,45 @@ describe('SIGMA issuer catalogue vs. what the RPs request', () => {
   });
 });
 
+describe('wallet compatibility check (probe ladder)', () => {
+  it('each probe requests exactly one credential type, one claim', async () => {
+    const cfg = testConfig({ MOCK_MODE: 'false' });
+    const svc = await createServices(cfg);
+    const bank = cfg.rps.find((r) => r.id === 'bank')!;
+    const q = async (k: string) => (svc.verifier.requestParams(await svc.verifier.createTransaction(bank, k, '/')) as any).dcql_query;
+    const mdoc = await q('probe_pid_mdoc');
+    expect(mdoc.credentials).toHaveLength(1);
+    expect(mdoc.credentials[0]).toMatchObject({ format: 'mso_mdoc', meta: { doctype_value: 'eu.europa.ec.eudi.pid.1' }, claims: [{ path: ['eu.europa.ec.eudi.pid.1', 'family_name'] }] });
+    for (const [k, vct] of [['probe_pid_sd_benin', 'https://credentials.benin.example/pid'], ['probe_pid_sd_urn', 'urn:eudi:pid:1'], ['probe_pid_sd_eu', 'urn:eu.europa.ec.eudi:pid:1'], ['probe_bc_sd', 'urn:eudi:birth_certificate:1']] as const) {
+      const d = await q(k);
+      expect(d.credentials, k).toHaveLength(1);
+      expect(d.credentials[0], k).toMatchObject({ format: 'dc+sd-jwt', meta: { vct_values: [vct] }, claims: [{ path: ['family_name'] }] });
+    }
+  });
+
+  it('page lists the probes; an answered probe is verified, recorded and shown as done', async () => {
+    const { addDemoCredential, buildVpToken, respondToVerifier } = await import('../src/mock/wallet.js');
+    const cfg = testConfig({ MOCK_MODE: 'true' });
+    const svc = await createServices(cfg);
+    const app = createApp(cfg, svc);
+    const a = request.agent(app);
+    const page = (await a.get('/wallet-check')).text;
+    for (const label of ['PID as mdoc', 'PID as SD-JWT, Benin rulebook type', 'Birth certificate as SD-JWT']) expect(page).toContain(label);
+    const loc = (await a.get('/bank/verify?p=probe_pid_sd_benin')).headers.location!;
+    const id = loc.split('/').pop()!;
+    const tx = svc.verifier.get(id)!;
+    const session: Record<string, any> = {};
+    await addDemoCredential(svc.local, cfg, session, 'pid', 'fr');
+    await respondToVerifier(svc.verifier, tx, { vp_token: await buildVpToken(session, tx, svc.verifier) });
+    expect(tx.result!.byType.pid).toEqual({ family_name: 'Demo' });
+    const fin = await a.get(`/bank/verify/finish/${id}?response_code=${tx.responseCode}`);
+    expect(fin.headers.location).toBe('/wallet-check');
+    expect((await a.get('/wallet-check')).text).toContain('answered by the wallet');
+    // a probe never creates a bank login
+    expect((await a.get('/bank/account')).headers.location).toBe('/bank/login');
+  });
+});
+
 describe('connecting the attestation issuer to the SIGMA URL', () => {
   const env = { ISSUER_MODE: 'external', ISSUER_API_BASE_URL: 'https://issuer.sigma.prep.smartid.nuagein.io', MOCK_MODE: 'true' };
 

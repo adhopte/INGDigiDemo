@@ -1,0 +1,24 @@
+<%- include('partials/head') %>
+<div class="wrap narrow">
+  <h1>Wallet compatibility check</h1>
+  <p class="lead">Which credential does your wallet hold? Each test asks for exactly one credential type, name only. Open this page on the phone with the wallet and tap <strong>Test</strong> for each row.</p>
+  <ul class="plain">
+    <li>If the wallet shows a <strong>share / consent screen</strong>, it holds that credential. Approve it: the row below turns ✔.</li>
+    <li>If it shows <code>NoMatchingDocumentsException</code>, it does not hold that credential.</li>
+  </ul>
+  <table class="table">
+    <caption class="sr-only">Credential probes</caption>
+    <thead><tr><th scope="col">Credential</th><th scope="col">Result</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead>
+    <tbody>
+    <% probes.forEach(function (p) { %>
+      <tr>
+        <td><strong><%= p.label %></strong><br><span class="note"><code class="break"><%= p.detail %></code></span></td>
+        <td><% if (p.done) { %><span class="ok-text">✔ answered by the wallet</span><br><span class="note">issuer: <%= p.done.issuer %></span><% } else { %>—<% } %></td>
+        <td><a class="btn btn-small" href="/bank/verify?p=<%= p.key %>">Test<span class="sr-only"> – <%= p.label %></span></a></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <p class="note">Technical page for integrators. Nothing is stored beyond your browser session.</p>
+</div>
+<%- include('partials/foot') %>

@@ -171,6 +171,93 @@
           "formats": [
             "mso_mdoc"
           ]
+        },
+        "probe_pid_mdoc": {
+          "types": [
+            "pid"
+          ],
+          "anyVct": true,
+          "formats": [
+            "mso_mdoc"
+          ],
+          "claims": [
+            "family_name"
+          ],
+          "minClaims": [
+            "family_name"
+          ]
+        },
+        "probe_pid_sd_benin": {
+          "types": [
+            "pid"
+          ],
+          "anyVct": true,
+          "formats": [
+            "dc+sd-jwt"
+          ],
+          "vctValues": [
+            "https://credentials.benin.example/pid"
+          ],
+          "claims": [
+            "family_name"
+          ],
+          "minClaims": [
+            "family_name"
+          ]
+        },
+        "probe_pid_sd_urn": {
+          "types": [
+            "pid"
+          ],
+          "anyVct": true,
+          "formats": [
+            "dc+sd-jwt"
+          ],
+          "vctValues": [
+            "urn:eudi:pid:1"
+          ],
+          "claims": [
+            "family_name"
+          ],
+          "minClaims": [
+            "family_name"
+          ]
+        },
+        "probe_pid_sd_eu": {
+          "types": [
+            "pid"
+          ],
+          "anyVct": true,
+          "formats": [
+            "dc+sd-jwt"
+          ],
+          "vctValues": [
+            "urn:eu.europa.ec.eudi:pid:1"
+          ],
+          "claims": [
+            "family_name"
+          ],
+          "minClaims": [
+            "family_name"
+          ]
+        },
+        "probe_bc_sd": {
+          "types": [
+            "birth_certificate"
+          ],
+          "anyVct": true,
+          "formats": [
+            "dc+sd-jwt"
+          ],
+          "vctValues": [
+            "urn:eudi:birth_certificate:1"
+          ],
+          "claims": [
+            "family_name"
+          ],
+          "minClaims": [
+            "family_name"
+          ]
         }
       },
       "attestations": [

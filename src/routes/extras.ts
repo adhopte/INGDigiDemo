@@ -17,6 +17,21 @@ export function extrasRouter(ctx: Ctx): Router {
 
   r.use((_req, res, next) => { res.locals.skin = 'dashboard'; res.locals.basePath = ''; next(); });
 
+  // Technical page: which credential does the wallet actually hold? One probe per credential type.
+  const PROBES = [
+    { key: 'probe_pid_mdoc', label: 'PID as mdoc', detail: 'docType eu.europa.ec.eudi.pid.1 (the SIGMA issuer’s PID)' },
+    { key: 'probe_pid_sd_benin', label: 'PID as SD-JWT, Benin rulebook type', detail: 'vct https://credentials.benin.example/pid' },
+    { key: 'probe_pid_sd_urn', label: 'PID as SD-JWT, ARF type', detail: 'vct urn:eudi:pid:1' },
+    { key: 'probe_pid_sd_eu', label: 'PID as SD-JWT, EUDI reference type', detail: 'vct urn:eu.europa.ec.eudi:pid:1' },
+    { key: 'probe_bc_sd', label: 'Birth certificate as SD-JWT', detail: 'vct urn:eudi:birth_certificate:1 (the SIGMA issuer’s birth certificate)' },
+  ];
+  r.get('/wallet-check', (req, res) => {
+    res.render('wallet-check', {
+      title: 'Wallet compatibility check',
+      probes: PROBES.map((p) => ({ ...p, done: req.session.probes?.[p.key] })),
+    });
+  });
+
   r.get('/demo-issuer', async (_req, res) => {
     const s = await svc.remote?.summary();
     res.render('issuer/console', { title: res.locals.t('issuer.console.title'), personas: PERSONAS, types: ['pid', 'birth_certificate'], sigma: s?.reachable ? s : undefined });

@@ -53,6 +53,11 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
         retryHref: `/${rp.id}/verify?p=${encodeURIComponent(tx.presentationKey)}&returnTo=${encodeURIComponent(tx.returnTo)}`,
       });
     }
+    if (tx.presentationKey.startsWith('probe_') && tx.result) {
+      tx.consumed = true;
+      req.session.probes = { ...req.session.probes, [tx.presentationKey]: { at: new Date().toISOString(), issuer: tx.result.issuers[0] ?? '' } };
+      return void res.redirect('/wallet-check');
+    }
     if (!tx.consumed && tx.result) {
       tx.consumed = true;
       req.session.disclosed = {

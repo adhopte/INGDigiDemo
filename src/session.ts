@@ -38,5 +38,7 @@ declare module 'express-session' {
     order?: Order;
     enrolment?: Enrolment;
     flash?: string;
+    /** Wallet-check probes that were answered and verified in this session. */
+    probes?: Record<string, { at: string; issuer: string }>;
   }
 }
