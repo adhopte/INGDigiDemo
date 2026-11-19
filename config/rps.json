@@ -50,12 +50,6 @@
       "externalConfigurationId": "eu.europa.ec.eudi.pid_mdoc",
       "externalUsers": [
         {
-          "identifier": "xyz-198772",
-          "walletIdentifier": "w-001",
-          "configurationId": "eu.europa.ec.eudi.pid_mdoc_emrtd",
-          "label": "PID via IdP login (eMRTD) – the wallet signs in at the issuer's identity provider"
-        },
-        {
           "identifier": "user-001",
           "credentialIdentifier": "credential_id_1",
           "label": "Sample user 001 – stored record (pre-authorised, needs a record at the issuer)"
