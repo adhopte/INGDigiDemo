@@ -31,8 +31,7 @@ services:
         generateValue: true          # random, kept by Render
 
       # ---- demo modes ----
-      # false = real EU Wallet only. (true adds the simulated wallet, but by-value requests then ask for SD-JWT only, while the
-      # SIGMA PID is an mdoc: use true only to demo without a wallet.)
+      # false = real EU Wallet only; true adds the simulated wallet (by-value requests then offer the mdoc PID and SD-JWT, a larger QR).
       - key: MOCK_MODE
         value: "false"
       - key: MULTI_CREDENTIAL        # university: true = one PID+BC request, false = two requests in a row

@@ -79,8 +79,8 @@ describe('redirect_uri client identifier (unsigned, by value)', () => {
       expect(link.searchParams.get('client_id')).toBe(svc.verifier.clientIdFor(tx));
       expect(link.searchParams.get('response_uri')).toBe(svc.verifier.responseUri(tx));
       expect(link.searchParams.get('request_uri')).toBeNull();
-      expect(JSON.parse(link.searchParams.get('dcql_query')!).credentials[0].format).toBe('dc+sd-jwt');
-      expect(svc.verifier.walletLink(tx).length).toBeLessThan(2300); // fits a QR code (error correction M)
+      expect(JSON.parse(link.searchParams.get('dcql_query')!).credentials.map((c: any) => c.format)).toEqual(['mso_mdoc', 'dc+sd-jwt']); // mdoc preferred, SD-JWT for the simulated wallet
+      expect(svc.verifier.walletLink(tx).length).toBeLessThan(2400); // both formats: still fits a QR code (the phone-camera QR / button are the easy paths)
       expect((await request(app).get(`/vp/request/${tx.id}`)).status).toBe(404); // nothing to fetch: not signed, by value
       const vp = await presentSdJwt({ credential: r.credRes!.body.credential, reveal: ['given_name', 'family_name', 'birth_date'], holderPrivateKey: r.privateKey!, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
       const body = { vp_token: JSON.stringify({ pid: [vp] }), state: tx.state };
@@ -149,7 +149,7 @@ describe('QR fallback for long links', () => {
 
 describe('phone-camera hand-off and QR scannability', () => {
   it('by-value link stays well under the dense-QR range; /verify/open/:id is public and shows the wallet button', async () => {
-    const { app, svc, cfg } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    const { app, svc, cfg } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_BY_VALUE_FORMATS: 'mso_mdoc' });
     for (const [rp, p] of [['bank', 'pid'], ['electricity', 'pid'], ['university', 'pid'], ['university', 'bc'], ['eshop', 'payment']] as const) {
       const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, p, '/');
       expect(svc.verifier.walletLink(tx).length, `${rp}/${p}`).toBeLessThan(1500);

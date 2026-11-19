@@ -49,7 +49,7 @@ describe('SIGMA issuer catalogue vs. what the RPs request', () => {
     expect(q.credentials.find((c: any) => c.id === 'birth_certificate').meta.vct_values).toContain('urn:eudi:birth_certificate:1');
     // live by-value mode (QR): PID mdoc only; the simulated wallet (mock) keeps SD-JWT
     expect(cfg.verifier.byValueFormats).toEqual(['mso_mdoc']);
-    expect(testConfig({ MOCK_MODE: 'true' }).verifier.byValueFormats).toEqual(['dc+sd-jwt']);
+    expect(testConfig({ MOCK_MODE: 'true' }).verifier.byValueFormats).toEqual(['mso_mdoc', 'dc+sd-jwt']); // mock: real wallets still get the mdoc PID, the simulated wallet its SD-JWT
     const bv = await createServices(testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' }));
     const link = new URL(bv.verifier.walletLink(await bv.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/')));
     expect(JSON.parse(link.searchParams.get('dcql_query')!).credentials.map((c: any) => c.format)).toEqual(['mso_mdoc']);

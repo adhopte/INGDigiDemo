@@ -226,8 +226,8 @@ export function loadConfig(
     // HAIP wallets require an encrypted response, so direct_post.jwt is the default.
     responseMode: env.VP_RESPONSE_MODE === 'direct_post' ? 'direct_post' : 'direct_post.jwt',
     queryLanguage: env.VP_QUERY_LANGUAGE === 'pex' ? 'pex' : 'dcql',
-    // by-value requests must fit a QR code: real wallets hold the SIGMA PID as mdoc, the simulated wallet only SD-JWT
-    byValueFormats: (env.VP_BY_VALUE_FORMATS ?? (mockMode ? 'dc+sd-jwt' : 'mso_mdoc')).split(',').map((x) => x.trim()).filter(Boolean),
+    // by-value requests must fit a QR code: real wallets hold the SIGMA PID as mdoc; with the simulated wallet (SD-JWT only) offer both
+    byValueFormats: (env.VP_BY_VALUE_FORMATS ?? (mockMode ? 'mso_mdoc,dc+sd-jwt' : 'mso_mdoc')).split(',').map((x) => x.trim()).filter(Boolean),
     deeplinkBase: env.VP_DEEPLINK_BASE || 'openid4vp://authorize',
     trustedIssuers: (env.TRUSTED_ISSUERS ?? '').split(',').map((x) => x.trim().replace(/\/+$/, '')).filter(Boolean),
     trustedCaPem: pems(env.TRUSTED_CA_PEM),
