@@ -67,8 +67,8 @@ services:
         sync: false
       - key: VP_REGISTRATION_CERT        # registration certificate (JWT, rc-wrp+jwt) shown by the wallet as the RP's name/purpose. Default: config/registration-cert.jwt (test certificate); "none" = off. Signed requests only (x509 scheme)
         sync: false
-      - key: VP_REGISTRATION_BY_VALUE    # unsigned links: button (only the Open-in-wallet button carries the certificate; default) | all (no QR code possible) | off
-        value: button
+      - key: VP_REGISTRATION_LINKS    # unsigned links: button (only the Open-in-wallet button carries the certificate; default) | all (no QR code possible) | off
+        sync: false
       - key: RP_BANK_REGISTRATION_CERT   # per-RP override (also RP_ESHOP_…, RP_UNIVERSITY_…, RP_ELECTRICITY_…); else VP_REGISTRATION_CERT is used
         sync: false
       - key: VERIFIER_SIGNING_KEY_JWK    # SECRET: private ES256 JWK of the verifier certificate (npm run keygen)

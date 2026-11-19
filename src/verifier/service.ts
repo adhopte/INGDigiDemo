@@ -152,7 +152,7 @@ export class Verifier {
       return [rp.id, {
         configured: true, readable: true, sent,
         sent_in: !this.byValue ? 'signed request object' : mode === 'all' ? 'every wallet link (no QR code possible)' : mode === 'button' ? 'the Open-in-wallet button only (QR code stays small)' : 'nowhere',
-        ...(sent ? {} : { not_sent_because: 'requests are passed by value (client_id scheme redirect_uri): the certificate is too large for a QR code and a wallet only trusts it next to an X.509 access certificate. Switch VP_CLIENT_ID_SCHEME to x509_hash or x509_san_dns, or set VP_REGISTRATION_BY_VALUE to button / all.' }),
+        ...(sent ? {} : { not_sent_because: 'requests are passed by value (client_id scheme redirect_uri): the certificate is too large for a QR code and a wallet only trusts it next to an X.509 access certificate. Switch VP_CLIENT_ID_SCHEME to x509_hash or x509_san_dns, or set VP_REGISTRATION_LINKS to button / all.' }),
         name: parsed.info.name, purpose: parsed.info.purposes, subject: parsed.info.subject, type: parsed.info.type, issued_at: parsed.info.issuedAt, expires_at: parsed.info.expiresAt, expired: parsed.info.expired, size_bytes: parsed.info.sizeBytes,
         matches_access_certificate: accessCertOrgId && parsed.info.subject ? accessCertOrgId === parsed.info.subject : undefined,
         warnings: parsed.warnings,

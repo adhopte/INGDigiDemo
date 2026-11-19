@@ -60,7 +60,7 @@ describe('registration certificate (verifier_info)', () => {
     expect(rep.bank).toMatchObject({ configured: true, readable: true, sent: true, name: 'Demo Bank (IN Groupe)', subject: 'LEIXG-TESTBANK0000000001', purpose: ['Know-your-customer check'] });
     expect(rep.eshop).toMatchObject({ configured: true, readable: false, sent: false });
     expect(JSON.stringify(rep)).not.toContain(jwt);
-    const byValue = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_REGISTRATION_CERT: jwt, VP_REGISTRATION_BY_VALUE: 'off' });
+    const byValue = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_REGISTRATION_CERT: jwt, VP_REGISTRATION_LINKS: 'off' });
     const rep2 = (await request(createApp(byValue, await createServices(byValue))).get('/vp/verifier')).body.registration_certificates;
     expect(rep2.bank).toMatchObject({ sent: false, not_sent_because: expect.stringContaining('x509_hash') });
     const none = testConfig({ VP_REGISTRATION_CERT: 'none' });
@@ -83,9 +83,9 @@ describe('registration certificate (verifier_info)', () => {
     expect(testConfig({ VP_REGISTRATION_CERT: 'none' }).verifier.registrationCert).toBeUndefined();
   });
 
-  it('VP_REGISTRATION_BY_VALUE=all puts it in every unsigned link (far too big for a QR code)', async () => {
+  it('VP_REGISTRATION_LINKS=all puts it in every unsigned link (far too big for a QR code)', async () => {
     const { qrDataUrlOrUndefined } = await import('../src/issuer/offer.js');
-    const cfg = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_REGISTRATION_BY_VALUE: 'all' });
+    const cfg = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_REGISTRATION_LINKS: 'all' });
     const svc = await createServices(cfg);
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
     const link = svc.verifier.walletLink(tx);
@@ -108,8 +108,8 @@ describe('registration certificate (verifier_info)', () => {
     expect(qr.length).toBeLessThan(1700);
     expect(await qrDataUrlOrUndefined(qr)).toBeDefined();
     expect(svc.verifier.registrationReport().bank).toMatchObject({ sent: true, sent_in: 'the Open-in-wallet button only (QR code stays small)' });
-    expect(testConfig({ VP_REGISTRATION_BY_VALUE: 'off' }).verifier.registrationByValue).toBe('off');
-    const off = await createServices(testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_REGISTRATION_BY_VALUE: 'off' }));
+    expect(testConfig({ VP_REGISTRATION_LINKS: 'off' }).verifier.registrationByValue).toBe('off');
+    const off = await createServices(testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_REGISTRATION_LINKS: 'off' }));
     const t2 = await off.verifier.createTransaction(testConfig().rps.find((r) => r.id === 'bank')!, 'pid', '/');
     expect(off.verifier.walletLink(t2, true)).not.toContain('verifier_info');
   });

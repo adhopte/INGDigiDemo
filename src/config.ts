@@ -268,7 +268,7 @@ export function loadConfig(
     // default: config/registration-cert.jwt (the test registration certificate); VP_REGISTRATION_CERT overrides it, "none" turns it off
     registrationCert: env.VP_REGISTRATION_CERT === 'none' ? undefined : env.VP_REGISTRATION_CERT || defaultRegistrationCert(),
     // Unsigned by-value links (redirect_uri scheme): off | button (only the "Open in wallet" button of the page, the QR code stays small) | all (every link: ~15 KB, no QR code).
-    registrationByValue: ((v) => (v === 'all' || v === 'true' ? 'all' : v === 'off' || v === 'false' ? 'off' : 'button'))((env.VP_REGISTRATION_BY_VALUE ?? '').toLowerCase()),
+    registrationByValue: ((v) => (v === 'all' || v === 'true' ? 'all' : v === 'off' || v === 'false' ? 'off' : 'button'))((env.VP_REGISTRATION_LINKS ?? '').toLowerCase()),
     signingKeyJwk: env.VERIFIER_SIGNING_KEY_JWK || undefined,
     certChainPem: env.VERIFIER_CERT_CHAIN_PEM ? env.VERIFIER_CERT_CHAIN_PEM.replace(/\\n/g, '\n') : undefined,
   };
