@@ -209,9 +209,8 @@ export class Verifier {
       // unsigned, by value (redirect_uri scheme)
       for (const [k, val] of Object.entries(this.requestParams(tx, undefined, true))) if (k !== 'client_id') q.set(k, typeof val === 'string' ? val : JSON.stringify(val));
     }
-    // Shorter than URLSearchParams: ':' '/' ',' are legal in a query string and need no escaping (a leaner link = a QR code a wallet can scan).
-    const lean = (v: string) => encodeURIComponent(v).replace(/%3A/gi, ':').replace(/%2F/gi, '/').replace(/%2C/gi, ',');
-    return `${base}?${[...q.entries()].map(([k, v]) => `${k}=${lean(v)}`).join('&')}`;
+    // Standard percent-encoding: this is the form the wallet's own QR scanner reads (the "lean" variant that left ':' '/' ',' readable did not scan).
+    return `${base}?${q.toString()}`;
   }
 
   private audiences(tx: Transaction): string[] {

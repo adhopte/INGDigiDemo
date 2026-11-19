@@ -34,13 +34,12 @@ export function extrasRouter(ctx: Ctx): Router {
     const bank = cfg.rps.find((x) => x.id === 'bank');
     if (!bank) return void res.redirect('/');
     const mk = async () => svc.verifier.walletLink(await svc.verifier.createTransaction(bank, 'pid', '/'));
-    const lean = await mk();
-    const fresh = await mk();
-    const full = (() => { const u = new URL(fresh); return `${u.protocol}//${u.host}?${u.searchParams.toString()}`; })(); // its own request: A is spent once the wallet answered it
+    const full = await mk(); // standard encoding: what the verification pages use
+    const lean = (() => { const u = new URL(full); return `${u.protocol}//${u.host}?${[...u.searchParams.entries()].map(([k, v]) => `${k}=${encodeURIComponent(v).replace(/%3A/gi, ':').replace(/%2F/gi, '/').replace(/%2C/gi, ',')}`).join('&')}`; })();
     const variants = [
-      { key: 'A', title: 'Current link (":" "/" "," left readable)', link: lean },
-      { key: 'B', title: 'Fully percent-encoded (standard form-encoding)', link: full },
-      { key: 'C', title: 'Same as A, wallet-specific scheme haip-vp://', link: (await mk()).replace(/^[a-z0-9+.-]+:\/\/authorize/i, 'haip-vp://authorize') },
+      { key: 'A', title: 'Lean encoding (":" "/" "," left readable; not used)', link: lean },
+      { key: 'B', title: 'Standard percent-encoding (used by the verification pages)', link: full },
+      { key: 'C', title: 'Same as B, wallet-specific scheme haip-vp://', link: full.replace(/^[a-z0-9+.-]+:\/\/authorize/i, 'haip-vp://authorize') },
       { key: 'D', title: 'Minimal link, scheme only (tiny QR; is the scheme accepted at all?)', link: 'openid4vp://authorize?client_id=qr-test' },
     ];
     res.render('qr-test', { title: 'QR scan test', variants: await Promise.all(variants.map(async (v) => ({ ...v, length: v.link.length, qr: await qrDataUrlOrUndefined(v.link) }))) });

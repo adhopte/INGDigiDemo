@@ -152,7 +152,7 @@ describe('phone-camera hand-off and QR scannability', () => {
     const { app, svc, cfg } = await boot({ VP_CLIENT_ID_SCHEME: 'redirect_uri', VP_BY_VALUE_FORMATS: 'mso_mdoc' });
     for (const [rp, p] of [['bank', 'pid'], ['electricity', 'pid'], ['university', 'pid'], ['university', 'bc'], ['eshop', 'payment']] as const) {
       const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, p, '/');
-      expect(svc.verifier.walletLink(tx).length, `${rp}/${p}`).toBeLessThan(1500);
+      expect(svc.verifier.walletLink(tx).length, `${rp}/${p}`).toBeLessThan(1700);
     }
     const a = request.agent(app);
     const loc = (await a.get('/bank/verify?p=pid&returnTo=/bank/kyc')).headers.location!;
@@ -351,7 +351,7 @@ describe('RP flows in the browser session', () => {
     expect(start.status).toBe(302);
     const verify = await a.get(start.headers.location!);
     expect(verify.status).toBe(200);
-    expect(verify.text).toContain('openid4vp://authorize?client_id=x509_hash:');
+    expect(verify.text).toContain('openid4vp://authorize?client_id=x509_hash%3A');
     expect(verify.text).toContain('data:image/svg+xml;base64');
     expect(verify.text).toContain('alt="QR code for the wallet presentation request');
     const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(start.headers.location!)![1]!;
