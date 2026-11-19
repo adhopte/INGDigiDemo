@@ -51,7 +51,7 @@ export class VpError extends Error {
 
 export interface DiagnosticEvent {
   t: string;
-  event: 'wallet_fetched_request' | 'response_rejected' | 'response_accepted';
+  event: 'wallet_fetched_request' | 'response_rejected' | 'response_accepted' | 'issuer_request';
   rp?: string;
   presentation?: string;
   [k: string]: unknown;

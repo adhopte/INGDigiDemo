@@ -51,7 +51,7 @@ export function createApp(cfg: AppConfig, svc: Services) {
 
   // Wallet-facing protocol endpoints: no browser session, no i18n.
   app.use('/vp', vpRouter(svc.verifier, cfg.diagnostics));
-  const issuer = issuerRouters(svc.local);
+  const issuer = issuerRouters(svc.local, cfg.diagnostics ? (e) => svc.verifier.record(e as { event: 'issuer_request' }) : undefined);
   app.use(issuer.wellKnown);
   app.use('/issuer', issuer.main);
 

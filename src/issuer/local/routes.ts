@@ -4,7 +4,7 @@ import { IssuerError, type LocalIssuer } from './service.js';
 const noStore = (res: Response) => res.set('Cache-Control', 'no-store');
 
 /** OpenID4VCI endpoints. `main` is mounted at /issuer, `wellKnown` at the site root. */
-export function issuerRouters(issuer: LocalIssuer): { main: Router; wellKnown: Router } {
+export function issuerRouters(issuer: LocalIssuer, log?: (e: Record<string, unknown>) => void): { main: Router; wellKnown: Router } {
   const main = Router();
   const wellKnown = Router();
 
@@ -13,6 +13,19 @@ export function issuerRouters(issuer: LocalIssuer): { main: Router; wellKnown: R
     if (req.method === 'OPTIONS') return void res.sendStatus(204);
     next();
   });
+  // Diagnostics: which OpenID4VCI calls the wallet really makes, and how each ended (no tokens, no claim values).
+  if (log) {
+    main.use((req: Request, res: Response, next: NextFunction) => {
+      const h = req.headers;
+      res.on('finish', () => log({
+        event: 'issuer_request', method: req.method, path: req.path, status: res.statusCode,
+        userAgent: String(h['user-agent'] ?? '').slice(0, 120),
+        headers: ['authorization', 'dpop', 'oauth-client-attestation', 'oauth-client-attestation-pop', 'content-type'].filter((k) => h[k]),
+        errorCode: res.locals.issuerError,
+      }));
+      next();
+    });
+  }
   main.use(express.json({ limit: '64kb' }));
   main.use(express.urlencoded({ extended: false, limit: '64kb' })); // the token endpoint is application/x-www-form-urlencoded (RFC 6749)
 
@@ -21,6 +34,7 @@ export function issuerRouters(issuer: LocalIssuer): { main: Router; wellKnown: R
       await fn(req, res);
     } catch (e) {
       if (e instanceof IssuerError) {
+        res.locals.issuerError = `${e.error}: ${e.message}`.slice(0, 200);
         noStore(res).status(e.status).json({ error: e.error, error_description: e.message, ...e.extra });
         return;
       }
