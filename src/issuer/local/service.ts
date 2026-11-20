@@ -46,6 +46,7 @@ interface TokenRecord {
 /** DPoP proof algorithms accepted (and advertised): the same set the SIGMA issuer lists. */
 export const DPOP_ALGS = ['ES256', 'RS256', 'RS384', 'RS512'];
 const DPOP_WINDOW_S = 300;
+const PROOF_TYPE = { proof_signing_alg_values_supported: ['ES256'], key_attestations_required: { key_storage: ['iso_18045_basic'], user_authentication: ['iso_18045_basic'] } };
 
 export interface CreatedOffer {
   id: string;
@@ -201,7 +202,7 @@ export class LocalIssuer {
 
   async issueCredential(
     accessToken: string | undefined,
-    body: { proof?: { proof_type?: string; jwt?: string }; proofs?: { jwt?: string[] }; credential_configuration_id?: string; vct?: string },
+    body: { proof?: { proof_type?: string; jwt?: string; attestation?: string }; proofs?: { jwt?: string[]; attestation?: string[] }; credential_configuration_id?: string; vct?: string },
     auth: { scheme?: string; dpop?: string } = {},
   ) {
     this.sweep();
@@ -218,9 +219,10 @@ export class LocalIssuer {
     if (!wanted && body.vct && body.vct !== grant.attestation.vct) throw new IssuerError(400, 'unsupported_credential_type', 'vct does not match the offer');
 
     const proofJwt = body.proofs?.jwt?.[0] ?? (body.proof?.proof_type === 'jwt' ? body.proof.jwt : undefined);
-    if (!proofJwt) throw new IssuerError(400, 'invalid_proof', 'A jwt proof of possession is required', { c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 });
+    const attestationProof = body.proofs?.attestation?.[0] ?? (body.proof?.proof_type === 'attestation' ? body.proof.attestation : undefined);
+    if (!proofJwt && !attestationProof) throw new IssuerError(400, 'invalid_proof', 'A jwt or attestation proof is required', { c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 });
 
-    const holderJwk = await this.verifyProof(proofJwt);
+    const holderJwk = proofJwt ? await this.verifyProof(proofJwt) : await this.verifyAttestationProof(attestationProof!);
     this.tokens.delete(accessToken!); // one credential per offer
 
     const credential = await issueSdJwt({
@@ -250,7 +252,7 @@ export class LocalIssuer {
     let attested: JWK[] | undefined;
     if (header.key_attestation !== undefined) {
       if (typeof header.key_attestation !== 'string') throw fail('key_attestation must be a JWT string');
-      attested = await this.readKeyAttestation(header.key_attestation, fail);
+      attested = (await this.readKeyAttestation(header.key_attestation, fail)).keys;
     }
 
     let jwk = header.jwk as JWK | undefined;
@@ -270,8 +272,22 @@ export class LocalIssuer {
     return { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y } as JWK;
   }
 
+  /**
+   * Proof type `attestation` (OpenID4VCI 1.0 §8.2.1.3): the proof IS a key attestation JWT whose `nonce` is a c_nonce of this issuer.
+   * The credential is bound to the first attested key. Same trust note as above: the wallet provider's chain is not evaluated.
+   */
+  private async verifyAttestationProof(att: string): Promise<JWK> {
+    const fail = (d: string) => new IssuerError(400, 'invalid_proof', d, { c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 });
+    const { keys, nonce } = await this.readKeyAttestation(att, fail);
+    const exp = nonce ? this.nonces.get(nonce) : undefined;
+    if (!nonce || !exp || exp < this.now()) throw fail('The attestation proof needs a nonce claim holding a current c_nonce of this issuer');
+    this.nonces.delete(nonce);
+    const k = keys[0]!;
+    return { kty: k.kty, crv: k.crv, x: k.x, y: k.y } as JWK;
+  }
+
   /** The attested public keys of a key attestation JWT; throws invalid_proof when it is malformed, expired or its signature does not verify. */
-  private async readKeyAttestation(att: string, fail: (d: string) => IssuerError): Promise<JWK[]> {
+  private async readKeyAttestation(att: string, fail: (d: string) => IssuerError): Promise<{ keys: JWK[]; nonce: string | undefined }> {
     let h;
     let p;
     try {
@@ -292,7 +308,7 @@ export class LocalIssuer {
         throw fail('key_attestation signature does not verify against its own certificate');
       }
     }
-    return keys as JWK[];
+    return { keys: keys as JWK[], nonce: typeof p.nonce === 'string' ? p.nonce : undefined };
   }
 
   typeKeyForConfig(configurationId: string): string | undefined {
@@ -312,7 +328,8 @@ export class LocalIssuer {
         cryptographic_binding_methods_supported: ['jwk'],
         credential_signing_alg_values_supported: ['ES256'],
         // HAIP wallets refuse a jwt proof type without key_attestations_required (same levels as the SIGMA issuer: basic key storage / user authentication)
-        proof_types_supported: { jwt: { proof_signing_alg_values_supported: ['ES256'], key_attestations_required: { key_storage: ['iso_18045_basic'], user_authentication: ['iso_18045_basic'] } } },
+        // both proof types, like the SIGMA issuer: a jwt proof carrying a key attestation, or the attestation itself
+        proof_types_supported: { attestation: PROOF_TYPE, jwt: PROOF_TYPE },
         display,
         credential_metadata: {
           display,
