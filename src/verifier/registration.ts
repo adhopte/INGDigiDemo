@@ -17,7 +17,11 @@ export interface RegistrationInfo {
   expiresAt: string | undefined;
   expired: boolean;
   sizeBytes: number;
+  /** What the certificate registers this verifier to request; undefined = the certificate lists none (no restriction known). */
+  credentials: RegisteredCredential[] | undefined;
 }
+
+export interface RegisteredCredential { format: string; vcts: string[]; doctype: string | undefined; claimPaths: string[][] }
 
 export type ParsedRegistration = { ok: true; jwt: string; info: RegistrationInfo; warnings: string[] } | { ok: false; error: string };
 
@@ -31,6 +35,20 @@ const decode = (part: string): Record<string, unknown> | undefined => {
 };
 const s = (v: unknown): string | undefined => (typeof v === 'string' && v ? v : undefined);
 const iso = (v: unknown): string | undefined => (typeof v === 'number' && Number.isFinite(v) ? new Date(v * 1000).toISOString() : undefined);
+
+function registeredCredentials(raw: unknown): RegisteredCredential[] | undefined {
+  if (!Array.isArray(raw) || !raw.length) return undefined;
+  return raw.flatMap((c: any) => {
+    if (!c || typeof c.format !== 'string') return [];
+    const claims = Array.isArray(c.claims) ? c.claims : Array.isArray(c.claim) ? c.claim : []; // the spec says `claims`, the EUDI registrar writes `claim`
+    return [{
+      format: c.format,
+      vcts: Array.isArray(c.meta?.vct_values) ? c.meta.vct_values.filter((v: unknown) => typeof v === 'string') : [],
+      doctype: typeof c.meta?.doctype_value === 'string' ? c.meta.doctype_value : undefined,
+      claimPaths: claims.flatMap((x: any) => (Array.isArray(x?.path) ? [x.path.map((e: unknown) => String(e))] : [])),
+    }];
+  });
+}
 
 export function parseRegistrationCert(raw: string | undefined, now = Date.now()): ParsedRegistration | undefined {
   if (!raw || !raw.trim()) return undefined;
@@ -50,9 +68,30 @@ export function parseRegistrationCert(raw: string | undefined, now = Date.now())
   if (!s(payload.sub)) warnings.push('no "sub" (registered identifier of the verifier)');
   return {
     ok: true, jwt, warnings,
-    info: { name: s(payload.name), purposes, subject: s(payload.sub), country: s(payload.country), registryUri: s(payload.registry_uri), type: s(header.typ), issuedAt: iso(payload.iat), expiresAt: iso(payload.exp), expired, sizeBytes: jwt.length },
+    info: { name: s(payload.name), purposes, subject: s(payload.sub), country: s(payload.country), registryUri: s(payload.registry_uri), type: s(header.typ), issuedAt: iso(payload.iat), expiresAt: iso(payload.exp), expired, sizeBytes: jwt.length, credentials: registeredCredentials(payload.credentials) },
   };
 }
 
 /** The `verifier_info` request parameter for a registration certificate. */
 export const verifierInfo = (jwt: string) => [{ format: 'registration_cert', data: jwt }];
+
+interface DcqlCredentialQuery { format?: string; meta?: { vct_values?: string[]; doctype_value?: string }; claims?: Array<{ path?: unknown[] }> }
+
+/**
+ * Does the registration certificate cover EVERY credential a request asks for (format, credential type, and each claim)? A wallet that checks the
+ * certificate against the request rejects what is outside it, so an uncovered request must go without the certificate.
+ * A certificate that lists no credentials restricts nothing we know of, so it covers everything.
+ */
+export function registrationCovers(info: RegistrationInfo, credentials: unknown): { covered: true } | { covered: false; reason: string } {
+  if (!info.credentials) return { covered: true };
+  for (const q of (Array.isArray(credentials) ? credentials : []) as DcqlCredentialQuery[]) {
+    const what = q.meta?.doctype_value ?? q.meta?.vct_values?.join('|') ?? q.format ?? 'credential';
+    const entry = info.credentials.find((e) => e.format === q.format && (q.meta?.doctype_value !== undefined ? e.doctype === q.meta.doctype_value : (q.meta?.vct_values ?? []).every((v) => e.vcts.includes(v))));
+    if (!entry) return { covered: false, reason: `${what} (${q.format}) is not among the credentials the certificate registers` };
+    for (const c of q.claims ?? []) {
+      const path = (c.path ?? []).map(String);
+      if (!entry.claimPaths.some((p) => p.length === path.length && p.every((x, i) => x === path[i]))) return { covered: false, reason: `claim ${path.join('/')} of ${what} is not registered` };
+    }
+  }
+  return { covered: true };
+}

@@ -2,7 +2,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
 import { createServices } from '../src/services.js';
-import { parseRegistrationCert } from '../src/verifier/registration.js';
+import { parseRegistrationCert, registrationCovers } from '../src/verifier/registration.js';
 import { testConfig } from './helpers.js';
 
 const b64 = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
@@ -72,15 +72,52 @@ describe('registration certificate (verifier_info)', () => {
     const file = readFileSync(new URL('../config/registration-cert.jwt', import.meta.url), 'utf8').trim();
     const cfg = testConfig();
     expect(cfg.verifier.registrationCert).toBe(file);
-    const svc = await createServices(cfg);
-    for (const rp of cfg.rps) {
-      const tx = await svc.verifier.createTransaction(rp, Object.keys(rp.presentations).find((k) => !k.startsWith('probe') && !k.startsWith('pid_any'))!, '/');
-      const p = JSON.parse(Buffer.from((await svc.verifier.signedRequestObject(tx)).split('.')[1]!, 'base64url').toString());
-      expect(p.verifier_info, rp.id).toEqual([{ format: 'registration_cert', data: file }]);
-    }
     const parsed = parseRegistrationCert(file, Date.parse('2026-11-19'))!;
     expect(parsed).toMatchObject({ ok: true, info: { name: 'Web Verifier (PROD)', purposes: ['For Testing Purposes'], subject: 'LEIXG-529900T8BM49AURSDO55', type: 'rc-wrp+jwt' } });
     expect(testConfig({ VP_REGISTRATION_CERT: 'none' }).verifier.registrationCert).toBeUndefined();
+  });
+
+  it('is attached only where it covers the request: what the certificate registers (PID, mDL, ...) yes; our payment attestation and birth certificate no', async () => {
+    const { readFileSync } = await import('node:fs');
+    const file = readFileSync(new URL('../config/registration-cert.jwt', import.meta.url), 'utf8').trim();
+    const reg = parseRegistrationCert(file)!;
+    if (!reg.ok) throw new Error('unreadable');
+    expect(reg.info.credentials!.map((c) => c.doctype ?? c.vcts.join(','))).toEqual(expect.arrayContaining(['eu.europa.ec.eudi.pid.1', 'urn:eudi:pid:1', 'org.iso.18013.5.1.mDL']));
+    const mdocPid = (claims: string[]) => [{ format: 'mso_mdoc', meta: { doctype_value: 'eu.europa.ec.eudi.pid.1' }, claims: claims.map((c) => ({ path: ['eu.europa.ec.eudi.pid.1', c] })) }];
+    expect(registrationCovers(reg.info, mdocPid(['given_name', 'family_name', 'birth_date']))).toEqual({ covered: true });
+    expect(registrationCovers(reg.info, mdocPid(['given_name', 'birth_place']))).toMatchObject({ covered: false, reason: expect.stringContaining('birth_place') }); // a claim it does not register
+    expect(registrationCovers(reg.info, [{ format: 'dc+sd-jwt', meta: { vct_values: ['urn:eudi:pid:1'] }, claims: [{ path: ['family_name'] }] }])).toEqual({ covered: true });
+    expect(registrationCovers(reg.info, [{ format: 'dc+sd-jwt', meta: { vct_values: ['urn:eudi:pid:1', 'https://credentials.benin.example/pid'] }, claims: [] }])).toMatchObject({ covered: false }); // every requested type must be registered
+    expect(registrationCovers(reg.info, [{ format: 'dc+sd-jwt', meta: { vct_values: ['urn:eudi:demo:payment-attestation:1'] }, claims: [{ path: ['iban'] }] }])).toMatchObject({ covered: false, reason: expect.stringContaining('payment-attestation') });
+    expect(registrationCovers(reg.info, [...mdocPid(['given_name']), { format: 'dc+sd-jwt', meta: { vct_values: ['urn:eudi:birth_certificate:1'] } }])).toMatchObject({ covered: false }); // one uncovered credential spoils the request
+    // a certificate that lists no credentials restricts nothing we know of
+    const open = parseRegistrationCert(regCert());
+    if (!open?.ok) throw new Error('unreadable');
+    expect(registrationCovers(open.info, [{ format: 'dc+sd-jwt', meta: { vct_values: ['anything'] } }])).toEqual({ covered: true });
+  });
+
+  it('live (by value): the Open-in-wallet link of the PID requests carries the certificate, the eShop payment and the birth certificate requests do not; the QR link never does', async () => {
+    const cfg = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    const svc = await createServices(cfg);
+    const link = async (rp: string, pres: string, sameDevice: boolean) => new URL(svc.verifier.walletLink(await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, pres, '/'), sameDevice));
+    for (const [rp, pres] of [['bank', 'pid'], ['electricity', 'pid'], ['university', 'pid']] as const) {
+      expect((await link(rp, pres, true)).searchParams.get('verifier_info'), `${rp}/${pres}`).not.toBeNull();
+      expect((await link(rp, pres, false)).searchParams.get('verifier_info'), `${rp}/${pres} QR`).toBeNull();
+    }
+    for (const [rp, pres] of [['eshop', 'payment'], ['university', 'bc'], ['university', 'pid_bc']] as const) expect((await link(rp, pres, true)).searchParams.get('verifier_info'), `${rp}/${pres}`).toBeNull();
+    const rep = svc.verifier.registrationReport() as Record<string, any>;
+    expect(rep.bank.presentations.pid).toBe('attached');
+    expect(rep.eshop.presentations.payment).toContain('not attached');
+    expect(rep.eshop.presentations.payment).toContain('payment-attestation');
+    expect(rep.university.presentations.bc).toContain('not attached');
+  });
+
+  it('signed requests follow the same rule: no verifier_info for a request the certificate does not cover', async () => {
+    const cfg = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'x509_hash' });
+    const svc = await createServices(cfg);
+    const payload = async (rp: string, pres: string) => JSON.parse(Buffer.from((await svc.verifier.signedRequestObject(await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, pres, '/'))).split('.')[1]!, 'base64url').toString());
+    expect(await payload('eshop', 'payment')).not.toHaveProperty('verifier_info');
+    expect(await payload('university', 'bc')).not.toHaveProperty('verifier_info');
   });
 
   it('VP_REGISTRATION_LINKS=all puts it in every unsigned link (far too big for a QR code)', async () => {

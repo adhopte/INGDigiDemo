@@ -7,7 +7,7 @@ import { SdJwtError, verifySdJwtPresentation, type Claims, type IssuerKeyResolve
 import type { VerifierIdentity } from './identity.js';
 import { buildDcql, buildPresentationDefinition, requestedCredentials, type RequestedCredential } from './query.js';
 import { canonicalizeClaims } from './claims.js';
-import { parseRegistrationCert, verifierInfo } from './registration.js';
+import { parseRegistrationCert, registrationCovers, verifierInfo } from './registration.js';
 import { createMdocChainValidator, TrustError } from './trust.js';
 
 const TX_TTL_MS = 10 * 60 * 1000;
@@ -155,6 +155,12 @@ export class Verifier {
         ...(sent ? {} : { not_sent_because: 'requests are passed by value (client_id scheme redirect_uri): the certificate is too large for a QR code and a wallet only trusts it next to an X.509 access certificate. Switch VP_CLIENT_ID_SCHEME to x509_hash or x509_san_dns, or set VP_REGISTRATION_LINKS to button / all.' }),
         name: parsed.info.name, purpose: parsed.info.purposes, subject: parsed.info.subject, type: parsed.info.type, issued_at: parsed.info.issuedAt, expires_at: parsed.info.expiresAt, expired: parsed.info.expired, size_bytes: parsed.info.sizeBytes,
         matches_access_certificate: accessCertOrgId && parsed.info.subject ? accessCertOrgId === parsed.info.subject : undefined,
+        // per presentation: is the certificate attached to that request (the compact by-value form is what a wallet gets in the link)?
+        presentations: Object.fromEntries(Object.entries(rp.presentations).filter(([k]) => !k.startsWith('probe') && !k.startsWith('pid_any')).map(([k, pres]) => {
+          const dcql = buildDcql(this.fitFormats(requestedCredentials(pres, this.cfg.attestations)), this.byValue); // the same pipeline as a real request
+          const c = registrationCovers(parsed.info, dcql.credentials);
+          return [k, c.covered ? 'attached' : `not attached: ${c.reason}`];
+        })),
         warnings: parsed.warnings,
       }];
     }));
@@ -217,11 +223,12 @@ export class Verifier {
       state: tx.state,
       client_metadata: clientMetadata,
     };
-    const reg = this.registrationFor(tx.rpId);
-    // Too big for a QR code / unsigned link, and a wallet only trusts it next to an X.509 access certificate: signed requests (or the by-value experiment).
-    if (reg && (!this.byValue || this.cfg.verifier.registrationByValue === 'all')) params.verifier_info = verifierInfo(reg.jwt);
     if (v.queryLanguage === 'pex') params.presentation_definition = buildPresentationDefinition(tx.reqs, tx.id);
     else params.dcql_query = buildDcql(tx.reqs, compact);
+    const reg = this.registrationFor(tx.rpId);
+    // Too big for a QR code / unsigned link, and a wallet only trusts it next to an X.509 access certificate: signed requests (or the by-value experiment).
+    // only when the certificate covers what is asked: a wallet checking the request against it refuses anything outside (and the certificate then helps nothing)
+    if (reg && (!this.byValue || this.cfg.verifier.registrationByValue === 'all') && registrationCovers(reg.info, (params.dcql_query as { credentials?: unknown } | undefined)?.credentials).covered) params.verifier_info = verifierInfo(reg.jwt);
     if (walletNonce) params.wallet_nonce = walletNonce;
     return params;
   }
@@ -246,7 +253,7 @@ export class Verifier {
       for (const [k, val] of Object.entries(this.requestParams(tx, undefined, true))) if (k !== 'client_id') q.set(k, typeof val === 'string' ? val : JSON.stringify(val));
       // The registration certificate is ~15 KB: only the button (never a QR code) may carry it in button mode.
       const reg = this.registrationFor(tx.rpId);
-      if (reg && sameDevice && this.cfg.verifier.registrationByValue === 'button') q.set('verifier_info', JSON.stringify(verifierInfo(reg.jwt)));
+      if (reg && sameDevice && this.cfg.verifier.registrationByValue === 'button' && registrationCovers(reg.info, (this.requestParams(tx, undefined, true).dcql_query as { credentials?: unknown } | undefined)?.credentials).covered) q.set('verifier_info', JSON.stringify(verifierInfo(reg.jwt)));
       // The wallet echoes `state`: a marker tells us the user tapped the button on THIS device, so the wallet may open the follow-up page in its browser.
       if (sameDevice) q.set('state', `${tx.state}${SAME_DEVICE}`);
     }
