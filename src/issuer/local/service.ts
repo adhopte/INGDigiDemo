@@ -188,7 +188,6 @@ export class LocalIssuer {
       expires_in: TOKEN_TTL_S,
       c_nonce: this.newNonce(),
       c_nonce_expires_in: NONCE_TTL_MS / 1000,
-      authorization_details: [{ type: 'openid_credential', credential_configuration_id: offer.attestation.credentialConfigurationId }],
     };
   }
 

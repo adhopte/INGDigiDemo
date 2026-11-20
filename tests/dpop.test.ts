@@ -62,6 +62,13 @@ describe('DPoP (RFC 9449) on the local issuer', () => {
     }
   });
 
+  it('the token response has no authorization_details (the spec wants credential_identifiers in them; a pre-authorised offer does not need them)', async () => {
+    const t = await setup();
+    const offer = await t.newOffer();
+    const tok = await request(t.app).post('/issuer/token').type('form').send({ grant_type: PRE_AUTH_GRANT, 'pre-authorized_code': offer.grants[PRE_AUTH_GRANT]['pre-authorized_code'] });
+    expect(Object.keys(tok.body).sort()).toEqual(['access_token', 'c_nonce', 'c_nonce_expires_in', 'expires_in', 'token_type']);
+  });
+
   it('without a DPoP header the token is a plain Bearer token (simulated wallet, simple clients)', async () => {
     const t = await setup();
     const offer = await t.newOffer();
