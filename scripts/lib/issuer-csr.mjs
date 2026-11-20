@@ -10,13 +10,13 @@ const alg = { name: 'ECDSA', namedCurve: 'P-256', hash: 'SHA-256' };
  * SD-JWT VC (§3.5): with x5c, the certificate must carry the `iss` host as a dNSName or the `iss` URL as a URI SAN. We ask for both.
  * @param {string} issuerUrl the credential issuer identifier, e.g. https://eu-wallet-rp-playground.onrender.com/issuer
  */
-export async function generateIssuerCsr(issuerUrl, { org = 'IN Groupe' } = {}) {
+export async function generateIssuerCsr(issuerUrl, { org = 'IN Groupe', subject, ca = 'the CA' } = {}) {
   const url = new URL(issuerUrl);
   if (url.protocol !== 'https:') throw new Error('The issuer URL must be https');
   const host = url.hostname;
   const keys = await crypto.subtle.generateKey(alg, true, ['sign', 'verify']);
   const csr = await x509.Pkcs10CertificateRequestGenerator.create({
-    name: `CN=${host}, O=${org}`, keys, signingAlgorithm: alg,
+    name: subject ?? `CN=${host}, O=${org}`, keys, signingAlgorithm: alg,
     extensions: [
       new x509.KeyUsagesExtension(x509.KeyUsageFlags.digitalSignature, true),
       new x509.SubjectAlternativeNameExtension([{ type: 'dns', value: host }, { type: 'url', value: issuerUrl.replace(/\/+$/, '') }], false),
@@ -27,25 +27,25 @@ export async function generateIssuerCsr(issuerUrl, { org = 'IN Groupe' } = {}) {
   const kid = createHash('sha256').update(JSON.stringify({ crv: pub.crv, kty: pub.kty, x: pub.x, y: pub.y })).digest('base64url').slice(0, 16);
   priv.kid = kid;
   return {
-    host, issuerUrl: issuerUrl.replace(/\/+$/, ''), org, kid,
+    host, issuerUrl: issuerUrl.replace(/\/+$/, ''), org, ca, subject: subject ?? `CN=${host}, O=${org}`, kid,
     csrPem: csr.toString('pem'),
     keyEnv: JSON.stringify(priv),
     publicKeySha256: createHash('sha256').update(Buffer.from(csr.publicKey.rawData)).digest('hex'),
   };
 }
 
-/** The covering message for the CA / SIGMA team. */
+/** The covering message for the CA (SIGMA PKI, the EUDI test CA, ...). */
 export function requestText(r) {
   return `Subject: Certificate request – OpenID4VCI issuer signing key (${r.host})
 
 Hello,
 
 we operate an OpenID4VCI demo issuer, "${r.issuerUrl}", that issues the bank account and payment attestations (SD-JWT VC, dc+sd-jwt)
-to the IN Groupe SIGMA wallet. Your wallet matches SD-JWT credentials through the issuer certificate in the x5c header: the credentials of the SIGMA
-issuer have one, ours carry a self-signed demo certificate, which is not in any trust list. Please sign the attached request.
+to the IN Groupe SIGMA wallet. The wallet matches SD-JWT credentials through the issuer certificate in the x5c header; ours carries a self-signed
+demo certificate, which is not in any trust list. Please have ${r.ca} sign the attached request.
 
   Request file          csr.pem  (PKCS#10, ECDSA P-256 / SHA-256, proof of possession included)
-  Subject               CN=${r.host}, O=${r.org}   (adjust to your naming policy)
+  Subject               ${r.subject}   (adjust to the naming policy of the CA)
   Subject alt. names    dNSName ${r.host}
                         uniformResourceIdentifier ${r.issuerUrl}      (this is the \`iss\` of the credentials, SD-JWT VC §3.5)
   Key usage             digitalSignature
@@ -54,9 +54,8 @@ issuer have one, ours carry a self-signed demo certificate, which is not in any 
 
 Please return the certificate followed by its intermediates (PEM, leaf first). We will configure it as ISSUER_CERT_CHAIN_PEM.
 
-Two questions for the wallet team:
-  1. Is the CA that signs this certificate in the trust list of the wallet (so that the issuer is shown by name instead of "Unknown issuing party")?
-  2. Does the wallet require a particular extension (certificate policy, extended key usage) on an SD-JWT VC issuer certificate?
+Question: is the CA that signs this certificate in the trust list of the wallet (so that the issuer is shown by name instead of "Unknown issuing party"),
+and does the wallet require a particular extension (certificate policy, extended key usage) on an SD-JWT VC issuer certificate?
 
 Thank you.
 `;

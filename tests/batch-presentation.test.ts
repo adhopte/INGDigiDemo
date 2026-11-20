@@ -175,6 +175,14 @@ describe('every copy of a payment attestation batch against the eShop request (l
     expect(text).toContain(r.publicKeySha256);
     expect(text).toContain('ISSUER_CERT_CHAIN_PEM');
     await expect(generateIssuerCsr('http://insecure.example/issuer')).rejects.toThrow('https');
+    // a CA with its own naming rules: the exact subject and its name in the message
+    const eudi = await generateIssuerCsr('https://rp.example.test/issuer', { subject: 'CN=IN Groupe SIGMA demo issuer, O=IN Groupe, C=UT', ca: 'the EUDI test CA' });
+    const eudiCsr = new x509.Pkcs10CertificateRequest(eudi.csrPem);
+    expect(await eudiCsr.verify()).toBe(true);
+    expect(eudiCsr.subject).toBe('CN=IN Groupe SIGMA demo issuer, O=IN Groupe, C=UT');
+    expect(new x509.SubjectAlternativeNameExtension(eudiCsr.getExtension('2.5.29.17')!.rawData).names.items.map((n) => n.value)).toEqual(['rp.example.test', 'https://rp.example.test/issuer']); // the SANs stay
+    expect(requestText(eudi)).toContain('have the EUDI test CA sign');
+    expect(requestText(eudi)).toContain('C=UT');
 
     // the CA (SIGMA) signs the request ...
     const caKeys = (await crypto.subtle.generateKey(ALG, true, ['sign', 'verify'])) as CryptoKeyPair;
