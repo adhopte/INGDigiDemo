@@ -204,4 +204,38 @@ describe('every copy of a payment attestation batch against the eShop request (l
     }
     expect(svc.local.x5c).toHaveLength(2);
   });
+
+  describe('a credential issued before a restart (the ephemeral issuer key has changed since)', () => {
+    const presentAfterRestart = async (env: Record<string, string>) => {
+      const before = await receiveBatch(1, env);
+      const after = await createServices(testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', PUBLIC_BASE_URL: 'https://rp.example.test', ...env })); // the restarted server
+      const tx = await after.verifier.createTransaction(before.cfg.rps.find((r) => r.id === 'eshop')!, 'payment', '/eshop/');
+      const copy = before.copies[0]!;
+      const vp = await presentSdJwt({ credential: copy.credential, reveal: ['account_holder_name', 'iban', 'bic', 'bank_name', 'valid_until'], holderPrivateKey: copy.holder.priv, aud: after.verifier.clientIdFor(tx), nonce: tx.nonce });
+      const outcome = await respondToVerifier(after.verifier, tx, { vp_token: { payment: [vp] } }).then(() => 'accepted', (e: Error) => e.message);
+      return { outcome, tx, sameKey: before.svc.local.publicJwk.x === after.local.publicJwk.x };
+    };
+
+    it('is still accepted in the demo mode (TRUST_ANY_ISSUER): its own certificate vouches for the earlier key', async () => {
+      const r = await presentAfterRestart({ TRUST_ANY_ISSUER: 'true' });
+      expect(r.sameKey).toBe(false); // the issuer really has a new key
+      expect(r.outcome).toBe('accepted');
+      expect(r.tx.status).toBe('complete');
+    });
+
+    it('needs a chain to a trusted CA in strict mode, and is refused with the reason otherwise', async () => {
+      const r = await presentAfterRestart({ TRUST_ANY_ISSUER: 'false' });
+      expect(r.sameKey).toBe(false);
+      expect(r.outcome).not.toBe('accepted');
+      expect(r.tx.status).toBe('failed');
+    });
+
+    it('with a persistent issuer key nothing changes at a restart, in strict mode too', async () => {
+      const k = (await generateKeyPair('ES256', { extractable: true })).privateKey;
+      const jwk = JSON.stringify({ ...(await exportJWK(k)), alg: 'ES256', kid: 'persistent-1' });
+      const r = await presentAfterRestart({ TRUST_ANY_ISSUER: 'false', ISSUER_SIGNING_KEY_JWK: jwk });
+      expect(r.sameKey).toBe(true);
+      expect(r.outcome).toBe('accepted');
+    });
+  });
 });

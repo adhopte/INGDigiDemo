@@ -44,7 +44,15 @@ export function createIssuerKeyResolver(cfg: AppConfig, local: LocalIssuer | und
     const iss = typeof payload.iss === 'string' ? payload.iss : '';
     if (!iss) throw new TrustError('Credential has no issuer');
 
-    if (local && iss === local.issuerUrl) return (await importJWK(local.publicJwk, 'ES256')) as CryptoKey;
+    if (local && iss === local.issuerUrl) {
+      const current = (await importJWK(local.publicJwk, 'ES256')) as CryptoKey;
+      if (!header.x5c?.length) return current;
+      // A credential with a certificate: if it is the CURRENT signing key, fine. If not, the credential was signed by an earlier key of this issuer
+      // (the key is regenerated at every restart unless ISSUER_SIGNING_KEY_JWK is set): the x5c rules below decide, so it stays presentable in the
+      // demo mode (TRUST_ANY_ISSUER) and needs a chain to a trusted CA otherwise.
+      const leafJwk = new X509Certificate(Buffer.from(header.x5c[0]!, 'base64')).publicKey.export({ format: 'jwk' }) as JWK;
+      if (leafJwk.x === local.publicJwk.x && leafJwk.y === local.publicJwk.y) return current;
+    }
 
     if (header.x5c?.length) {
       const leaf = cfg.verifier.trustAnyIssuer ? new X509Certificate(Buffer.from(header.x5c[0]!, 'base64')) : validateX5cChain(header.x5c, cfg.verifier.trustedCaPem);
