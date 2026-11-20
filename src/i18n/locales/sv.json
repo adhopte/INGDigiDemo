@@ -395,5 +395,13 @@
   "admin.sigma_note": "SIGMA-utfärdaren utfärdar bara det som finns i dess egna poster. Dina värden kontrolleras därför mot dessa poster och erbjudandet skapas för den matchande personen.",
   "uni.docs.differs": "Namn eller födelsedatum på PID och födelsebevis skiljer sig åt. Kontrollen är avstängd, så du kan fortsätta.",
   "verify.elsewhere.title": "Verifieringen klar",
-  "verify.elsewhere.body": "Din plånbok har delat de begärda uppgifterna. Fortsätt i webbläsaren eller på skärmen där du började."
+  "verify.elsewhere.body": "Din plånbok har delat de begärda uppgifterna. Fortsätt i webbläsaren eller på skärmen där du började.",
+  "admin.reuse.title": "Återanvändningspolicy för behörighetsbevis",
+  "admin.reuse.hint": "Talar om för plånböcker (som SIGMA-utfärdaren gör) hur kopior av ett bevis får återanvändas, eller inte. Utan den behandlar en plånbok varje kopia som engångs. Gäller bevis som hämtas efter ändringen och glöms när appen startas om.",
+  "admin.reuse.current_on": "Angiven: per förlitande part, roterande parti om 5.",
+  "admin.reuse.current_off": "Inte angiven: kopior är engångs.",
+  "admin.reuse.turn_off": "Stäng av",
+  "admin.reuse.turn_on": "Slå på",
+  "admin.reuse.saved_on": "Återanvändningspolicyn anges nu.",
+  "admin.reuse.saved_off": "Återanvändningspolicyn anges inte längre."
 }

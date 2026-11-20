@@ -395,5 +395,13 @@
   "admin.sigma_note": "L-emittent SIGMA joħroġ biss dak li hemm fir-records tiegħu stess. Għalhekk il-valuri tiegħek jiġu mqabbla ma’ dawk ir-records u l-offerta titfassal għall-persuna li taqbel.",
   "uni.docs.differs": "L-isem jew id-data tat-twelid fuq il-PID u ċ-ċertifikat tat-twelid huma differenti. Il-kontroll mitfi, allura tista’ tkompli.",
   "verify.elsewhere.title": "Verifika kompluta",
-  "verify.elsewhere.body": "Il-wallet tiegħek qasam id-dejta mitluba. Kompli fil-browser jew fuq l-iskrin fejn bdejt."
+  "verify.elsewhere.body": "Il-wallet tiegħek qasam id-dejta mitluba. Kompli fil-browser jew fuq l-iskrin fejn bdejt.",
+  "admin.reuse.title": "Politika ta’ użu mill-ġdid tal-credentials",
+  "admin.reuse.hint": "Tgħid jew ma tgħidx lill-wallets (bħalma jagħmel l-emittent SIGMA) kif jistgħu jerġgħu jintużaw il-kopji ta’ credential. Mingħajrha, wallet jittratta kull kopja bħala ta’ darba. Tapplika għall-credentials imniżżla wara l-bidla u tintesa meta tiġi mibdija mill-ġdid l-app.",
+  "admin.reuse.current_on": "Iddikjarata: għal kull parti li tistrieħ fuqha, lott li jdur ta’ 5.",
+  "admin.reuse.current_off": "Mhux iddikjarata: il-kopji huma ta’ darba.",
+  "admin.reuse.turn_off": "Itfi",
+  "admin.reuse.turn_on": "Ixgħel",
+  "admin.reuse.saved_on": "Il-politika ta’ użu mill-ġdid issa hija ddikjarata.",
+  "admin.reuse.saved_off": "Il-politika ta’ użu mill-ġdid m’għadhiex iddikjarata."
 }

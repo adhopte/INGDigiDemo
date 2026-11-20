@@ -395,5 +395,13 @@
   "admin.sigma_note": "De SIGMA-uitgever geeft alleen uit wat in zijn eigen records staat. Uw waarden worden daarom met die records vergeleken en het aanbod wordt gemaakt voor de passende persoon.",
   "uni.docs.differs": "De naam of geboortedatum op de PID en de geboorteakte verschilt. De controle staat uit, dus u kunt doorgaan.",
   "verify.elsewhere.title": "Verificatie voltooid",
-  "verify.elsewhere.body": "Uw wallet heeft de gevraagde gegevens gedeeld. Ga verder in de browser of op het scherm waar u begonnen bent."
+  "verify.elsewhere.body": "Uw wallet heeft de gevraagde gegevens gedeeld. Ga verder in de browser of op het scherm waar u begonnen bent.",
+  "admin.reuse.title": "Hergebruikbeleid voor credentials",
+  "admin.reuse.hint": "Geeft wallets wel of niet aan (zoals de SIGMA-uitgever doet) hoe kopieën van een credential mogen worden hergebruikt. Zonder beleid behandelt een wallet elke kopie als eenmalig. Geldt voor credentials die na de wijziging worden gedownload en wordt vergeten bij een herstart van de app.",
+  "admin.reuse.current_on": "Aangegeven: per vertrouwende partij, roterende batch van 5.",
+  "admin.reuse.current_off": "Niet aangegeven: kopieën zijn eenmalig.",
+  "admin.reuse.turn_off": "Uitzetten",
+  "admin.reuse.turn_on": "Aanzetten",
+  "admin.reuse.saved_on": "Hergebruikbeleid wordt nu aangegeven.",
+  "admin.reuse.saved_off": "Hergebruikbeleid wordt niet meer aangegeven."
 }

@@ -395,5 +395,13 @@
   "admin.sigma_note": "The SIGMA issuer issues only what is in its own records. Your values are therefore checked against those records, and the offer is created for the matching person.",
   "uni.docs.differs": "The name or date of birth on the PID and the birth certificate differ. The check is switched off, so you can continue.",
   "verify.elsewhere.title": "Verification complete",
-  "verify.elsewhere.body": "Your wallet has shared the requested data. Please continue in the browser or on the screen where you started."
+  "verify.elsewhere.body": "Your wallet has shared the requested data. Please continue in the browser or on the screen where you started.",
+  "admin.reuse.title": "Credential reuse policy",
+  "admin.reuse.hint": "Whether the local issuer tells wallets (like the SIGMA issuer does) how copies of a credential may be reused. Without it a wallet treats every copy as single-use. Applies to credentials downloaded after the change, and is forgotten when the app restarts.",
+  "admin.reuse.current_on": "Declared: per relying party, rotating batch of 5.",
+  "admin.reuse.current_off": "Not declared: copies are single-use.",
+  "admin.reuse.turn_off": "Turn off",
+  "admin.reuse.turn_on": "Turn on",
+  "admin.reuse.saved_on": "Reuse policy is now declared.",
+  "admin.reuse.saved_off": "Reuse policy is no longer declared."
 }

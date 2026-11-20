@@ -54,5 +54,15 @@
   </section>
 
   <% if (!mockMode) { %><p class="alert alert-info" role="note"><%= t('admin.sigma_note') %></p><% } %>
+
+  <section class="panel" aria-labelledby="reuse-h">
+    <h2 id="reuse-h"><%= t('admin.reuse.title') %></h2>
+    <p><%= t('admin.reuse.hint') %></p>
+    <p><strong><%= reusePolicy === 'sigma' ? t('admin.reuse.current_on') : t('admin.reuse.current_off') %></strong></p>
+    <form method="post" action="/demo-issuer/admin/reuse-policy">
+      <input type="hidden" name="value" value="<%= reusePolicy === 'sigma' ? 'off' : 'sigma' %>">
+      <button class="btn btn-secondary" type="submit"><%= reusePolicy === 'sigma' ? t('admin.reuse.turn_off') : t('admin.reuse.turn_on') %></button>
+    </form>
+  </section>
 </div>
 <%- include('../partials/foot') %>

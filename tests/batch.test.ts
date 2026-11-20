@@ -122,3 +122,34 @@ describe('batch issuance (HAIP wallets ask for several credentials per request)'
     expect(JSON.parse(new TextDecoder().decode(plaintext)).credentials).toHaveLength(3);
   });
 });
+
+describe('credential reuse policy switch', () => {
+  const meta = async (app: Parameters<typeof request>[0]) => (await request(app).get('/issuer/.well-known/openid-credential-issuer')).body;
+
+  it('ISSUER_REUSE_POLICY decides the default: declared unless "off"', async () => {
+    for (const [value, declared] of [[undefined, true], ['sigma', true], ['anything', true], ['off', false], ['OFF', false]] as const) {
+      const cfg = testConfig({ MOCK_MODE: 'false', ...(value ? { ISSUER_REUSE_POLICY: value } : {}) });
+      const app = createApp(cfg, await createServices(cfg));
+      const m = await meta(app);
+      expect(Object.hasOwn(m, 'credential_reuse_policy'), String(value)).toBe(declared);
+      expect(m.batch_credential_issuance).toEqual({ batch_size: 10 }); // batching stays either way
+    }
+  });
+
+  it('the admin can flip it while running; anyone else cannot; it shows on the admin page', async () => {
+    const cfg = testConfig({ MOCK_MODE: 'false' });
+    const app = createApp(cfg, await createServices(cfg));
+    const agent = request.agent(app);
+    expect((await agent.post('/demo-issuer/admin/reuse-policy').type('form').send({ value: 'off' })).headers.location).toBe('/demo-issuer/admin/login');
+    expect(await meta(app)).toHaveProperty('credential_reuse_policy'); // untouched by the refused request
+    await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
+    expect((await agent.get('/demo-issuer/admin')).text).toContain('Declared: per relying party');
+    await agent.post('/demo-issuer/admin/reuse-policy').type('form').send({ value: 'off' });
+    expect(await meta(app)).not.toHaveProperty('credential_reuse_policy');
+    const off = (await agent.get('/demo-issuer/admin')).text;
+    expect(off).toContain('Not declared: copies are single-use.');
+    expect(off).toContain('Reuse policy is no longer declared.'); // flash
+    await agent.post('/demo-issuer/admin/reuse-policy').type('form').send({ value: 'sigma' });
+    expect((await meta(app)).credential_reuse_policy.id).toBe('arf_annex_ii');
+  });
+});

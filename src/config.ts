@@ -106,6 +106,8 @@ export interface IssuerConfig {
   /** Issuer identifier of the local issuer: <PUBLIC_BASE_URL>/issuer */
   localIssuerUrl: string;
   txCode: boolean;
+  /** Local issuer: declare the SIGMA credential_reuse_policy in the metadata ("sigma", default) or not ("off": wallets then treat each copy as single-use). Switchable at runtime by the admin. */
+  reusePolicy: 'sigma' | 'off';
   signingKeyJwk: string | undefined;
   external: ExternalIssuerConfig;
 }
@@ -313,6 +315,7 @@ export function loadConfig(
       fallbackLocal: parseBool(env.ISSUER_FALLBACK_LOCAL, true),
       localIssuerUrl: `${publicBaseUrl}/issuer`,
       txCode: parseBool(env.ISSUER_TX_CODE, false),
+      reusePolicy: (env.ISSUER_REUSE_POLICY ?? '').toLowerCase() === 'off' ? 'off' : 'sigma',
       signingKeyJwk: env.ISSUER_SIGNING_KEY_JWK || undefined,
       external,
     },

@@ -395,5 +395,13 @@
   "admin.sigma_note": "El emisor SIGMA solo emite lo que figura en sus propios registros. Por eso sus valores se comprueban con esos registros y la oferta se crea para la persona coincidente.",
   "uni.docs.differs": "El nombre o la fecha de nacimiento del PID y del certificado de nacimiento difieren. La comprobación está desactivada, así que puede continuar.",
   "verify.elsewhere.title": "Verificación completada",
-  "verify.elsewhere.body": "Su cartera ha compartido los datos solicitados. Continúe en el navegador o en la pantalla donde empezó."
+  "verify.elsewhere.body": "Su cartera ha compartido los datos solicitados. Continúe en el navegador o en la pantalla donde empezó.",
+  "admin.reuse.title": "Política de reutilización de credenciales",
+  "admin.reuse.hint": "Indica o no a las carteras (como hace el emisor SIGMA) cómo pueden reutilizarse las copias de una credencial. Sin ella, una cartera trata cada copia como de un solo uso. Se aplica a las credenciales descargadas después del cambio y se olvida al reiniciar la aplicación.",
+  "admin.reuse.current_on": "Declarada: por parte usuaria, lote rotatorio de 5.",
+  "admin.reuse.current_off": "No declarada: las copias son de un solo uso.",
+  "admin.reuse.turn_off": "Desactivar",
+  "admin.reuse.turn_on": "Activar",
+  "admin.reuse.saved_on": "La política de reutilización ahora está declarada.",
+  "admin.reuse.saved_off": "La política de reutilización ya no está declarada."
 }

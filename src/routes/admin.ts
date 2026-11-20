@@ -56,8 +56,14 @@ export function adminRouter(ctx: Ctx): Router {
     return Object.fromEntries(Object.entries(a).filter(([k]) => RECORD_FIELDS[uc]!.some((f) => f.name === k)));
   };
 
+  r.post('/demo-issuer/admin/reuse-policy', needAdmin, (req, res) => {
+    svc.local.reusePolicy = q(req.body?.value) === 'off' ? 'off' : 'sigma';
+    req.session.flash = svc.local.reusePolicy === 'off' ? 'admin.reuse.saved_off' : 'admin.reuse.saved_on';
+    res.redirect('/demo-issuer/admin');
+  });
+
   const renderForm = (res: Response, uc: string, values: Record<string, string>, errors: Record<string, string>, status = 200) =>
-    void res.status(status).render('issuer/admin', { title: res.locals.t('admin.title'), uc, fields: RECORD_FIELDS[uc], values, errors, mockMode: cfg.mockMode });
+    void res.status(status).render('issuer/admin', { title: res.locals.t('admin.title'), uc, fields: RECORD_FIELDS[uc], values, errors, mockMode: cfg.mockMode, reusePolicy: svc.local.reusePolicy });
 
   r.get('/demo-issuer/admin', needAdmin, (req, res) => {
     const uc = ucOf(req.query.uc);
