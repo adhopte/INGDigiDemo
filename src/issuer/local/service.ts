@@ -3,6 +3,7 @@ import { decodeJwt, decodeProtectedHeader, importJWK, importX509, jwtVerify, typ
 import type { AppConfig, AttestationConfig } from '../../config.js';
 import { LOCALES, translator } from '../../i18n/index.js';
 import { issueSdJwt, SD_JWT_TYP, type Claims } from '../../sdjwt/index.js';
+import { RESPONSE_ENCRYPTION } from './encryption.js';
 import type { KeyMaterial } from './keys.js';
 
 export const PRE_AUTH_GRANT = 'urn:ietf:params:oauth:grant-type:pre-authorized_code';
@@ -268,6 +269,8 @@ export class LocalIssuer {
       authorization_servers: [this.issuerUrl],
       credential_endpoint: `${this.issuerUrl}/credential`,
       nonce_endpoint: `${this.issuerUrl}/nonce`,
+      // HAIP wallets require encrypted credential responses and refuse an issuer that cannot (ResponseEncryptionRequiredByWalletButNotSupportedByIssuer)
+      credential_response_encryption: RESPONSE_ENCRYPTION,
       display: [{ name: `${this.cfg.brand.name} ${this.cfg.brand.product} – demo issuer`, locale: 'en' }],
       credential_configurations_supported: configs,
     };

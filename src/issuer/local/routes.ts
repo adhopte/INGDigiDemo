@@ -1,4 +1,5 @@
 import express, { Router, type NextFunction, type Request, type Response } from 'express';
+import { encryptCredentialResponse, readEncryptionParams } from './encryption.js';
 import { IssuerError, type LocalIssuer } from './service.js';
 
 const noStore = (res: Response) => res.set('Cache-Control', 'no-store');
@@ -71,7 +72,20 @@ export function issuerRouters(issuer: LocalIssuer, log?: (e: Record<string, unkn
 
   main.post('/credential', asyncRoute(async (req, res) => {
     const m = /^Bearer\s+(\S+)$/i.exec(req.headers.authorization ?? '');
-    noStore(res).json(await issuer.issueCredential(m?.[1], req.body ?? {}));
+    // validate the encryption request BEFORE issuing: a refused request must not consume the offer
+    let enc;
+    try {
+      enc = await readEncryptionParams(req.body?.credential_response_encryption);
+    } catch (e) {
+      return void noStore(res).status(400).json({ error: 'invalid_encryption_parameters', error_description: (e as Error).message });
+    }
+    const response = await issuer.issueCredential(m?.[1], req.body ?? {});
+    if (!enc) return void noStore(res).json(response);
+    try {
+      noStore(res).type('application/jwt').send(await encryptCredentialResponse(enc, response));
+    } catch (e) {
+      noStore(res).status(400).json({ error: 'invalid_encryption_parameters', error_description: (e as Error).message });
+    }
   }));
 
   return { main, wellKnown };
