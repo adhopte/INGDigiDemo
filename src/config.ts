@@ -317,7 +317,8 @@ export function loadConfig(
       fallbackLocal: parseBool(env.ISSUER_FALLBACK_LOCAL, true),
       localIssuerUrl: `${publicBaseUrl}/issuer`,
       txCode: parseBool(env.ISSUER_TX_CODE, false),
-      reusePolicy: (env.ISSUER_REUSE_POLICY ?? '').toLowerCase() === 'off' ? 'off' : 'sigma',
+      // default OFF while the Android wallet's handling of the policy is investigated (a restart must not undo the setting); "sigma" declares it
+      reusePolicy: (env.ISSUER_REUSE_POLICY ?? '').toLowerCase() === 'sigma' ? 'sigma' : 'off',
       batchSize: ((n) => (Number.isInteger(n) && n >= 1 && n <= 10 ? n : 10))(Number(env.ISSUER_BATCH_SIZE ?? 10)),
       signingKeyJwk: env.ISSUER_SIGNING_KEY_JWK || undefined,
       external,

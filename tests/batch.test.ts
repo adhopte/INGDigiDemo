@@ -18,8 +18,8 @@ async function walletProvider() {
 const attest = async (wp: Awaited<ReturnType<typeof walletProvider>>, claims: Record<string, unknown>) =>
   new SignJWT({ key_storage: ['iso_18045_basic'], user_authentication: ['iso_18045_basic'], ...claims }).setProtectedHeader({ alg: 'ES256', typ: 'keyattestation+jwt', x5c: [wp.x5c] }).setIssuedAt().sign(wp.key);
 
-async function setup() {
-  const cfg = testConfig({ MOCK_MODE: 'false' });
+async function setup(env: Record<string, string> = {}) {
+  const cfg = testConfig({ MOCK_MODE: 'false', ...env });
   const svc = await createServices(cfg);
   const app = createApp(cfg, svc);
   const o = svc.local.createOffer('account', { account_holder_name: 'Lena Demo', iban: 'DE02120300000000202051', bic: 'BYLADEM1001' });
@@ -37,7 +37,7 @@ async function setup() {
 
 describe('batch issuance (HAIP wallets ask for several credentials per request)', () => {
   it('is declared in the issuer metadata', async () => {
-    const { app } = await setup();
+    const { app } = await setup({ ISSUER_REUSE_POLICY: 'sigma' });
     const meta = (await request(app).get('/issuer/.well-known/openid-credential-issuer')).body;
     expect(meta.batch_credential_issuance).toEqual({ batch_size: 10 });
     expect(meta.credential_reuse_policy).toEqual({ id: 'arf_annex_ii', options: [{ details: ['per-relying-party', 'rotating-batch'], batch_size: 5, reissue_trigger_unused: 2, reissue_trigger_lifetime_left: 86400 }] }); // as SIGMA: the wallet may reuse / rotate copies
@@ -75,7 +75,7 @@ describe('batch issuance (HAIP wallets ask for several credentials per request)'
     const att = await attest(await walletProvider(), { attested_keys: keys.map((k) => k.jwk), nonce: await t.nonce() });
     expect((await t.send({ attestation: [att] })).status).toBe(200);
     const ev = t.svc.verifier.diagnostics().find((e) => e.event === 'issuer_request' && String(e.path).endsWith('/credential'));
-    expect(ev).toMatchObject({ status: 200, note: '3 credential(s) of demo_bank_account, reuse policy declared, batch limit 10' });
+    expect(ev).toMatchObject({ status: 200, note: '3 credential(s) of demo_bank_account, reuse policy off, batch limit 10' });
   });
 
   it('a single proof still gives exactly one credential (plus the legacy top-level field)', async () => {
@@ -126,8 +126,8 @@ describe('batch issuance (HAIP wallets ask for several credentials per request)'
 describe('credential reuse policy switch', () => {
   const meta = async (app: Parameters<typeof request>[0]) => (await request(app).get('/issuer/.well-known/openid-credential-issuer')).body;
 
-  it('ISSUER_REUSE_POLICY decides the default: declared unless "off"', async () => {
-    for (const [value, declared] of [[undefined, true], ['sigma', true], ['anything', true], ['off', false], ['OFF', false]] as const) {
+  it('ISSUER_REUSE_POLICY decides the default: off unless "sigma"', async () => {
+    for (const [value, declared] of [[undefined, false], ['sigma', true], ['SIGMA', true], ['anything', false], ['off', false], ['OFF', false]] as const) {
       const cfg = testConfig({ MOCK_MODE: 'false', ...(value ? { ISSUER_REUSE_POLICY: value } : {}) });
       const app = createApp(cfg, await createServices(cfg));
       const m = await meta(app);
@@ -137,7 +137,7 @@ describe('credential reuse policy switch', () => {
   });
 
   it('the admin can flip it while running; anyone else cannot; it shows on the admin page', async () => {
-    const cfg = testConfig({ MOCK_MODE: 'false' });
+    const cfg = testConfig({ MOCK_MODE: 'false', ISSUER_REUSE_POLICY: 'sigma' });
     const app = createApp(cfg, await createServices(cfg));
     const agent = request.agent(app);
     expect((await agent.post('/demo-issuer/admin/reuse-policy').type('form').send({ value: 'off' })).headers.location).toBe('/demo-issuer/admin/login');
