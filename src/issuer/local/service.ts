@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
-import { decodeProtectedHeader, importJWK, jwtVerify, type JWK } from 'jose';
+import { decodeJwt, decodeProtectedHeader, importJWK, importX509, jwtVerify, type JWK } from 'jose';
 import type { AppConfig, AttestationConfig } from '../../config.js';
 import { LOCALES, translator } from '../../i18n/index.js';
 import { issueSdJwt, SD_JWT_TYP, type Claims } from '../../sdjwt/index.js';
@@ -187,8 +187,19 @@ export class LocalIssuer {
     }
     if (header.typ !== 'openid4vci-proof+jwt') throw fail('Proof typ must be openid4vci-proof+jwt');
     if (header.alg !== 'ES256') throw fail('Proof alg must be ES256');
-    const jwk = header.jwk as JWK | undefined;
-    if (!jwk || jwk.d) throw fail('Proof header must carry the public holder key as jwk');
+
+    // Key attestation (OpenID4VCI 1.0, HAIP): a JWT of the wallet provider listing the attested keys. The proof is signed with one of them.
+    // The wallet provider's trust chain is NOT evaluated (demo issuer); the attestation must be well-formed, unexpired, self-consistent and cover the proof key.
+    let attested: JWK[] | undefined;
+    if (header.key_attestation !== undefined) {
+      if (typeof header.key_attestation !== 'string') throw fail('key_attestation must be a JWT string');
+      attested = await this.readKeyAttestation(header.key_attestation, fail);
+    }
+
+    let jwk = header.jwk as JWK | undefined;
+    if (!jwk && attested?.length) jwk = attested[0]; // no explicit key in the header: the (first) attested key
+    if (!jwk || jwk.d) throw fail('Proof header must carry the public holder key as jwk (or a key_attestation listing it)');
+    if (attested && !attested.some((k) => k.kty === jwk!.kty && k.crv === jwk!.crv && k.x === jwk!.x && k.y === jwk!.y)) throw fail('The proof key is not among the keys of the key attestation');
     try {
       const key = await importJWK(jwk, 'ES256');
       const { payload } = await jwtVerify(jwt, key, { algorithms: ['ES256'], audience: this.issuerUrl, currentDate: new Date(this.now()) });
@@ -199,7 +210,32 @@ export class LocalIssuer {
     } catch (e) {
       throw fail(`Proof validation failed: ${(e as Error).message}`);
     }
-    return jwk;
+    return { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y } as JWK;
+  }
+
+  /** The attested public keys of a key attestation JWT; throws invalid_proof when it is malformed, expired or its signature does not verify. */
+  private async readKeyAttestation(att: string, fail: (d: string) => IssuerError): Promise<JWK[]> {
+    let h;
+    let p;
+    try {
+      h = decodeProtectedHeader(att);
+      p = decodeJwt(att);
+    } catch {
+      throw fail('key_attestation is not a JWT');
+    }
+    if (h.typ !== 'keyattestation+jwt' && h.typ !== 'key-attestation+jwt') throw fail('key_attestation typ must be keyattestation+jwt');
+    const keys = (p as { attested_keys?: unknown }).attested_keys;
+    if (!Array.isArray(keys) || !keys.length || keys.some((k) => !k || typeof k !== 'object' || (k as JWK).d)) throw fail('key_attestation has no usable attested_keys');
+    if (typeof p.exp === 'number' && p.exp * 1000 < this.now()) throw fail('key_attestation has expired');
+    if (Array.isArray(h.x5c) && typeof h.x5c[0] === 'string' && typeof h.alg === 'string') {
+      try {
+        const pem = `-----BEGIN CERTIFICATE-----\n${h.x5c[0].match(/.{1,64}/g)!.join('\n')}\n-----END CERTIFICATE-----`;
+        await jwtVerify(att, await importX509(pem, h.alg), { algorithms: [h.alg], currentDate: new Date(this.now()) });
+      } catch {
+        throw fail('key_attestation signature does not verify against its own certificate');
+      }
+    }
+    return keys as JWK[];
   }
 
   typeKeyForConfig(configurationId: string): string | undefined {
@@ -218,7 +254,8 @@ export class LocalIssuer {
         scope: a.credentialConfigurationId,
         cryptographic_binding_methods_supported: ['jwk'],
         credential_signing_alg_values_supported: ['ES256'],
-        proof_types_supported: { jwt: { proof_signing_alg_values_supported: ['ES256'] } },
+        // HAIP wallets refuse a jwt proof type without key_attestations_required (same levels as the SIGMA issuer: basic key storage / user authentication)
+        proof_types_supported: { jwt: { proof_signing_alg_values_supported: ['ES256'], key_attestations_required: { key_storage: ['iso_18045_basic'], user_authentication: ['iso_18045_basic'] } } },
         display,
         credential_metadata: {
           display,
