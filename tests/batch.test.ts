@@ -75,7 +75,7 @@ describe('batch issuance (HAIP wallets ask for several credentials per request)'
     const att = await attest(await walletProvider(), { attested_keys: keys.map((k) => k.jwk), nonce: await t.nonce() });
     expect((await t.send({ attestation: [att] })).status).toBe(200);
     const ev = t.svc.verifier.diagnostics().find((e) => e.event === 'issuer_request' && String(e.path).endsWith('/credential'));
-    expect(ev).toMatchObject({ status: 200, note: '3 credential(s) issued' });
+    expect(ev).toMatchObject({ status: 200, note: '3 credential(s) of demo_bank_account, reuse policy declared' });
   });
 
   it('a single proof still gives exactly one credential (plus the legacy top-level field)', async () => {
