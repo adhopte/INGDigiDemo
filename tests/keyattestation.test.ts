@@ -48,7 +48,8 @@ describe('issuer metadata for HAIP wallets', () => {
     expect(configs.length).toBe(Object.keys(cfg.attestations).length);
     for (const c of configs) {
       expect(c.proof_types_supported.jwt.proof_signing_alg_values_supported).toEqual(['ES256']);
-      expect(c.proof_types_supported.jwt.key_attestations_required).toEqual({ key_storage: ['iso_18045_basic'], user_authentication: ['iso_18045_basic'] });
+      expect(c.proof_types_supported.jwt.key_attestations_required).toEqual({}); // as SIGMA's birth certificate: required, no minimum levels
+      expect(c.claims.length).toBeGreaterThan(0); // also at the top level of the configuration (older wallet versions)
     }
     expect(Object.keys(meta.credential_configurations_supported)).toEqual(expect.arrayContaining(['demo_bank_account', 'demo_bank_payment']));
   });

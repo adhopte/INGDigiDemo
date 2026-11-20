@@ -46,7 +46,8 @@ interface TokenRecord {
 /** DPoP proof algorithms accepted (and advertised): the same set the SIGMA issuer lists. */
 export const DPOP_ALGS = ['ES256', 'RS256', 'RS384', 'RS512'];
 const DPOP_WINDOW_S = 300;
-const PROOF_TYPE = { proof_signing_alg_values_supported: ['ES256'], key_attestations_required: { key_storage: ['iso_18045_basic'], user_authentication: ['iso_18045_basic'] } };
+// key attestation required, with no minimum levels: exactly what the SIGMA birth-certificate configuration (SD-JWT, jwk binding) declares and this wallet accepts
+const PROOF_TYPE = { proof_signing_alg_values_supported: ['ES256'], key_attestations_required: {} };
 
 export interface CreatedOffer {
   id: string;
@@ -329,6 +330,7 @@ export class LocalIssuer {
         credential_signing_alg_values_supported: ['ES256'],
         // HAIP wallets refuse a jwt proof type without key_attestations_required (same levels as the SIGMA issuer: basic key storage / user authentication)
         // both proof types, like the SIGMA issuer: a jwt proof carrying a key attestation, or the attestation itself
+        claims: a.claims.map((c) => ({ path: [c], display: LOCALES.map((l) => ({ name: translator(l.code)(`claim.${c}`), locale: l.code })) })), // older wallet versions read the claims here, newer ones from credential_metadata
         proof_types_supported: { attestation: PROOF_TYPE, jwt: PROOF_TYPE },
         display,
         credential_metadata: {

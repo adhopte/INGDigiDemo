@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import express, { Router, type NextFunction, type Request, type Response } from 'express';
 import { encryptCredentialResponse, readEncryptionParams } from './encryption.js';
 import { IssuerError, type LocalIssuer } from './service.js';
@@ -69,7 +70,8 @@ export function issuerRouters(issuer: LocalIssuer, log?: (e: Record<string, unkn
     noStore(res).json(await issuer.exchangePreAuthorizedCode(req.body ?? {}, typeof req.headers.dpop === 'string' ? req.headers.dpop : undefined));
   }));
 
-  main.post('/nonce', (_req, res) => void noStore(res).json({ c_nonce: issuer.newNonce(), c_nonce_expires_in: 300 }));
+  // like the SIGMA issuer, also offer a DPoP nonce in a header (wallets include it in later DPoP proofs; the issuer does not require it)
+  main.post('/nonce', (_req, res) => void noStore(res).set('DPoP-Nonce', randomBytes(24).toString('base64url')).json({ c_nonce: issuer.newNonce(), c_nonce_expires_in: 300 }));
 
   main.post('/credential', asyncRoute(async (req, res) => {
     const m = /^(Bearer|DPoP)\s+(\S+)$/i.exec(req.headers.authorization ?? '');

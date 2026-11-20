@@ -86,7 +86,7 @@ describe('the whole HAIP wallet flow against the local issuer', () => {
     const meta = (await request(app).get('/issuer/.well-known/openid-credential-issuer')).body;
     for (const c of Object.values(meta.credential_configurations_supported) as any[]) {
       expect(Object.keys(c.proof_types_supported).sort()).toEqual(['attestation', 'jwt']);
-      expect(c.proof_types_supported.attestation.key_attestations_required).toEqual({ key_storage: ['iso_18045_basic'], user_authentication: ['iso_18045_basic'] });
+      expect(c.proof_types_supported.attestation.key_attestations_required).toEqual({});
     }
   });
 

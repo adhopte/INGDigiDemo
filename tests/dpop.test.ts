@@ -62,6 +62,14 @@ describe('DPoP (RFC 9449) on the local issuer', () => {
     }
   });
 
+  it('the nonce endpoint also hands out a DPoP-Nonce header, which later proofs may (but need not) include', async () => {
+    const t = await setup();
+    const n = await request(t.app).post('/issuer/nonce');
+    expect(n.headers['dpop-nonce']).toMatch(/^[A-Za-z0-9_-]{20,}$/);
+    expect(n.body.c_nonce).toBeTruthy();
+    expect(n.headers['cache-control']).toContain('no-store');
+  });
+
   it('the token response has no authorization_details (the spec wants credential_identifiers in them; a pre-authorised offer does not need them)', async () => {
     const t = await setup();
     const offer = await t.newOffer();
