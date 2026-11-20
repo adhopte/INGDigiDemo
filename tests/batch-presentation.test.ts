@@ -8,6 +8,7 @@ import { respondToVerifier } from '../src/mock/wallet.js';
 import { PRE_AUTH_GRANT } from '../src/issuer/local/service.js';
 import { presentSdJwt } from '../src/sdjwt/index.js';
 import { createServices } from '../src/services.js';
+import { sdJwtShape } from '../src/verifier/service.js';
 import { testConfig } from './helpers.js';
 
 const ALG = { name: 'ECDSA', namedCurve: 'P-256', hash: 'SHA-256' };
@@ -103,5 +104,24 @@ describe('every copy of a payment attestation batch against the eShop request (l
       await respondToVerifier(svc.verifier, tx, { vp_token: { [dcql.credentials[0]!.id]: [vp] } });
       expect(tx.status, key).toBe('complete');
     }
+  });
+
+  it('the diagnostics record the shape of a presented SD-JWT (names and kinds, no values), to compare issuers', async () => {
+    const { cfg, svc, copies } = await receiveBatch(1);
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'eshop')!, 'payment', '/eshop/');
+    const vp = await presentSdJwt({ credential: copies[0]!.credential, reveal: ['account_holder_name', 'iban', 'bic', 'bank_name', 'valid_until'], holderPrivateKey: copies[0]!.holder.priv, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
+    await respondToVerifier(svc.verifier, tx, { vp_token: { payment: [vp] } });
+    const ev = svc.verifier.diagnostics().find((e) => e.event === 'response_accepted') as unknown as { shapes: Array<Record<string, any>> };
+    expect(ev.shapes).toHaveLength(1);
+    const shape = ev.shapes[0]!;
+    expect(shape.header).toEqual({ alg: 'ES256', typ: 'dc+sd-jwt', kid: 'string' });
+    expect(Object.keys(shape.payload).sort()).toEqual(['_sd', '_sd_alg', 'cnf', 'exp', 'iat', 'iss', 'nbf', 'vct']);
+    expect(shape.payload.iss).toBe('https://rp.example.test/…'); // path stripped
+    expect(shape.payload.vct).toBe('urn:eudi:demo:payment-attestation:1');
+    expect(shape.signedClaims).toBe(5); // five selectively disclosable claims (digests in _sd)
+    expect(shape.disclosedNow.sort()).toEqual(['account_holder_name', 'bank_name', 'bic', 'iban', 'valid_until']);
+    expect(shape.keyBinding).toBe(true);
+    expect(JSON.stringify(ev)).not.toContain('XX00 DEMO'); // never a value
+    expect(sdJwtShape('garbage')).toBeUndefined();
   });
 });

@@ -63,6 +63,29 @@ export interface DiagnosticEvent {
 /** Suffix of `state` in links meant for the device that shows the page (same-device flow). */
 const SAME_DEVICE = '.sd';
 
+/** Structure of a presented SD-JWT VC: names and kinds only, never claim values. Lets two issuers' credentials be compared. */
+export function sdJwtShape(presentation: string): Record<string, unknown> | undefined {
+  try {
+    const [jwt, ...rest] = presentation.split('~');
+    const [h, p, sig] = jwt!.split('.');
+    if (!h || !p || !sig) return undefined;
+    const header = JSON.parse(Buffer.from(h, 'base64url').toString()) as Record<string, unknown>;
+    const payload = JSON.parse(Buffer.from(p, 'base64url').toString()) as Record<string, unknown>;
+    const kind = (v: unknown) => (Array.isArray(v) ? `array(${v.length})` : v === null ? 'null' : typeof v);
+    const disclosed = rest.filter((d) => d && !d.includes('.')).flatMap((d) => { try { const x = JSON.parse(Buffer.from(d, 'base64url').toString()); return Array.isArray(x) && typeof x[1] === 'string' ? [x[1]] : []; } catch { return []; } });
+    return {
+      header: Object.fromEntries(Object.entries(header).map(([k, v]) => [k, ['typ', 'alg'].includes(k) ? v : kind(v)])),
+      payload: Object.fromEntries(Object.entries(payload).map(([k, v]) => [k, ['vct', '_sd_alg'].includes(k) ? v : k === 'iss' ? String(v).replace(/^(https?:\/\/[^/]+).*/, '$1/…') : kind(v)])),
+      signedClaims: Array.isArray(payload._sd) ? (payload._sd as unknown[]).length : 0,
+      disclosedNow: disclosed,
+      ttlDays: typeof payload.exp === 'number' && typeof payload.iat === 'number' ? Math.round((payload.exp - payload.iat) / 86400) : undefined,
+      keyBinding: rest.length > 0 && !!rest[rest.length - 1]?.includes('.'),
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 export class Verifier {
   private txs = new Map<string, Transaction>();
   private events: DiagnosticEvent[] = [];
@@ -354,7 +377,7 @@ export class Verifier {
     }
     tx.result = { byType, issuers: [...issuers] };
     tx.status = 'complete';
-    this.record({ event: 'response_accepted', rp: tx.rpId, presentation: tx.presentationKey, types: Object.keys(byType), issuers: tx.result.issuers, device: sameDevice ? 'same-device (redirect_uri returned)' : this.byValue ? 'cross-device (no redirect_uri returned)' : 'redirect_uri returned' });
+    this.record({ event: 'response_accepted', rp: tx.rpId, presentation: tx.presentationKey, types: Object.keys(byType), issuers: tx.result.issuers, device: sameDevice ? 'same-device (redirect_uri returned)' : this.byValue ? 'cross-device (no redirect_uri returned)' : 'redirect_uri returned', shapes: presented.map(sdJwtShape).filter(Boolean) });
     log.info('vp response accepted', { rp: tx.rpId, presentation: tx.presentationKey, types: Object.keys(byType), issuers: tx.result.issuers });
     // Cross-device (QR scanned from another screen): no redirect, the wallet just confirms and the original page continues by itself (OpenID4VP §8.2).
     if (this.byValue && !sameDevice) return {};
