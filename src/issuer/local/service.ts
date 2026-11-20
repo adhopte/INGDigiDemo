@@ -3,7 +3,7 @@ import { decodeJwt, decodeProtectedHeader, importJWK, importX509, jwtVerify, typ
 import type { AppConfig, AttestationConfig } from '../../config.js';
 import { LOCALES, translator } from '../../i18n/index.js';
 import { issueSdJwt, SD_JWT_TYP, type Claims } from '../../sdjwt/index.js';
-import { RESPONSE_ENCRYPTION } from './encryption.js';
+import { RESPONSE_ENCRYPTION, RequestEncryption } from './encryption.js';
 import type { KeyMaterial } from './keys.js';
 
 export const PRE_AUTH_GRANT = 'urn:ietf:params:oauth:grant-type:pre-authorized_code';
@@ -63,6 +63,14 @@ export class LocalIssuer {
     private readonly now: () => number = () => Date.now(),
   ) {
     this.issuerUrl = cfg.issuer.localIssuerUrl;
+  }
+
+  /** Keys for encrypted Credential Requests; set by init(). Without them neither request nor response encryption is advertised (a HAIP wallet wants both or neither). */
+  requestEncryption: RequestEncryption | undefined;
+
+  async init(): Promise<this> {
+    this.requestEncryption = await RequestEncryption.generate();
+    return this;
   }
 
   get publicJwk(): JWK {
@@ -269,8 +277,9 @@ export class LocalIssuer {
       authorization_servers: [this.issuerUrl],
       credential_endpoint: `${this.issuerUrl}/credential`,
       nonce_endpoint: `${this.issuerUrl}/nonce`,
-      // HAIP wallets require encrypted credential responses and refuse an issuer that cannot (ResponseEncryptionRequiredByWalletButNotSupportedByIssuer)
-      credential_response_encryption: RESPONSE_ENCRYPTION,
+      // HAIP wallets require encrypted credential responses (else ResponseEncryptionRequiredByWalletButNotSupportedByIssuer) and, if responses
+      // can be encrypted, also declared request encryption (else CredentialRequestEncryptionMustExistIfCredentialResponseEncryptionExists)
+      ...(this.requestEncryption ? { credential_request_encryption: this.requestEncryption.metadata(), credential_response_encryption: RESPONSE_ENCRYPTION } : {}),
       display: [{ name: `${this.cfg.brand.name} ${this.cfg.brand.product} – demo issuer`, locale: 'en' }],
       credential_configurations_supported: configs,
     };

@@ -22,7 +22,7 @@ export interface Services {
 export async function createServices(cfg: AppConfig, fetchImpl: typeof fetch = fetch): Promise<Services> {
   const keys = await loadOrGenerateKey(cfg.issuer.signingKeyJwk);
   if (keys.ephemeral) log.warn('Local issuer uses an ephemeral signing key (regenerated on restart); set ISSUER_SIGNING_KEY_JWK to keep issued credentials valid across restarts');
-  const local = new LocalIssuer(cfg, keys);
+  const local = await new LocalIssuer(cfg, keys).init();
   const remote = cfg.issuer.metadataUrl ? new RemoteIssuerMetadata(cfg, fetchImpl) : undefined;
   const issuer = createIssuerProvider(cfg, local, fetchImpl, remote);
   const identity = await createVerifierIdentity(cfg);

@@ -30,6 +30,7 @@ export function issuerRouters(issuer: LocalIssuer, log?: (e: Record<string, unkn
     wellKnown.use('/.well-known', track);
   }
   main.use(express.json({ limit: '64kb' }));
+  main.use(express.text({ type: 'application/jwt', limit: '64kb' })); // encrypted Credential Requests are compact JWEs
   main.use(express.urlencoded({ extended: false, limit: '64kb' })); // the token endpoint is application/x-www-form-urlencoded (RFC 6749)
 
   const asyncRoute = (fn: (req: Request, res: Response) => Promise<void> | void) => async (req: Request, res: Response, next: NextFunction) => {
@@ -72,19 +73,33 @@ export function issuerRouters(issuer: LocalIssuer, log?: (e: Record<string, unkn
 
   main.post('/credential', asyncRoute(async (req, res) => {
     const m = /^Bearer\s+(\S+)$/i.exec(req.headers.authorization ?? '');
-    // validate the encryption request BEFORE issuing: a refused request must not consume the offer
+    const refuse = (error: string, description: string) => {
+      res.locals.issuerError = `${error}: ${description}`;
+      return void noStore(res).status(400).json({ error, error_description: description });
+    };
+    // an encrypted Credential Request arrives as a compact JWE (application/jwt)
+    let body: Record<string, unknown> = typeof req.body === 'object' && req.body ? req.body : {};
+    if (typeof req.body === 'string') {
+      if (!issuer.requestEncryption) return refuse('invalid_credential_request', 'This issuer does not accept encrypted requests');
+      try {
+        body = await issuer.requestEncryption.decrypt(req.body);
+      } catch (e) {
+        return refuse('invalid_credential_request', (e as Error).message);
+      }
+    }
+    // validate the response-encryption request BEFORE issuing: a refused request must not consume the offer
     let enc;
     try {
-      enc = await readEncryptionParams(req.body?.credential_response_encryption);
+      enc = await readEncryptionParams(body.credential_response_encryption);
     } catch (e) {
-      return void noStore(res).status(400).json({ error: 'invalid_encryption_parameters', error_description: (e as Error).message });
+      return refuse('invalid_encryption_parameters', (e as Error).message);
     }
-    const response = await issuer.issueCredential(m?.[1], req.body ?? {});
+    const response = await issuer.issueCredential(m?.[1], body as Parameters<LocalIssuer['issueCredential']>[1]);
     if (!enc) return void noStore(res).json(response);
     try {
       noStore(res).type('application/jwt').send(await encryptCredentialResponse(enc, response));
     } catch (e) {
-      noStore(res).status(400).json({ error: 'invalid_encryption_parameters', error_description: (e as Error).message });
+      refuse('invalid_encryption_parameters', (e as Error).message);
     }
   }));
 
