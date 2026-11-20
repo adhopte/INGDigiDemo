@@ -1,5 +1,5 @@
-import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
-import { decodeJwt, decodeProtectedHeader, importJWK, importX509, jwtVerify, type JWK } from 'jose';
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { calculateJwkThumbprint, decodeJwt, decodeProtectedHeader, importJWK, importX509, jwtVerify, type JWK } from 'jose';
 import type { AppConfig, AttestationConfig } from '../../config.js';
 import { LOCALES, translator } from '../../i18n/index.js';
 import { issueSdJwt, SD_JWT_TYP, type Claims } from '../../sdjwt/index.js';
@@ -39,7 +39,13 @@ interface TokenRecord {
   attestation: AttestationConfig;
   claims: Claims;
   expiresAt: number;
+  /** JWK thumbprint of the DPoP key the token is bound to (RFC 9449); undefined for a plain Bearer token. */
+  jkt?: string | undefined;
 }
+
+/** DPoP proof algorithms accepted (and advertised): the same set the SIGMA issuer lists. */
+export const DPOP_ALGS = ['ES256', 'RS256', 'RS384', 'RS512'];
+const DPOP_WINDOW_S = 300;
 
 export interface CreatedOffer {
   id: string;
@@ -55,6 +61,7 @@ export class LocalIssuer {
   private offers = new Map<string, OfferRecord>();
   private codes = new Map<string, string>();
   private tokens = new Map<string, TokenRecord>();
+  private dpopJti = new Map<string, number>(); // replay cache of DPoP proofs
   private nonces = new Map<string, number>();
 
   constructor(
@@ -82,6 +89,7 @@ export class LocalIssuer {
     for (const [id, o] of this.offers) if (o.expiresAt < t) { this.offers.delete(id); this.codes.delete(o.code); }
     for (const [k, v] of this.tokens) if (v.expiresAt < t) this.tokens.delete(k);
     for (const [k, v] of this.nonces) if (v < t) this.nonces.delete(k);
+    for (const [k, v] of this.dpopJti) if (v < t) this.dpopJti.delete(k);
   }
 
   // ------------------------------------------------------------- offers
@@ -119,9 +127,44 @@ export class LocalIssuer {
 
   // ------------------------------------------------------------- token + nonce
 
-  exchangePreAuthorizedCode(params: { grant_type?: string; 'pre-authorized_code'?: string; tx_code?: string }) {
+  /**
+   * DPoP proof (RFC 9449) check. Returns the JWK thumbprint of the proof key. At the token endpoint (no access token) errors are 400, at the
+   * credential endpoint (`accessToken` given) 401, as the RFC prescribes.
+   */
+  private async verifyDpop(proof: string, method: string, path: string, accessToken?: string): Promise<string> {
+    const fail = (d: string) => new IssuerError(accessToken ? 401 : 400, 'invalid_dpop_proof', d);
+    let header;
+    try {
+      header = decodeProtectedHeader(proof);
+    } catch {
+      throw fail('DPoP proof is not a JWT');
+    }
+    if (header.typ !== 'dpop+jwt') throw fail('DPoP proof typ must be dpop+jwt');
+    if (typeof header.alg !== 'string' || !DPOP_ALGS.includes(header.alg)) throw fail(`DPoP proof alg must be one of ${DPOP_ALGS.join(', ')}`);
+    const jwk = header.jwk as JWK | undefined;
+    if (!jwk || jwk.d || (jwk as Record<string, unknown>).p) throw fail('DPoP proof header must carry the public key as jwk');
+    let payload;
+    try {
+      ({ payload } = await jwtVerify(proof, await importJWK(jwk, header.alg), { algorithms: DPOP_ALGS, currentDate: new Date(this.now()) }));
+    } catch (e) {
+      throw fail(`DPoP proof validation failed: ${(e as Error).message}`);
+    }
+    if (payload.htm !== method) throw fail('DPoP htm does not match the request method');
+    const htu = typeof payload.htu === 'string' ? payload.htu.split(/[?#]/)[0] : '';
+    if (htu !== `${this.issuerUrl}${path}`) throw fail('DPoP htu does not match the request URL');
+    if (typeof payload.iat !== 'number' || Math.abs(payload.iat - this.now() / 1000) > DPOP_WINDOW_S) throw fail('DPoP iat is not within the accepted window');
+    if (typeof payload.jti !== 'string' || !payload.jti) throw fail('DPoP proof needs a jti');
+    if (this.dpopJti.has(payload.jti)) throw fail('DPoP proof was already used');
+    this.dpopJti.set(payload.jti, this.now() + 2 * DPOP_WINDOW_S * 1000);
+    if (accessToken && payload.ath !== createHash('sha256').update(accessToken).digest('base64url')) throw fail('DPoP ath does not match the access token');
+    return calculateJwkThumbprint(jwk);
+  }
+
+  /** `dpopProof`: value of the DPoP header. With it the token is sender-constrained (token_type DPoP); without, a plain Bearer token (simulated wallet). */
+  async exchangePreAuthorizedCode(params: { grant_type?: string; 'pre-authorized_code'?: string; tx_code?: string }, dpopProof?: string) {
     this.sweep();
     if (params.grant_type !== PRE_AUTH_GRANT) throw new IssuerError(400, 'unsupported_grant_type', 'Only the pre-authorized_code grant is supported');
+    const jkt = dpopProof ? await this.verifyDpop(dpopProof, 'POST', '/token') : undefined; // before the code is touched: a bad proof must not burn the offer
     const code = params['pre-authorized_code'];
     const id = code ? this.codes.get(code) : undefined;
     const offer = id ? this.offers.get(id) : undefined;
@@ -138,10 +181,10 @@ export class LocalIssuer {
     }
     offer.redeemed = true; // single use
     const accessToken = randomBytes(32).toString('base64url');
-    this.tokens.set(accessToken, { attestation: offer.attestation, claims: offer.claims, expiresAt: this.now() + TOKEN_TTL_S * 1000 });
+    this.tokens.set(accessToken, { attestation: offer.attestation, claims: offer.claims, expiresAt: this.now() + TOKEN_TTL_S * 1000, jkt });
     return {
       access_token: accessToken,
-      token_type: 'Bearer',
+      token_type: jkt ? 'DPoP' : 'Bearer',
       expires_in: TOKEN_TTL_S,
       c_nonce: this.newNonce(),
       c_nonce_expires_in: NONCE_TTL_MS / 1000,
@@ -160,10 +203,16 @@ export class LocalIssuer {
   async issueCredential(
     accessToken: string | undefined,
     body: { proof?: { proof_type?: string; jwt?: string }; proofs?: { jwt?: string[] }; credential_configuration_id?: string; vct?: string },
+    auth: { scheme?: string; dpop?: string } = {},
   ) {
     this.sweep();
     const grant = accessToken ? this.tokens.get(accessToken) : undefined;
     if (!grant) throw new IssuerError(401, 'invalid_token', 'Missing, unknown or expired access token');
+    if (grant.jkt) {
+      // a sender-constrained token: DPoP scheme and a proof made with the same key, bound to this token (ath)
+      if (auth.scheme?.toLowerCase() !== 'dpop' || !auth.dpop) throw new IssuerError(401, 'invalid_dpop_proof', 'This access token is DPoP-bound: use the DPoP scheme with a DPoP proof');
+      if ((await this.verifyDpop(auth.dpop, 'POST', '/credential', accessToken)) !== grant.jkt) throw new IssuerError(401, 'invalid_dpop_proof', 'DPoP proof key differs from the key the token is bound to');
+    }
 
     const wanted = body.credential_configuration_id;
     if (wanted && wanted !== grant.attestation.credentialConfigurationId) throw new IssuerError(400, 'unknown_credential_configuration', 'Not authorised for that credential configuration');
@@ -293,6 +342,11 @@ export class LocalIssuer {
       'pre-authorized_grant_anonymous_access_supported': true,
       response_types_supported: ['token'],
       token_endpoint_auth_methods_supported: ['none', 'attest_jwt_client_auth'], // wallet attestation headers (the SIGMA wallet sends them) are accepted and not enforced
+      token_endpoint_auth_signing_alg_values_supported: ['ES256'],
+      // HAIP wallets require sender-constrained tokens: DPoP (RFC 9449) is supported on the token and credential endpoints, like the SIGMA issuer
+      dpop_signing_alg_values_supported: DPOP_ALGS,
+      client_attestation_signing_alg_values_supported: DPOP_ALGS,
+      client_attestation_pop_signing_alg_values_supported: DPOP_ALGS,
     };
   }
 

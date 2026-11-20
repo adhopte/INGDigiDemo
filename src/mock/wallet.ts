@@ -64,7 +64,7 @@ export async function redeemOffer(local: LocalIssuer, session: SessionLike, offe
   const code = offer?.grants?.[PRE_AUTH_GRANT]?.['pre-authorized_code'];
   if (!offer || !code) throw new Error('Offer is no longer available');
 
-  const token = local.exchangePreAuthorizedCode({ grant_type: PRE_AUTH_GRANT, 'pre-authorized_code': code, ...(txCode ? { tx_code: txCode } : {}) });
+  const token = await local.exchangePreAuthorizedCode({ grant_type: PRE_AUTH_GRANT, 'pre-authorized_code': code, ...(txCode ? { tx_code: txCode } : {}) });
   const { publicJwk, privateJwk } = await holderKeyPair();
   const proof = await new SignJWT({ nonce: token.c_nonce })
     .setProtectedHeader({ alg: 'ES256', typ: 'openid4vci-proof+jwt', jwk: publicJwk })

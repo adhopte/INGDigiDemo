@@ -65,14 +65,14 @@ export function issuerRouters(issuer: LocalIssuer, log?: (e: Record<string, unkn
     noStore(res).json(offer);
   });
 
-  main.post('/token', asyncRoute((req, res) => {
-    noStore(res).json(issuer.exchangePreAuthorizedCode(req.body ?? {}));
+  main.post('/token', asyncRoute(async (req, res) => {
+    noStore(res).json(await issuer.exchangePreAuthorizedCode(req.body ?? {}, typeof req.headers.dpop === 'string' ? req.headers.dpop : undefined));
   }));
 
   main.post('/nonce', (_req, res) => void noStore(res).json({ c_nonce: issuer.newNonce(), c_nonce_expires_in: 300 }));
 
   main.post('/credential', asyncRoute(async (req, res) => {
-    const m = /^Bearer\s+(\S+)$/i.exec(req.headers.authorization ?? '');
+    const m = /^(Bearer|DPoP)\s+(\S+)$/i.exec(req.headers.authorization ?? '');
     const refuse = (error: string, description: string) => {
       res.locals.issuerError = `${error}: ${description}`;
       return void noStore(res).status(400).json({ error, error_description: description });
@@ -94,7 +94,7 @@ export function issuerRouters(issuer: LocalIssuer, log?: (e: Record<string, unkn
     } catch (e) {
       return refuse('invalid_encryption_parameters', (e as Error).message);
     }
-    const response = await issuer.issueCredential(m?.[1], body as Parameters<LocalIssuer['issueCredential']>[1]);
+    const response = await issuer.issueCredential(m?.[2], body as Parameters<LocalIssuer['issueCredential']>[1], { ...(m?.[1] ? { scheme: m[1] } : {}), ...(typeof req.headers.dpop === 'string' ? { dpop: req.headers.dpop } : {}) });
     if (!enc) return void noStore(res).json(response);
     try {
       noStore(res).type('application/jwt').send(await encryptCredentialResponse(enc, response));
