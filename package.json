@@ -17,7 +17,8 @@
     "keygen": "node scripts/gen-keys.mjs",
     "check:i18n": "node scripts/check-i18n.mjs",
     "gen:verifier-cert": "node scripts/gen-verifier-cert.mjs",
-    "gen:csr": "node scripts/gen-csr.mjs"
+    "gen:csr": "node scripts/gen-csr.mjs",
+    "gen:issuer-csr": "node scripts/gen-issuer-csr.mjs"
   },
   "dependencies": {
     "@peculiar/x509": "^3.1.0",

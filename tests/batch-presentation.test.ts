@@ -10,6 +10,8 @@ import { PRE_AUTH_GRANT } from '../src/issuer/local/service.js';
 import { presentSdJwt } from '../src/sdjwt/index.js';
 import { createServices } from '../src/services.js';
 import { sdJwtShape } from '../src/verifier/service.js';
+import { validateX5cChain } from '../src/verifier/trust.js';
+import { generateIssuerCsr, requestText } from '../scripts/lib/issuer-csr.mjs';
 import { testConfig } from './helpers.js';
 
 const ALG = { name: 'ECDSA', namedCurve: 'P-256', hash: 'SHA-256' };
@@ -36,8 +38,8 @@ function matches(credential: string, q: DcqlCredential): { ok: boolean; why: str
 }
 
 /** The wallet side of issuance: all `n` copies in one request, as the SIGMA wallet asks for (batch of 10). */
-async function receiveBatch(n: number) {
-  const cfg = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', PUBLIC_BASE_URL: 'https://rp.example.test' });
+async function receiveBatch(n: number, env: Record<string, string> = {}) {
+  const cfg = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri', PUBLIC_BASE_URL: 'https://rp.example.test', ...env });
   const svc = await createServices(cfg);
   const app = createApp(cfg, svc);
   const o = svc.local.createOffer('payment', { account_holder_name: 'Mathieu Ahouandjinou', iban: 'XX00 DEMO 1142 5751 10', bic: 'DEMOBKXX', bank_name: 'Demo Bank', valid_until: '2028-11-20' });
@@ -157,5 +159,41 @@ describe('every copy of a payment attestation batch against the eShop request (l
     const cfg = testConfig({ MOCK_MODE: 'false', ISSUER_CERT_CHAIN_PEM: pem });
     const svc = await createServices(cfg);
     expect(svc.local.x5c).toEqual([Buffer.from(leaf.rawData).toString('base64'), Buffer.from(root.rawData).toString('base64')]);
+  });
+
+  it('the certificate request for SIGMA: valid CSR for a persistent key; once a CA signs it, the issuer\'s credentials verify through that chain', async () => {
+    const r = await generateIssuerCsr('https://rp.example.test/issuer/');
+    expect(r.issuerUrl).toBe('https://rp.example.test/issuer');
+    const csr = new x509.Pkcs10CertificateRequest(r.csrPem);
+    expect(await csr.verify()).toBe(true); // proof of possession
+    expect(csr.subject).toBe('CN=rp.example.test, O=IN Groupe');
+    const san = new x509.SubjectAlternativeNameExtension(csr.getExtension('2.5.29.17')!.rawData);
+    expect(san.names.items.map((n) => `${n.type}:${n.value}`)).toEqual(['dns:rp.example.test', 'url:https://rp.example.test/issuer']);
+    expect(new x509.KeyUsagesExtension(csr.getExtension('2.5.29.15')!.rawData).usages).toBe(x509.KeyUsageFlags.digitalSignature);
+    const text = requestText(r);
+    expect(text).toContain('rp.example.test');
+    expect(text).toContain(r.publicKeySha256);
+    expect(text).toContain('ISSUER_CERT_CHAIN_PEM');
+    await expect(generateIssuerCsr('http://insecure.example/issuer')).rejects.toThrow('https');
+
+    // the CA (SIGMA) signs the request ...
+    const caKeys = (await crypto.subtle.generateKey(ALG, true, ['sign', 'verify'])) as CryptoKeyPair;
+    const ca = await x509.X509CertificateGenerator.createSelfSigned({ serialNumber: '01', name: 'CN=SIGMA test root CA', notBefore: new Date(Date.now() - 3600_000), notAfter: new Date(Date.now() + 5 * 365 * 86400_000), signingAlgorithm: ALG, keys: caKeys, extensions: [new x509.BasicConstraintsExtension(true, 0, true), new x509.KeyUsagesExtension(x509.KeyUsageFlags.keyCertSign, true)] });
+    const leaf = await x509.X509CertificateGenerator.create({ serialNumber: '02', subject: csr.subject, issuer: ca.subject, publicKey: csr.publicKey, signingKey: caKeys.privateKey, notBefore: new Date(Date.now() - 3600_000), notAfter: new Date(Date.now() + 365 * 86400_000), signingAlgorithm: ALG, extensions: [new x509.BasicConstraintsExtension(false, undefined, true), new x509.KeyUsagesExtension(x509.KeyUsageFlags.digitalSignature, true), san] });
+    const chainEnv = `${leaf.toString('pem')}${ca.toString('pem')}`.replace(/\r?\n/g, '\\n');
+    // ... and the two environment values go to the service: the key from the request, the returned chain
+    const { svc, copies } = await receiveBatch(2, { ISSUER_SIGNING_KEY_JWK: r.keyEnv, ISSUER_CERT_CHAIN_PEM: chainEnv });
+    expect(svc.local.publicJwk.kid).toBe(r.kid);
+    for (const copy of copies) {
+      const [jwt] = copy.credential.split('~');
+      const header = JSON.parse(Buffer.from(jwt!.split('.')[0]!, 'base64url').toString());
+      expect(header.x5c).toEqual([Buffer.from(leaf.rawData).toString('base64'), Buffer.from(ca.rawData).toString('base64')]);
+      const trusted = validateX5cChain(header.x5c, [ca.toString('pem')]); // what a wallet with the CA in its trust list does
+      expect(trusted.checkHost('rp.example.test')).toBe('rp.example.test');
+      const { payload } = await jwtVerify(jwt!, await importX509(trusted.toString(), 'ES256'), { algorithms: ['ES256'] });
+      expect(payload.iss).toBe('https://rp.example.test/issuer');
+      expect(new URL(payload.iss as string).hostname).toBe('rp.example.test'); // matches the dNSName SAN
+    }
+    expect(svc.local.x5c).toHaveLength(2);
   });
 });
