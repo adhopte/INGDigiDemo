@@ -40,6 +40,7 @@ describe('batch issuance (HAIP wallets ask for several credentials per request)'
     const { app } = await setup();
     const meta = (await request(app).get('/issuer/.well-known/openid-credential-issuer')).body;
     expect(meta.batch_credential_issuance).toEqual({ batch_size: 10 });
+    expect(meta.credential_reuse_policy).toEqual({ id: 'arf_annex_ii', options: [{ details: ['per-relying-party', 'rotating-batch'], batch_size: 5, reissue_trigger_unused: 2, reissue_trigger_lifetime_left: 86400 }] }); // as SIGMA: the wallet may reuse / rotate copies
     expect(BATCH_SIZE).toBe(10);
   });
 
@@ -66,6 +67,15 @@ describe('batch issuance (HAIP wallets ask for several credentials per request)'
     const res = await t.send({ attestation: [att] });
     expect(res.status, JSON.stringify(res.body)).toBe(200);
     expect(res.body.credentials.map((c: { credential: string }) => t.cnfOf(c.credential).x)).toEqual(keys.map((k) => k.jwk.x));
+  });
+
+  it('the number of credentials issued is visible in the diagnostics', async () => {
+    const t = await setup();
+    const keys = await t.newKeys(3);
+    const att = await attest(await walletProvider(), { attested_keys: keys.map((k) => k.jwk), nonce: await t.nonce() });
+    expect((await t.send({ attestation: [att] })).status).toBe(200);
+    const ev = t.svc.verifier.diagnostics().find((e) => e.event === 'issuer_request' && String(e.path).endsWith('/credential'));
+    expect(ev).toMatchObject({ status: 200, note: '3 credential(s) issued' });
   });
 
   it('a single proof still gives exactly one credential (plus the legacy top-level field)', async () => {

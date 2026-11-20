@@ -23,6 +23,7 @@ export function issuerRouters(issuer: LocalIssuer, log?: (e: Record<string, unkn
       userAgent: String(h['user-agent'] ?? '').slice(0, 120),
       headers: ['authorization', 'dpop', 'oauth-client-attestation', 'oauth-client-attestation-pop', 'content-type'].filter((k) => h[k]),
       errorCode: res.locals.issuerError,
+      ...(res.locals.issuerNote ? { note: res.locals.issuerNote } : {}),
     }));
     next();
   };
@@ -97,6 +98,7 @@ export function issuerRouters(issuer: LocalIssuer, log?: (e: Record<string, unkn
       return refuse('invalid_encryption_parameters', (e as Error).message);
     }
     const response = await issuer.issueCredential(m?.[2], body as Parameters<LocalIssuer['issueCredential']>[1], { ...(m?.[1] ? { scheme: m[1] } : {}), ...(typeof req.headers.dpop === 'string' ? { dpop: req.headers.dpop } : {}) });
+    res.locals.issuerNote = `${response.credentials.length} credential(s) issued${enc ? ', response encrypted' : ''}`; // visible in /vp/diagnostics
     if (!enc) return void noStore(res).json(response);
     try {
       noStore(res).type('application/jwt').send(await encryptCredentialResponse(enc, response));

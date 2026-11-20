@@ -368,6 +368,9 @@ export class LocalIssuer {
       nonce_endpoint: `${this.issuerUrl}/nonce`,
       // a HAIP wallet asks for several credentials per request (one per key, for unlinkable presentations) and refuses an issuer without this (IssuerDoesNotSupportBatchIssuance)
       batch_credential_issuance: { batch_size: BATCH_SIZE },
+      // How the wallet may reuse the copies of a credential (ARF Annex II), same as the SIGMA issuer: without it a wallet treats every copy as
+      // single-use, so the second presentation of the same attestation fails with NoMatchingDocuments
+      credential_reuse_policy: { id: 'arf_annex_ii', options: [{ details: ['per-relying-party', 'rotating-batch'], batch_size: 5, reissue_trigger_unused: 2, reissue_trigger_lifetime_left: 86400 }] },
       // HAIP wallets require encrypted credential responses (else ResponseEncryptionRequiredByWalletButNotSupportedByIssuer) and, if responses
       // can be encrypted, also declared request encryption (else CredentialRequestEncryptionMustExistIfCredentialResponseEncryptionExists)
       ...(this.requestEncryption ? { credential_request_encryption: this.requestEncryption.metadata(), credential_response_encryption: RESPONSE_ENCRYPTION } : {}),
