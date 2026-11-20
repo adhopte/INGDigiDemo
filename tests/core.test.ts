@@ -132,6 +132,21 @@ describe('verifier rejects bad presentations', () => {
   });
 });
 
+describe('wallet error responses', () => {
+  it('keeps the wallet\'s own reason (error_description) next to the error code, in the transaction and in the diagnostics', async () => {
+    const { cfg, svc } = await setup();
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'eshop')!, 'payment', '/');
+    await expect(respondToVerifier(svc.verifier, tx, { error: 'invalid_request', error_description: 'No credential matches\nclaim "x"' })).rejects.toThrow();
+    expect(tx.status).toBe('failed');
+    expect(tx.errorDetail).toBe('Wallet error: invalid_request (No credential matches claim "x")');
+    expect(svc.verifier.diagnostics().find((e) => e.event === 'response_rejected')?.detail).toContain('No credential matches');
+    // a plain decline stays a decline
+    const tx2 = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'eshop')!, 'payment', '/');
+    await expect(respondToVerifier(svc.verifier, tx2, { error: 'access_denied' })).rejects.toThrow();
+    expect(tx2.errorCode).toBe('wallet_declined');
+  });
+});
+
 describe('request object', () => {
   it('is a signed JWT with x5c, DCQL query and client_id scheme', async () => {
     const { cfg, svc } = await setup();

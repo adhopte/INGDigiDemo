@@ -288,7 +288,11 @@ export class Verifier {
 
     const sameDevice = params.state === `${tx.state}${SAME_DEVICE}`;
     if (params.state !== tx.state && !sameDevice) this.fail(tx, 'bad_response', 'state mismatch');
-    if (typeof params.error === 'string') this.fail(tx, params.error === 'access_denied' ? 'wallet_declined' : 'bad_response', `Wallet error: ${params.error}`);
+    if (typeof params.error === 'string') {
+      // the wallet's own reason (error_description / error_uri) is what explains an invalid_request: keep it, bounded and without control characters
+      const reason = [params.error_description, params.error_uri].filter((x): x is string => typeof x === 'string' && x.length > 0).join(' – ').replace(/[\u0000-\u001f]/g, ' ').slice(0, 300);
+      this.fail(tx, params.error === 'access_denied' ? 'wallet_declined' : 'bad_response', `Wallet error: ${params.error}${reason ? ` (${reason})` : ''}`);
+    }
 
     let presented: string[];
     try {
