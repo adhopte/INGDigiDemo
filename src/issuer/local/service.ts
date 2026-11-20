@@ -46,7 +46,7 @@ interface TokenRecord {
 /** DPoP proof algorithms accepted (and advertised): the same set the SIGMA issuer lists. */
 export const DPOP_ALGS = ['ES256', 'RS256', 'RS384', 'RS512'];
 /** Credentials per request (batch issuance, OpenID4VCI 1.0 §12.2.2): one per proof / attested key; the SIGMA issuer declares 10 as well. */
-export const BATCH_SIZE = 10;
+export const BATCH_SIZE = 10; // the maximum, and the default of ISSUER_BATCH_SIZE
 const DPOP_WINDOW_S = 300;
 // key attestation required, with no minimum levels: exactly what the SIGMA birth-certificate configuration (SD-JWT, jwk binding) declares and this wallet accepts
 const PROOF_TYPE = { proof_signing_alg_values_supported: ['ES256'], key_attestations_required: {} };
@@ -75,7 +75,11 @@ export class LocalIssuer {
   ) {
     this.issuerUrl = cfg.issuer.localIssuerUrl;
     this.reusePolicy = cfg.issuer.reusePolicy;
+    this.batchSize = cfg.issuer.batchSize;
   }
+
+  /** Credentials per request (1-10); starts from ISSUER_BATCH_SIZE, the admin can change it while running. */
+  batchSize: number;
 
   /** Whether the metadata declares the credential reuse policy; starts from ISSUER_REUSE_POLICY, the admin can flip it while running. */
   reusePolicy: 'sigma' | 'off';
@@ -232,9 +236,9 @@ export class LocalIssuer {
     // Verify EVERYTHING first (a batch shares one c_nonce, so nonces are consumed only once all proofs passed); nothing is issued or used up on failure.
     const holderJwks: JWK[] = [];
     const usedNonces = new Set<string>();
-    const tooMany = () => new IssuerError(400, 'invalid_proof', `At most ${BATCH_SIZE} credentials per request`, { c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 });
+    const tooMany = () => new IssuerError(400, 'invalid_proof', `At most ${this.batchSize} credential${this.batchSize === 1 ? '' : 's'} per request`, { c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 });
     if (jwtProofs.length) {
-      if (jwtProofs.length > BATCH_SIZE) throw tooMany();
+      if (jwtProofs.length > this.batchSize) throw tooMany();
       for (const proof of jwtProofs) {
         const v = await this.verifyProof(proof);
         holderJwks.push(v.jwk);
@@ -243,7 +247,7 @@ export class LocalIssuer {
     } else {
       // an attestation proof stands for all the keys it attests: one credential per key
       const v = await this.verifyAttestationProof(attestationProofs[0]!);
-      if (v.jwks.length > BATCH_SIZE) throw tooMany();
+      if (v.jwks.length > this.batchSize) throw tooMany();
       holderJwks.push(...v.jwks);
       usedNonces.add(v.nonce);
     }
@@ -371,7 +375,8 @@ export class LocalIssuer {
       credential_endpoint: `${this.issuerUrl}/credential`,
       nonce_endpoint: `${this.issuerUrl}/nonce`,
       // a HAIP wallet asks for several credentials per request (one per key, for unlinkable presentations) and refuses an issuer without this (IssuerDoesNotSupportBatchIssuance)
-      batch_credential_issuance: { batch_size: BATCH_SIZE },
+      // the spec only allows a batch size of 2 or more: with a limit of 1 batch issuance is simply not declared
+      ...(this.batchSize >= 2 ? { batch_credential_issuance: { batch_size: this.batchSize } } : {}),
       // How the wallet may reuse the copies of a credential (ARF Annex II), same as the SIGMA issuer: without it a wallet treats every copy as
       // single-use, so the second presentation of the same attestation fails with NoMatchingDocuments
       ...(this.reusePolicy === 'sigma' ? { credential_reuse_policy: { id: 'arf_annex_ii', options: [{ details: ['per-relying-party', 'rotating-batch'], batch_size: 5, reissue_trigger_unused: 2, reissue_trigger_lifetime_left: 86400 }] } } : {}),

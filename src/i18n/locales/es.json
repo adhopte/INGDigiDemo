@@ -403,5 +403,13 @@
   "admin.reuse.turn_off": "Desactivar",
   "admin.reuse.turn_on": "Activar",
   "admin.reuse.saved_on": "La política de reutilización ahora está declarada.",
-  "admin.reuse.saved_off": "La política de reutilización ya no está declarada."
+  "admin.reuse.saved_off": "La política de reutilización ya no está declarada.",
+  "admin.batch.title": "Credenciales por solicitud (lote)",
+  "admin.batch.hint": "Cuántas copias de una credencial entrega el emisor local por solicitud. 1 significa que la emisión por lotes no se declara (la especificación solo permite declarar un lote de 2 o más) y se acepta una sola prueba. Se aplica a las credenciales descargadas después del cambio y se olvida al reiniciar la aplicación.",
+  "admin.batch.current_one": "Actualmente: 1 (emisión por lotes no declarada).",
+  "admin.batch.current_n": "Actualmente: hasta {n} copias por solicitud.",
+  "admin.batch.label": "Credenciales por solicitud",
+  "admin.batch.option_one": "1 (no declarado)",
+  "admin.batch.apply": "Aplicar",
+  "admin.batch.saved": "Tamaño del lote actualizado."
 }

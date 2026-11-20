@@ -403,5 +403,13 @@
   "admin.reuse.turn_off": "Stäng av",
   "admin.reuse.turn_on": "Slå på",
   "admin.reuse.saved_on": "Återanvändningspolicyn anges nu.",
-  "admin.reuse.saved_off": "Återanvändningspolicyn anges inte längre."
+  "admin.reuse.saved_off": "Återanvändningspolicyn anges inte längre.",
+  "admin.batch.title": "Bevis per begäran (parti)",
+  "admin.batch.hint": "Hur många kopior av ett bevis den lokala utfärdaren lämnar ut per begäran. 1 betyder att partiutfärdande inte anges (specifikationen tillåter bara ett angivet parti om 2 eller fler) och att ett enda bevis accepteras. Gäller bevis som hämtas efter ändringen och glöms när appen startas om.",
+  "admin.batch.current_one": "Just nu: 1 (partiutfärdande inte angivet).",
+  "admin.batch.current_n": "Just nu: upp till {n} kopior per begäran.",
+  "admin.batch.label": "Bevis per begäran",
+  "admin.batch.option_one": "1 (inte angivet)",
+  "admin.batch.apply": "Tillämpa",
+  "admin.batch.saved": "Partistorleken har uppdaterats."
 }

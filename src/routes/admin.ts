@@ -62,8 +62,15 @@ export function adminRouter(ctx: Ctx): Router {
     res.redirect('/demo-issuer/admin');
   });
 
+  r.post('/demo-issuer/admin/batch-size', needAdmin, (req, res) => {
+    const n = Number(q(req.body?.value));
+    svc.local.batchSize = Number.isInteger(n) && n >= 1 && n <= 10 ? n : svc.local.batchSize;
+    req.session.flash = 'admin.batch.saved';
+    res.redirect('/demo-issuer/admin');
+  });
+
   const renderForm = (res: Response, uc: string, values: Record<string, string>, errors: Record<string, string>, status = 200) =>
-    void res.status(status).render('issuer/admin', { title: res.locals.t('admin.title'), uc, fields: RECORD_FIELDS[uc], values, errors, mockMode: cfg.mockMode, reusePolicy: svc.local.reusePolicy });
+    void res.status(status).render('issuer/admin', { title: res.locals.t('admin.title'), uc, fields: RECORD_FIELDS[uc], values, errors, mockMode: cfg.mockMode, reusePolicy: svc.local.reusePolicy, batchSize: svc.local.batchSize });
 
   r.get('/demo-issuer/admin', needAdmin, (req, res) => {
     const uc = ucOf(req.query.uc);

@@ -403,5 +403,13 @@
   "admin.reuse.turn_off": "Désactiver",
   "admin.reuse.turn_on": "Activer",
   "admin.reuse.saved_on": "La politique de réutilisation est maintenant déclarée.",
-  "admin.reuse.saved_off": "La politique de réutilisation n’est plus déclarée."
+  "admin.reuse.saved_off": "La politique de réutilisation n’est plus déclarée.",
+  "admin.batch.title": "Justificatifs par demande (lot)",
+  "admin.batch.hint": "Nombre de copies d’un justificatif remises par la demande par l’émetteur local. 1 signifie que l’émission par lots n’est pas déclarée (la spécification n’autorise qu’un lot déclaré de 2 ou plus) et qu’une seule preuve est acceptée. S’applique aux justificatifs téléchargés après le changement et est oublié au redémarrage de l’application.",
+  "admin.batch.current_one": "Actuellement : 1 (émission par lots non déclarée).",
+  "admin.batch.current_n": "Actuellement : jusqu’à {n} copies par demande.",
+  "admin.batch.label": "Justificatifs par demande",
+  "admin.batch.option_one": "1 (non déclaré)",
+  "admin.batch.apply": "Appliquer",
+  "admin.batch.saved": "Taille du lot mise à jour."
 }

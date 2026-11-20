@@ -75,7 +75,7 @@ describe('batch issuance (HAIP wallets ask for several credentials per request)'
     const att = await attest(await walletProvider(), { attested_keys: keys.map((k) => k.jwk), nonce: await t.nonce() });
     expect((await t.send({ attestation: [att] })).status).toBe(200);
     const ev = t.svc.verifier.diagnostics().find((e) => e.event === 'issuer_request' && String(e.path).endsWith('/credential'));
-    expect(ev).toMatchObject({ status: 200, note: '3 credential(s) of demo_bank_account, reuse policy declared' });
+    expect(ev).toMatchObject({ status: 200, note: '3 credential(s) of demo_bank_account, reuse policy declared, batch limit 10' });
   });
 
   it('a single proof still gives exactly one credential (plus the legacy top-level field)', async () => {
@@ -151,5 +151,61 @@ describe('credential reuse policy switch', () => {
     expect(off).toContain('Reuse policy is no longer declared.'); // flash
     await agent.post('/demo-issuer/admin/reuse-policy').type('form').send({ value: 'sigma' });
     expect((await meta(app)).credential_reuse_policy.id).toBe('arf_annex_ii');
+  });
+});
+
+describe('batch size switch', () => {
+  const metaOf = async (app: Parameters<typeof request>[0]) => (await request(app).get('/issuer/.well-known/openid-credential-issuer')).body;
+
+  it('ISSUER_BATCH_SIZE: default 10; n >= 2 is declared as such; 1 means batch issuance is not declared; garbage falls back to 10', async () => {
+    for (const [value, declared] of [[undefined, 10], ['10', 10], ['5', 5], ['2', 2], ['1', undefined], ['0', 10], ['11', 10], ['x', 10], ['2.5', 10]] as const) {
+      const cfg = testConfig({ MOCK_MODE: 'false', ...(value ? { ISSUER_BATCH_SIZE: value } : {}) });
+      const m = await metaOf(createApp(cfg, await createServices(cfg)));
+      expect(m.batch_credential_issuance, String(value)).toEqual(declared ? { batch_size: declared } : undefined);
+    }
+  });
+
+  it('the limit is enforced: 1 accepts a single proof and refuses two; 2 refuses three', async () => {
+    for (const [limit, ok, tooMany] of [[1, 1, 2], [2, 2, 3]] as const) {
+      const cfg = testConfig({ MOCK_MODE: 'false', ISSUER_BATCH_SIZE: String(limit) });
+      const svc = await createServices(cfg);
+      const app = createApp(cfg, svc);
+      const wp = await walletProvider();
+      const send = async (n: number) => {
+        const o = svc.local.createOffer('account', { account_holder_name: 'L D', iban: 'DE02', bic: 'B' });
+        const offer = (await request(app).get(`/issuer/offers/${o.id}`)).body;
+        const token = (await request(app).post('/issuer/token').type('form').send({ grant_type: PRE_AUTH_GRANT, 'pre-authorized_code': offer.grants[PRE_AUTH_GRANT]['pre-authorized_code'] })).body.access_token as string;
+        const keys = await Promise.all(Array.from({ length: n }, async () => exportJWK((await generateKeyPair('ES256', { extractable: true })).publicKey)));
+        const nonce = (await request(app).post('/issuer/nonce')).body.c_nonce as string;
+        const att = await attest(wp, { attested_keys: keys, nonce });
+        return request(app).post('/issuer/credential').set('Authorization', `Bearer ${token}`).send({ credential_configuration_id: offer.credential_configuration_ids[0], proofs: { attestation: [att] } });
+      };
+      const good = await send(ok);
+      expect(good.status, `limit ${limit}`).toBe(200);
+      expect(good.body.credentials).toHaveLength(ok);
+      const bad = await send(tooMany);
+      expect(bad.status).toBe(400);
+      expect(bad.body.error_description).toContain(`At most ${limit} credential`);
+    }
+  });
+
+  it('the admin can change it while running; anyone else cannot; invalid values are ignored', async () => {
+    const cfg = testConfig({ MOCK_MODE: 'false' });
+    const app = createApp(cfg, await createServices(cfg));
+    const agent = request.agent(app);
+    expect((await agent.post('/demo-issuer/admin/batch-size').type('form').send({ value: '1' })).headers.location).toBe('/demo-issuer/admin/login');
+    expect((await metaOf(app)).batch_credential_issuance).toEqual({ batch_size: 10 });
+    await agent.post('/demo-issuer/admin/login').type('form').send({ username: 'admin', password: 'Admin123' });
+    expect((await agent.get('/demo-issuer/admin')).text).toContain('Currently: up to 10 copies per request.');
+    await agent.post('/demo-issuer/admin/batch-size').type('form').send({ value: '1' });
+    expect((await metaOf(app)).batch_credential_issuance).toBeUndefined();
+    const page = (await agent.get('/demo-issuer/admin')).text;
+    expect(page).toContain('Currently: 1 (batch issuance not declared).');
+    expect(page).toContain('Batch size updated.');
+    await agent.post('/demo-issuer/admin/batch-size').type('form').send({ value: '99' }); // ignored
+    await agent.post('/demo-issuer/admin/batch-size').type('form').send({ value: 'abc' });
+    expect((await metaOf(app)).batch_credential_issuance).toBeUndefined();
+    await agent.post('/demo-issuer/admin/batch-size').type('form').send({ value: '5' });
+    expect((await metaOf(app)).batch_credential_issuance).toEqual({ batch_size: 5 });
   });
 });

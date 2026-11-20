@@ -87,6 +87,8 @@ services:
         value: https://issuer.sigma.prep.smartid.nuagein.io/.well-known/openid-credential-issuer
       - key: ISSUER_REUSE_POLICY     # local issuer: sigma (declare the SIGMA credential reuse policy, default) | off (copies are single-use). The admin page can flip it at runtime
         value: sigma
+      - key: ISSUER_BATCH_SIZE       # local issuer: credentials per request, 1-10 (1 = batch issuance not declared). The admin page can change it at runtime
+        value: "10"
       - key: ISSUER_TX_CODE          # local issuer: require a 4-digit transaction code
         value: "false"
       - key: ISSUER_SIGNING_KEY_JWK  # SECRET: private ES256 JWK of the local issuer. Without it the key changes at each restart.

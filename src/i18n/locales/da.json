@@ -403,5 +403,13 @@
   "admin.reuse.turn_off": "Slå fra",
   "admin.reuse.turn_on": "Slå til",
   "admin.reuse.saved_on": "Genbrugspolitikken angives nu.",
-  "admin.reuse.saved_off": "Genbrugspolitikken angives ikke længere."
+  "admin.reuse.saved_off": "Genbrugspolitikken angives ikke længere.",
+  "admin.batch.title": "Oplysninger pr. anmodning (parti)",
+  "admin.batch.hint": "Hvor mange kopier af en oplysning den lokale udsteder afleverer pr. anmodning. 1 betyder, at partiudstedelse ikke angives (specifikationen tillader kun et angivet parti på 2 eller flere), og at ét bevis accepteres. Gælder oplysninger hentet efter ændringen og glemmes, når appen genstartes.",
+  "admin.batch.current_one": "Nu: 1 (partiudstedelse ikke angivet).",
+  "admin.batch.current_n": "Nu: op til {n} kopier pr. anmodning.",
+  "admin.batch.label": "Oplysninger pr. anmodning",
+  "admin.batch.option_one": "1 (ikke angivet)",
+  "admin.batch.apply": "Anvend",
+  "admin.batch.saved": "Partistørrelsen er opdateret."
 }

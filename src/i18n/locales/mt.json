@@ -403,5 +403,13 @@
   "admin.reuse.turn_off": "Itfi",
   "admin.reuse.turn_on": "Ixgħel",
   "admin.reuse.saved_on": "Il-politika ta’ użu mill-ġdid issa hija ddikjarata.",
-  "admin.reuse.saved_off": "Il-politika ta’ użu mill-ġdid m’għadhiex iddikjarata."
+  "admin.reuse.saved_off": "Il-politika ta’ użu mill-ġdid m’għadhiex iddikjarata.",
+  "admin.batch.title": "Credentials għal kull talba (lott)",
+  "admin.batch.hint": "Kemm-il kopja ta’ credential jagħti l-emittent lokali għal kull talba. 1 tfisser li l-ħruġ bil-lott ma jiġix iddikjarat (l-ispeċifikazzjoni tippermetti biss lott iddikjarat ta’ 2 jew aktar) u tiġi aċċettata prova waħda. Tapplika għall-credentials imniżżla wara l-bidla u tintesa meta tiġi mibdija mill-ġdid l-app.",
+  "admin.batch.current_one": "Bħalissa: 1 (ħruġ bil-lott mhux iddikjarat).",
+  "admin.batch.current_n": "Bħalissa: sa {n} kopji għal kull talba.",
+  "admin.batch.label": "Credentials għal kull talba",
+  "admin.batch.option_one": "1 (mhux iddikjarat)",
+  "admin.batch.apply": "Applika",
+  "admin.batch.saved": "Id-daqs tal-lott ġie aġġornat."
 }

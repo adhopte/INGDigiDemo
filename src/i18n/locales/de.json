@@ -403,5 +403,13 @@
   "admin.reuse.turn_off": "Ausschalten",
   "admin.reuse.turn_on": "Einschalten",
   "admin.reuse.saved_on": "Die Wiederverwendungsrichtlinie wird jetzt angegeben.",
-  "admin.reuse.saved_off": "Die Wiederverwendungsrichtlinie wird nicht mehr angegeben."
+  "admin.reuse.saved_off": "Die Wiederverwendungsrichtlinie wird nicht mehr angegeben.",
+  "admin.batch.title": "Nachweise pro Anfrage (Batch)",
+  "admin.batch.hint": "Wie viele Kopien eines Nachweises der lokale Aussteller pro Anfrage herausgibt. 1 bedeutet: Batch-Ausstellung wird nicht angegeben (die Spezifikation erlaubt nur einen angegebenen Batch ab 2) und ein einzelner Nachweis wird akzeptiert. Gilt für nach der Änderung heruntergeladene Nachweise und wird beim Neustart der App vergessen.",
+  "admin.batch.current_one": "Aktuell: 1 (Batch-Ausstellung nicht angegeben).",
+  "admin.batch.current_n": "Aktuell: bis zu {n} Kopien pro Anfrage.",
+  "admin.batch.label": "Nachweise pro Anfrage",
+  "admin.batch.option_one": "1 (nicht angegeben)",
+  "admin.batch.apply": "Übernehmen",
+  "admin.batch.saved": "Batchgröße aktualisiert."
 }

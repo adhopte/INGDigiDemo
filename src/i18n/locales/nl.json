@@ -403,5 +403,13 @@
   "admin.reuse.turn_off": "Uitzetten",
   "admin.reuse.turn_on": "Aanzetten",
   "admin.reuse.saved_on": "Hergebruikbeleid wordt nu aangegeven.",
-  "admin.reuse.saved_off": "Hergebruikbeleid wordt niet meer aangegeven."
+  "admin.reuse.saved_off": "Hergebruikbeleid wordt niet meer aangegeven.",
+  "admin.batch.title": "Credentials per aanvraag (batch)",
+  "admin.batch.hint": "Hoeveel kopieën van een credential de lokale uitgever per aanvraag uitgeeft. 1 betekent dat batchuitgifte niet wordt aangegeven (de specificatie staat alleen een aangegeven batch van 2 of meer toe) en één bewijs wordt geaccepteerd. Geldt voor credentials die na de wijziging worden gedownload en wordt vergeten bij een herstart van de app.",
+  "admin.batch.current_one": "Nu: 1 (batchuitgifte niet aangegeven).",
+  "admin.batch.current_n": "Nu: maximaal {n} kopieën per aanvraag.",
+  "admin.batch.label": "Credentials per aanvraag",
+  "admin.batch.option_one": "1 (niet aangegeven)",
+  "admin.batch.apply": "Toepassen",
+  "admin.batch.saved": "Batchgrootte bijgewerkt."
 }

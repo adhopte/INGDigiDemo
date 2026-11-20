@@ -64,5 +64,20 @@
       <button class="btn btn-secondary" type="submit"><%= reusePolicy === 'sigma' ? t('admin.reuse.turn_off') : t('admin.reuse.turn_on') %></button>
     </form>
   </section>
+
+  <section class="panel" aria-labelledby="batch-h">
+    <h2 id="batch-h"><%= t('admin.batch.title') %></h2>
+    <p><%= t('admin.batch.hint') %></p>
+    <p><strong><%= batchSize === 1 ? t('admin.batch.current_one') : t('admin.batch.current_n', { n: batchSize }) %></strong></p>
+    <form method="post" action="/demo-issuer/admin/batch-size" class="portal-form">
+      <div class="field">
+        <label for="batch-value"><%= t('admin.batch.label') %></label>
+        <select id="batch-value" name="value">
+          <% [1, 2, 5, 10].forEach(function (n) { %><option value="<%= n %>"<%= n === batchSize ? ' selected' : '' %>><%= n === 1 ? t('admin.batch.option_one') : n %></option><% }) %>
+        </select>
+      </div>
+      <button class="btn btn-secondary" type="submit"><%= t('admin.batch.apply') %></button>
+    </form>
+  </section>
 </div>
 <%- include('../partials/foot') %>

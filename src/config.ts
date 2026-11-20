@@ -108,6 +108,8 @@ export interface IssuerConfig {
   txCode: boolean;
   /** Local issuer: declare the SIGMA credential_reuse_policy in the metadata ("sigma", default) or not ("off": wallets then treat each copy as single-use). Switchable at runtime by the admin. */
   reusePolicy: 'sigma' | 'off';
+  /** Local issuer: credentials per request (1-10). 1 = batch issuance is not declared and a single proof is accepted. Switchable at runtime by the admin. */
+  batchSize: number;
   signingKeyJwk: string | undefined;
   external: ExternalIssuerConfig;
 }
@@ -316,6 +318,7 @@ export function loadConfig(
       localIssuerUrl: `${publicBaseUrl}/issuer`,
       txCode: parseBool(env.ISSUER_TX_CODE, false),
       reusePolicy: (env.ISSUER_REUSE_POLICY ?? '').toLowerCase() === 'off' ? 'off' : 'sigma',
+      batchSize: ((n) => (Number.isInteger(n) && n >= 1 && n <= 10 ? n : 10))(Number(env.ISSUER_BATCH_SIZE ?? 10)),
       signingKeyJwk: env.ISSUER_SIGNING_KEY_JWK || undefined,
       external,
     },
