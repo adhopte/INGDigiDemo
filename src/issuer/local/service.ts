@@ -81,7 +81,7 @@ export class LocalIssuer {
   /** Credentials per request (1-10); starts from ISSUER_BATCH_SIZE, the admin can change it while running. */
   batchSize: number;
 
-  /** Whether the metadata declares the credential reuse policy; starts from ISSUER_REUSE_POLICY, the admin can flip it while running. */
+  /** Whether the metadata declares the credential reuse policy; starts from ISSUER_CREDENTIAL_REUSE, the admin can flip it while running. */
   reusePolicy: 'sigma' | 'off';
 
   /** Keys for encrypted Credential Requests; set by init(). Without them neither request nor response encryption is advertised (a HAIP wallet wants both or neither). */

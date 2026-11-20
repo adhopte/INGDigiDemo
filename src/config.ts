@@ -318,7 +318,7 @@ export function loadConfig(
       localIssuerUrl: `${publicBaseUrl}/issuer`,
       txCode: parseBool(env.ISSUER_TX_CODE, false),
       // default OFF while the Android wallet's handling of the policy is investigated (a restart must not undo the setting); "sigma" declares it
-      reusePolicy: (env.ISSUER_REUSE_POLICY ?? '').toLowerCase() === 'sigma' ? 'sigma' : 'off',
+      reusePolicy: (env.ISSUER_CREDENTIAL_REUSE ?? '').toLowerCase() === 'sigma' ? 'sigma' : 'off',
       batchSize: ((n) => (Number.isInteger(n) && n >= 1 && n <= 10 ? n : 10))(Number(env.ISSUER_BATCH_SIZE ?? 10)),
       signingKeyJwk: env.ISSUER_SIGNING_KEY_JWK || undefined,
       external,
