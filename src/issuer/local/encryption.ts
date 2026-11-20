@@ -41,15 +41,24 @@ export const REQUEST_ENCRYPTION_ENC = ['A128GCM', 'A192GCM', 'A256GCM'] as const
 export class RequestEncryption {
   private constructor(private readonly keys: Array<{ jwk: JWK; privateKey: Awaited<ReturnType<typeof importJWK>> }>) {}
 
-  /** One P-256 key (ECDH-ES) and one RSA key (RSA-OAEP-256), like the SIGMA issuer publishes. Regenerated at every start (wallets read the metadata per offer). */
-  static async generate(): Promise<RequestEncryption> {
-    const keys: Array<{ jwk: JWK; privateKey: Awaited<ReturnType<typeof importJWK>> }> = [];
-    for (const [alg, opts] of [['ECDH-ES', { crv: 'P-256' }], ['RSA-OAEP-256', { modulusLength: 2048 }]] as const) {
-      const pair = await generateKeyPair(alg, { ...opts, extractable: true });
-      const pub = await exportJWK(pair.publicKey);
-      keys.push({ jwk: { ...pub, use: 'enc', alg, kid: (await calculateJwkThumbprint(pub)).slice(0, 16) }, privateKey: pair.privateKey });
-    }
-    return new RequestEncryption(keys);
+  private static cached: Promise<RequestEncryption> | undefined;
+
+  /**
+   * The same kinds of key the SIGMA issuer publishes (RSA-OAEP-256 4096-bit, then ECDH-ES P-384), plus ECDH-ES P-256 (the HAIP curve), in that order:
+   * a wallet that only handles what SIGMA offers still finds a usable key. Generated once per process (RSA 4096 takes a moment), regenerated at
+   * every start (wallets read the metadata per offer).
+   */
+  static generate(): Promise<RequestEncryption> {
+    RequestEncryption.cached ??= (async () => {
+      const keys: Array<{ jwk: JWK; privateKey: Awaited<ReturnType<typeof importJWK>> }> = [];
+      for (const [alg, opts] of [['RSA-OAEP-256', { modulusLength: 4096 }], ['ECDH-ES', { crv: 'P-384' }], ['ECDH-ES', { crv: 'P-256' }]] as const) {
+        const pair = await generateKeyPair(alg, { ...opts, extractable: true });
+        const pub = await exportJWK(pair.publicKey);
+        keys.push({ jwk: { ...pub, use: 'enc', alg, kid: (await calculateJwkThumbprint(pub)).slice(0, 16) }, privateKey: pair.privateKey });
+      }
+      return new RequestEncryption(keys);
+    })();
+    return RequestEncryption.cached;
   }
 
   /** The `credential_request_encryption` metadata object. */
@@ -65,7 +74,9 @@ export class RequestEncryption {
     } catch {
       throw new EncryptionParamsError('the body is not a JWE');
     }
-    const key = this.keys.find((k) => (header.kid ? k.jwk.kid === header.kid : k.jwk.alg === header.alg));
+    // by kid; without one, by algorithm (and, for ECDH-ES, by the curve of the sender's ephemeral key)
+    const epkCrv = (header.epk as { crv?: string } | undefined)?.crv;
+    const key = this.keys.find((k) => (header.kid ? k.jwk.kid === header.kid : k.jwk.alg === header.alg && (!epkCrv || !k.jwk.crv || k.jwk.crv === epkCrv)));
     if (!key || key.jwk.alg !== header.alg) throw new EncryptionParamsError('the request is encrypted to a key this issuer does not have');
     if (!(REQUEST_ENCRYPTION_ENC as readonly string[]).includes(String(header.enc))) throw new EncryptionParamsError('unsupported enc');
     try {

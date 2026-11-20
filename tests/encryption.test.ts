@@ -44,7 +44,8 @@ describe('credential response encryption (HAIP wallets)', () => {
     const req = meta.credential_request_encryption;
     expect(req.encryption_required).toBe(false);
     expect(req.enc_values_supported).toEqual(['A128GCM', 'A192GCM', 'A256GCM']);
-    expect(req.jwks.keys.map((k: JWK) => [k.kty, k.alg, k.use])).toEqual([['EC', 'ECDH-ES', 'enc'], ['RSA', 'RSA-OAEP-256', 'enc']]);
+    expect(req.jwks.keys.map((k: JWK) => [k.kty, k.alg, k.crv ?? '', k.use])).toEqual([['RSA', 'RSA-OAEP-256', '', 'enc'], ['EC', 'ECDH-ES', 'P-384', 'enc'], ['EC', 'ECDH-ES', 'P-256', 'enc']]); // the kinds SIGMA publishes first, then the HAIP curve
+    expect(Buffer.from(req.jwks.keys[0].n, 'base64url').length).toBe(512); // RSA 4096
     for (const k of req.jwks.keys) { expect(k.kid).toMatch(/^[A-Za-z0-9_-]{16}$/); expect(k.d).toBeUndefined(); expect(k.p).toBeUndefined(); }
   });
 
@@ -119,9 +120,21 @@ describe('credential response encryption (HAIP wallets)', () => {
     }
   });
 
+  it('every published key works, also when the wallet names no kid (chosen by algorithm and curve)', async () => {
+    const { app, session } = await setup();
+    const keys = (await request(app).get('/issuer/.well-known/openid-credential-issuer')).body.credential_request_encryption.jwks.keys as JWK[];
+    for (const k of keys) {
+      for (const withKid of [true, false]) {
+        const { attemptRaw } = await session();
+        const res = await attemptRaw(async (plain) => new CompactEncrypt(new TextEncoder().encode(JSON.stringify(plain))).setProtectedHeader({ alg: k.alg!, enc: 'A128GCM', ...(withKid ? { kid: k.kid } : {}) }).encrypt(await importJWK(k, k.alg!)));
+        expect(res.status, `${k.alg} ${k.crv ?? ''} kid=${withKid}`).toBe(200);
+      }
+    }
+  });
+
   it('an encrypted request without response encryption gets a plain response; bad JWEs are refused without consuming the offer', async () => {
     const { app, session } = await setup();
-    const issuerKey = ((await request(app).get('/issuer/.well-known/openid-credential-issuer')).body.credential_request_encryption.jwks.keys as JWK[])[0]!;
+    const issuerKey = ((await request(app).get('/issuer/.well-known/openid-credential-issuer')).body.credential_request_encryption.jwks.keys as JWK[]).find((k) => k.alg === 'ECDH-ES')!;
     const encryptFor = async (plain: unknown, key: JWK, alg: string, enc = 'A128GCM', kid: string | undefined = key.kid) =>
       new CompactEncrypt(new TextEncoder().encode(JSON.stringify(plain))).setProtectedHeader({ alg, enc, ...(kid ? { kid } : {}) }).encrypt(await importJWK(key, alg));
     const { attemptRaw } = await session();
