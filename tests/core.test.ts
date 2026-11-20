@@ -140,6 +140,14 @@ describe('wallet error responses', () => {
     expect(tx.status).toBe('failed');
     expect(tx.errorDetail).toBe('Wallet error: invalid_request (No credential matches claim "x")');
     expect(svc.verifier.diagnostics().find((e) => e.event === 'response_rejected')?.detail).toContain('No credential matches');
+    // every POST of a wallet is noted, also for a request that no longer exists
+    const { default: request } = await import('supertest');
+    const { createApp } = await import('../src/app.js');
+    const app = createApp(cfg, svc);
+    await request(app).post('/vp/response/does-not-exist').type('form').send({ error: 'invalid_request', state: 'x' });
+    const posted = svc.verifier.diagnostics().find((e) => e.event === 'wallet_response_posted');
+    expect(posted).toMatchObject({ status: 400, id: 'does-n', fields: ['error', 'state'] });
+    expect(String(posted!.error)).toContain('Unknown, expired or already completed');
     // a plain decline stays a decline
     const tx2 = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'eshop')!, 'payment', '/');
     await expect(respondToVerifier(svc.verifier, tx2, { error: 'access_denied' })).rejects.toThrow();

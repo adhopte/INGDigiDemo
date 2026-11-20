@@ -53,10 +53,19 @@ export function vpRouter(verifier: Verifier, diagnosticsEnabled = false): Router
   r.post('/request/:id', requestObject);
 
   r.post('/response/:id', async (req, res) => {
+    // every POST of a wallet is noted (even for an unknown / used-up request), without any content
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const seen = { event: 'wallet_response_posted' as const, id: String(req.params.id).slice(0, 6), userAgent: String(req.headers['user-agent'] ?? '').slice(0, 60), fields: Object.keys(body).slice(0, 8), contentType: String(req.headers['content-type'] ?? '').split(';')[0] };
     try {
-      res.json(await verifier.handleResponse(String(req.params.id), (req.body ?? {}) as Record<string, unknown>));
+      const out = await verifier.handleResponse(String(req.params.id), body);
+      verifier.record({ ...seen, status: 200 });
+      res.json(out);
     } catch (e) {
-      if (e instanceof VpError) return void res.status(e.status).json({ error: e.error, error_description: e.message });
+      if (e instanceof VpError) {
+        verifier.record({ ...seen, status: e.status, error: `${e.error}: ${e.message}`.slice(0, 200) });
+        return void res.status(e.status).json({ error: e.error, error_description: e.message });
+      }
+      verifier.record({ ...seen, status: 500, error: 'server error' });
       log.error('vp response failed', { error: e instanceof Error ? e.message : String(e) });
       res.status(500).json({ error: 'server_error' });
     }

@@ -116,7 +116,7 @@ export async function buildVpToken(session: SessionLike, tx: Transaction, verifi
 }
 
 /** Deliver the response exactly as a wallet would (direct_post or direct_post.jwt). Returns the response_uri result. */
-export async function respondToVerifier(verifier: Verifier, tx: Transaction, payload: { vp_token?: unknown; error?: string }) {
+export async function respondToVerifier(verifier: Verifier, tx: Transaction, payload: { vp_token?: unknown; error?: string; error_description?: string }) {
   const body = { ...payload, state: tx.state };
   if (tx.enc) {
     const key = await importJWK(tx.enc.publicJwk, 'ECDH-ES');

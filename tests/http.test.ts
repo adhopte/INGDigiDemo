@@ -231,9 +231,11 @@ describe('diagnostics and caching', () => {
     await request(app).post(`/vp/request/${tx.id}`).type('form').send({ wallet_metadata: JSON.stringify({ vp_formats_supported: { mso_mdoc: {} } }) });
     await request(app).post(`/vp/response/${tx.id}`).type('form').send({ vp_token: 'junk', state: 'x' });
     const d = (await request(app).get('/vp/diagnostics')).body.events;
-    expect(d.map((e: any) => e.event)).toEqual(['response_rejected', 'wallet_fetched_request']);
-    expect(d[1].walletMetadata).toContain('mso_mdoc');
-    expect(d[0].detail).toBeTruthy();
+    expect(d.map((e: any) => e.event)).toEqual(['wallet_response_posted', 'response_rejected', 'wallet_fetched_request']);
+    expect(d[2].walletMetadata).toContain('mso_mdoc');
+    expect(d[1].detail).toBeTruthy();
+    expect(d[0]).toMatchObject({ status: 400, fields: ['vp_token', 'state'] }); // the POST itself is noted, with the names of the fields (never their content)
+    expect(JSON.stringify(d[0])).not.toContain('junk');
   });
 
   it('static assets are revalidated and asset URLs carry a build version', async () => {
