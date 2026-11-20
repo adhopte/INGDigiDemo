@@ -45,6 +45,8 @@ interface TokenRecord {
 
 /** DPoP proof algorithms accepted (and advertised): the same set the SIGMA issuer lists. */
 export const DPOP_ALGS = ['ES256', 'RS256', 'RS384', 'RS512'];
+/** Credentials per request (batch issuance, OpenID4VCI 1.0 §12.2.2): one per proof / attested key; the SIGMA issuer declares 10 as well. */
+export const BATCH_SIZE = 10;
 const DPOP_WINDOW_S = 300;
 // key attestation required, with no minimum levels: exactly what the SIGMA birth-certificate configuration (SD-JWT, jwk binding) declares and this wallet accepts
 const PROOF_TYPE = { proof_signing_alg_values_supported: ['ES256'], key_attestations_required: {} };
@@ -219,25 +221,38 @@ export class LocalIssuer {
     if (wanted && wanted !== grant.attestation.credentialConfigurationId) throw new IssuerError(400, 'unknown_credential_configuration', 'Not authorised for that credential configuration');
     if (!wanted && body.vct && body.vct !== grant.attestation.vct) throw new IssuerError(400, 'unsupported_credential_type', 'vct does not match the offer');
 
-    const proofJwt = body.proofs?.jwt?.[0] ?? (body.proof?.proof_type === 'jwt' ? body.proof.jwt : undefined);
-    const attestationProof = body.proofs?.attestation?.[0] ?? (body.proof?.proof_type === 'attestation' ? body.proof.attestation : undefined);
-    if (!proofJwt && !attestationProof) throw new IssuerError(400, 'invalid_proof', 'A jwt or attestation proof is required', { c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 });
+    const jwtProofs = body.proofs?.jwt ?? (body.proof?.proof_type === 'jwt' && body.proof.jwt ? [body.proof.jwt] : []);
+    const attestationProofs = body.proofs?.attestation ?? (body.proof?.proof_type === 'attestation' && body.proof.attestation ? [body.proof.attestation] : []);
+    if (!jwtProofs.length && !attestationProofs.length) throw new IssuerError(400, 'invalid_proof', 'A jwt or attestation proof is required', { c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 });
 
-    const holderJwk = proofJwt ? await this.verifyProof(proofJwt) : await this.verifyAttestationProof(attestationProof!);
-    this.tokens.delete(accessToken!); // one credential per offer
+    // Verify EVERYTHING first (a batch shares one c_nonce, so nonces are consumed only once all proofs passed); nothing is issued or used up on failure.
+    const holderJwks: JWK[] = [];
+    const usedNonces = new Set<string>();
+    const tooMany = () => new IssuerError(400, 'invalid_proof', `At most ${BATCH_SIZE} credentials per request`, { c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 });
+    if (jwtProofs.length) {
+      if (jwtProofs.length > BATCH_SIZE) throw tooMany();
+      for (const proof of jwtProofs) {
+        const v = await this.verifyProof(proof);
+        holderJwks.push(v.jwk);
+        usedNonces.add(v.nonce);
+      }
+    } else {
+      // an attestation proof stands for all the keys it attests: one credential per key
+      const v = await this.verifyAttestationProof(attestationProofs[0]!);
+      if (v.jwks.length > BATCH_SIZE) throw tooMany();
+      holderJwks.push(...v.jwks);
+      usedNonces.add(v.nonce);
+    }
+    for (const n of usedNonces) this.nonces.delete(n);
+    this.tokens.delete(accessToken!); // one request per offer
 
-    const credential = await issueSdJwt({
-      privateKey: this.keys.privateKey,
-      kid: this.keys.kid,
-      iss: this.issuerUrl,
-      vct: grant.attestation.vct,
-      claims: grant.claims,
-      holderJwk,
-    });
-    return { credentials: [{ credential }], credential, c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 };
+    const credentials = await Promise.all(holderJwks.map(async (holderJwk) => ({
+      credential: await issueSdJwt({ privateKey: this.keys.privateKey, kid: this.keys.kid, iss: this.issuerUrl, vct: grant.attestation.vct, claims: grant.claims, holderJwk }),
+    })));
+    return { credentials, credential: credentials[0]!.credential, c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 };
   }
 
-  private async verifyProof(jwt: string): Promise<JWK> {
+  private async verifyProof(jwt: string): Promise<{ jwk: JWK; nonce: string }> {
     const fail = (d: string) => new IssuerError(400, 'invalid_proof', d, { c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 });
     let header;
     try {
@@ -256,35 +271,42 @@ export class LocalIssuer {
       attested = (await this.readKeyAttestation(header.key_attestation, fail)).keys;
     }
 
-    let jwk = header.jwk as JWK | undefined;
-    if (!jwk && attested?.length) jwk = attested[0]; // no explicit key in the header: the (first) attested key
-    if (!jwk || jwk.d) throw fail('Proof header must carry the public holder key as jwk (or a key_attestation listing it)');
-    if (attested && !attested.some((k) => k.kty === jwk!.kty && k.crv === jwk!.crv && k.x === jwk!.x && k.y === jwk!.y)) throw fail('The proof key is not among the keys of the key attestation');
-    try {
-      const key = await importJWK(jwk, 'ES256');
-      const { payload } = await jwtVerify(jwt, key, { algorithms: ['ES256'], audience: this.issuerUrl, currentDate: new Date(this.now()) });
-      const nonce = typeof payload.nonce === 'string' ? payload.nonce : '';
-      const exp = this.nonces.get(nonce);
-      if (!exp || exp < this.now()) throw new Error('unknown or expired nonce');
-      this.nonces.delete(nonce);
-    } catch (e) {
-      throw fail(`Proof validation failed: ${(e as Error).message}`);
+    // Which key signed the proof? The `jwk` header if present; otherwise (batch: several attested keys, header names none) the attested key whose
+    // signature verifies.
+    const explicit = header.jwk as JWK | undefined;
+    const candidates: JWK[] = explicit ? [explicit] : attested ?? [];
+    if (!candidates.length || candidates.some((c) => !c || c.d)) throw fail('Proof header must carry the public holder key as jwk (or a key_attestation listing it)');
+    if (explicit && attested && !attested.some((k) => k.kty === explicit.kty && k.crv === explicit.crv && k.x === explicit.x && k.y === explicit.y)) throw fail('The proof key is not among the keys of the key attestation');
+    let jwk: JWK | undefined;
+    let nonce = '';
+    let lastError: Error | undefined;
+    for (const candidate of candidates) {
+      try {
+        const { payload } = await jwtVerify(jwt, await importJWK(candidate, 'ES256'), { algorithms: ['ES256'], audience: this.issuerUrl, currentDate: new Date(this.now()) });
+        nonce = typeof payload.nonce === 'string' ? payload.nonce : '';
+        const exp = this.nonces.get(nonce);
+        if (!exp || exp < this.now()) throw new Error('unknown or expired nonce'); // consumed by the caller once every proof of the request passed
+        jwk = candidate;
+        break;
+      } catch (e) {
+        lastError = e as Error;
+        if ((e as { code?: string }).code !== 'ERR_JWS_SIGNATURE_VERIFICATION_FAILED') break; // a wrong key is worth another try, anything else is final
+      }
     }
-    return { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y } as JWK;
+    if (!jwk) throw fail(`Proof validation failed: ${lastError?.message ?? 'no matching key'}`);
+    return { jwk: { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y } as JWK, nonce };
   }
 
   /**
    * Proof type `attestation` (OpenID4VCI 1.0 §8.2.1.3): the proof IS a key attestation JWT whose `nonce` is a c_nonce of this issuer.
-   * The credential is bound to the first attested key. Same trust note as above: the wallet provider's chain is not evaluated.
+   * One credential is issued per attested key. Same trust note as above: the wallet provider's chain is not evaluated.
    */
-  private async verifyAttestationProof(att: string): Promise<JWK> {
+  private async verifyAttestationProof(att: string): Promise<{ jwks: JWK[]; nonce: string }> {
     const fail = (d: string) => new IssuerError(400, 'invalid_proof', d, { c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 });
     const { keys, nonce } = await this.readKeyAttestation(att, fail);
     const exp = nonce ? this.nonces.get(nonce) : undefined;
     if (!nonce || !exp || exp < this.now()) throw fail('The attestation proof needs a nonce claim holding a current c_nonce of this issuer');
-    this.nonces.delete(nonce);
-    const k = keys[0]!;
-    return { kty: k.kty, crv: k.crv, x: k.x, y: k.y } as JWK;
+    return { jwks: keys.map((k) => ({ kty: k.kty, crv: k.crv, x: k.x, y: k.y }) as JWK), nonce };
   }
 
   /** The attested public keys of a key attestation JWT; throws invalid_proof when it is malformed, expired or its signature does not verify. */
@@ -344,6 +366,8 @@ export class LocalIssuer {
       authorization_servers: [this.issuerUrl],
       credential_endpoint: `${this.issuerUrl}/credential`,
       nonce_endpoint: `${this.issuerUrl}/nonce`,
+      // a HAIP wallet asks for several credentials per request (one per key, for unlinkable presentations) and refuses an issuer without this (IssuerDoesNotSupportBatchIssuance)
+      batch_credential_issuance: { batch_size: BATCH_SIZE },
       // HAIP wallets require encrypted credential responses (else ResponseEncryptionRequiredByWalletButNotSupportedByIssuer) and, if responses
       // can be encrypted, also declared request encryption (else CredentialRequestEncryptionMustExistIfCredentialResponseEncryptionExists)
       ...(this.requestEncryption ? { credential_request_encryption: this.requestEncryption.metadata(), credential_response_encryption: RESPONSE_ENCRYPTION } : {}),
