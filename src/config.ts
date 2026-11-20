@@ -106,6 +106,8 @@ export interface IssuerConfig {
   /** Issuer identifier of the local issuer: <PUBLIC_BASE_URL>/issuer */
   localIssuerUrl: string;
   txCode: boolean;
+  /** Local issuer: certificate chain (PEM, leaf first) of the signing key, for the x5c header of issued credentials; empty = a self-signed demo certificate. */
+  certChainPem: string | undefined;
   /** Local issuer: declare the SIGMA credential_reuse_policy in the metadata ("sigma", default) or not ("off": wallets then treat each copy as single-use). Switchable at runtime by the admin. */
   reusePolicy: 'sigma' | 'off';
   /** Local issuer: credentials per request (1-10). 1 = batch issuance is not declared and a single proof is accepted. Switchable at runtime by the admin. */
@@ -321,6 +323,7 @@ export function loadConfig(
       reusePolicy: (env.ISSUER_CREDENTIAL_REUSE ?? '').toLowerCase() === 'sigma' ? 'sigma' : 'off',
       batchSize: ((n) => (Number.isInteger(n) && n >= 1 && n <= 10 ? n : 10))(Number(env.ISSUER_BATCH_SIZE ?? 10)),
       signingKeyJwk: env.ISSUER_SIGNING_KEY_JWK || undefined,
+      certChainPem: env.ISSUER_CERT_CHAIN_PEM ? env.ISSUER_CERT_CHAIN_PEM.replace(/\\n/g, '\n') : undefined,
       external,
     },
     rps,

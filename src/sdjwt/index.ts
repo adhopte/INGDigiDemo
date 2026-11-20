@@ -35,7 +35,7 @@ export async function issueSdJwt(o: IssueOptions): Promise<string> {
     digests.push(sha256b64u(d));
   }
   digests.sort(() => Math.random() - 0.5); // do not leak claim order
-  const payload: JWTPayload = { iss: o.iss, iat: now, nbf: now, exp: now + (o.ttlSec ?? 365 * 24 * 3600), vct: o.vct, _sd: digests, _sd_alg: 'sha-256' };
+  const payload: JWTPayload = { iss: o.iss, iat: now, exp: now + (o.ttlSec ?? 365 * 24 * 3600), vct: o.vct, _sd: digests, _sd_alg: 'sha-256' };
   if (o.holderJwk) payload.cnf = { jwk: o.holderJwk };
   const header: JWTHeaderParameters = { alg: 'ES256', typ: SD_JWT_TYP };
   if (o.kid) header.kid = o.kid;

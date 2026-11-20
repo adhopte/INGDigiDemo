@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import * as x509 from '@peculiar/x509';
-import { SignJWT, exportJWK, generateKeyPair, importPKCS8, type JWK } from 'jose';
+import { X509Certificate } from 'node:crypto';
+import { SignJWT, exportJWK, generateKeyPair, importPKCS8, importX509, jwtVerify, type JWK } from 'jose';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
@@ -114,8 +115,8 @@ describe('every copy of a payment attestation batch against the eShop request (l
     const ev = svc.verifier.diagnostics().find((e) => e.event === 'response_accepted') as unknown as { shapes: Array<Record<string, any>> };
     expect(ev.shapes).toHaveLength(1);
     const shape = ev.shapes[0]!;
-    expect(shape.header).toEqual({ alg: 'ES256', typ: 'dc+sd-jwt', kid: 'string' });
-    expect(Object.keys(shape.payload).sort()).toEqual(['_sd', '_sd_alg', 'cnf', 'exp', 'iat', 'iss', 'nbf', 'vct']);
+    expect(shape.header).toEqual({ alg: 'ES256', typ: 'dc+sd-jwt', kid: 'string', x5c: 'array(1)' }); // x5c like SIGMA's credentials
+    expect(Object.keys(shape.payload).sort()).toEqual(['_sd', '_sd_alg', 'cnf', 'exp', 'iat', 'iss', 'vct']);
     expect(shape.payload.iss).toBe('https://rp.example.test/…'); // path stripped
     expect(shape.payload.vct).toBe('urn:eudi:demo:payment-attestation:1');
     expect(shape.signedClaims).toBe(5); // five selectively disclosable claims (digests in _sd)
@@ -123,5 +124,38 @@ describe('every copy of a payment attestation batch against the eShop request (l
     expect(shape.keyBinding).toBe(true);
     expect(JSON.stringify(ev)).not.toContain('XX00 DEMO'); // never a value
     expect(sdJwtShape('garbage')).toBeUndefined();
+  });
+
+  it('every issued credential carries the issuer certificate (x5c), valid for this host and verifying the credential like a wallet would check it', async () => {
+    const { svc, copies } = await receiveBatch(2);
+    for (const copy of copies) {
+      const [jwt] = copy.credential.split('~');
+      const header = JSON.parse(Buffer.from(jwt!.split('.')[0]!, 'base64url').toString());
+      expect(header.x5c).toHaveLength(1);
+      expect(header.kid).toBe(svc.local.publicJwk.kid);
+      const cert = new X509Certificate(Buffer.from(header.x5c[0], 'base64'));
+      expect(cert.subject).toContain('CN=rp.example.test');
+      expect(cert.checkHost('rp.example.test')).toBe('rp.example.test');
+      expect(cert.verify(cert.publicKey)).toBe(true); // self-signed by the issuer key
+      expect(new Date(cert.validFrom).getTime()).toBeLessThan(Date.now());
+      expect(new Date(cert.validTo).getTime()).toBeGreaterThan(Date.now() + 300 * 24 * 3600 * 1000);
+      expect(cert.publicKey.export({ format: 'jwk' })).toMatchObject({ x: svc.local.publicJwk.x, y: svc.local.publicJwk.y });
+      // the credential's signature verifies with the certificate's key, as a wallet doing x5c validation would
+      const key = await importX509(cert.toString(), 'ES256');
+      const { payload } = await jwtVerify(jwt!, key, { algorithms: ['ES256'] });
+      expect(payload.iss).toBe('https://rp.example.test/issuer');
+      expect(payload).not.toHaveProperty('nbf');
+    }
+  });
+
+  it('ISSUER_CERT_CHAIN_PEM supplies a real chain, used as given', async () => {
+    const keys = (await crypto.subtle.generateKey(ALG, true, ['sign', 'verify'])) as CryptoKeyPair;
+    const mk = (cn: string) => x509.X509CertificateGenerator.createSelfSigned({ serialNumber: '02', name: `CN=${cn}`, notBefore: new Date(Date.now() - 60_000), notAfter: new Date(Date.now() + 3600_000), signingAlgorithm: ALG, keys });
+    const leaf = await mk('SIGMA signed leaf');
+    const root = await mk('SIGMA root');
+    const pem = `${leaf.toString('pem')}\n${root.toString('pem')}`.replace(/\n/g, '\\n'); // as a one-line environment variable
+    const cfg = testConfig({ MOCK_MODE: 'false', ISSUER_CERT_CHAIN_PEM: pem });
+    const svc = await createServices(cfg);
+    expect(svc.local.x5c).toEqual([Buffer.from(leaf.rawData).toString('base64'), Buffer.from(root.rawData).toString('base64')]);
   });
 });

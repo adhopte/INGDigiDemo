@@ -3,6 +3,7 @@ import { calculateJwkThumbprint, decodeJwt, decodeProtectedHeader, importJWK, im
 import type { AppConfig, AttestationConfig } from '../../config.js';
 import { LOCALES, translator } from '../../i18n/index.js';
 import { issueSdJwt, SD_JWT_TYP, type Claims } from '../../sdjwt/index.js';
+import { createIssuerCertificate } from './certificate.js';
 import { RESPONSE_ENCRYPTION, RequestEncryption } from './encryption.js';
 import type { KeyMaterial } from './keys.js';
 
@@ -81,6 +82,9 @@ export class LocalIssuer {
   /** Credentials per request (1-10); starts from ISSUER_BATCH_SIZE, the admin can change it while running. */
   batchSize: number;
 
+  /** Certificate chain of the signing key (base64 DER, leaf first) for the x5c header of issued credentials; set by init(). */
+  x5c: string[] | undefined;
+
   /** Whether the metadata declares the credential reuse policy; starts from ISSUER_CREDENTIAL_REUSE, the admin can flip it while running. */
   reusePolicy: 'sigma' | 'off';
 
@@ -89,6 +93,7 @@ export class LocalIssuer {
 
   async init(): Promise<this> {
     this.requestEncryption = await RequestEncryption.generate();
+    this.x5c = await createIssuerCertificate(this.cfg, this.keys);
     return this;
   }
 
@@ -255,7 +260,7 @@ export class LocalIssuer {
     this.tokens.delete(accessToken!); // one request per offer
 
     const credentials = await Promise.all(holderJwks.map(async (holderJwk) => ({
-      credential: await issueSdJwt({ privateKey: this.keys.privateKey, kid: this.keys.kid, iss: this.issuerUrl, vct: grant.attestation.vct, claims: grant.claims, holderJwk }),
+      credential: await issueSdJwt({ privateKey: this.keys.privateKey, kid: this.keys.kid, ...(this.x5c ? { x5c: this.x5c } : {}), iss: this.issuerUrl, vct: grant.attestation.vct, claims: grant.claims, holderJwk }),
     })));
     return { credentials, credential: credentials[0]!.credential, c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 };
   }

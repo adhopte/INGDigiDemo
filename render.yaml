@@ -93,6 +93,8 @@ services:
         value: "false"
       - key: ISSUER_SIGNING_KEY_JWK  # SECRET: private ES256 JWK of the local issuer. Without it the key changes at each restart.
         sync: false
+      - key: ISSUER_CERT_CHAIN_PEM   # certificate chain (PEM, leaf first) of that key for the x5c header of issued credentials; empty = self-signed demo certificate
+        sync: false
       - key: ISSUER_API_BASE_URL     # external issuer base URL (offer API: POST <base>/offer, see src/issuer/external.ts)
         value: https://issuer.sigma.prep.smartid.nuagein.io
       - key: ISSUER_EXTERNAL_OFFER_PATH   # SIGMA offer API: POST /offer
