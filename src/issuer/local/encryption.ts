@@ -15,7 +15,12 @@ export interface ResponseEncryptionParams { jwk: JWK; alg: string; enc: string; 
 export async function readEncryptionParams(raw: unknown): Promise<ResponseEncryptionParams | undefined> {
   if (raw === undefined || raw === null) return undefined;
   if (typeof raw !== 'object') throw new EncryptionParamsError('credential_response_encryption must be an object');
-  const { jwk, alg, enc } = raw as { jwk?: unknown; alg?: unknown; enc?: unknown };
+  const { jwk, enc } = raw as { jwk?: unknown; enc?: unknown };
+  // OpenID4VCI 1.0: the key management algorithm is the `alg` of the JWK; drafts had a top-level `alg` next to it. Accept both (they must agree).
+  const top = (raw as { alg?: unknown }).alg;
+  const inJwk = jwk && typeof jwk === 'object' ? (jwk as JWK).alg : undefined;
+  if (top !== undefined && inJwk !== undefined && top !== inJwk) throw new EncryptionParamsError('alg and jwk.alg differ');
+  const alg = top ?? inJwk;
   if (typeof alg !== 'string' || !(RESPONSE_ENCRYPTION.alg_values_supported as readonly string[]).includes(alg)) throw new EncryptionParamsError(`alg must be one of ${RESPONSE_ENCRYPTION.alg_values_supported.join(', ')}`);
   if (typeof enc !== 'string' || !(RESPONSE_ENCRYPTION.enc_values_supported as readonly string[]).includes(enc)) throw new EncryptionParamsError(`enc must be one of ${RESPONSE_ENCRYPTION.enc_values_supported.join(', ')}`);
   if (!jwk || typeof jwk !== 'object' || (jwk as JWK).d !== undefined) throw new EncryptionParamsError('jwk must be a public key');

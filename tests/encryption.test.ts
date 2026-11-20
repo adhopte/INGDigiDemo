@@ -65,6 +65,32 @@ describe('credential response encryption (HAIP wallets)', () => {
     expect(String(res.body)).not.toContain('~'); // nothing readable on the wire
   });
 
+  it('OpenID4VCI 1.0 form: the algorithm is the alg of the JWK (no top-level alg); drafts\' top-level alg still works; disagreement is refused', async () => {
+    const { session } = await setup();
+    const { attempt } = await session();
+    const { publicKey, privateKey } = await generateKeyPair('ECDH-ES', { crv: 'P-256', extractable: true });
+    const jwk = await exportJWK(publicKey);
+    // final spec: { jwk: { ..., alg }, enc }
+    const final = await attempt({ credential_response_encryption: { jwk: { ...jwk, alg: 'ECDH-ES', use: 'enc' }, enc: 'A128GCM' } });
+    expect(final.status).toBe(200);
+    const { protectedHeader, plaintext } = await compactDecrypt(final.body as string, privateKey);
+    expect(protectedHeader).toMatchObject({ alg: 'ECDH-ES', enc: 'A128GCM' });
+    expect(JSON.parse(new TextDecoder().decode(plaintext)).credentials).toHaveLength(1);
+    const again = await session();
+    // draft form still accepted, and both given consistently
+    expect((await again.attempt({ credential_response_encryption: { jwk, alg: 'ECDH-ES', enc: 'A128GCM' } })).status).toBe(200);
+    const third = await session();
+    expect((await third.attempt({ credential_response_encryption: { jwk: { ...jwk, alg: 'ECDH-ES' }, alg: 'ECDH-ES', enc: 'A256GCM' } })).status).toBe(200);
+    // disagreement, or no algorithm anywhere: refused before issuing
+    const bad = await session();
+    for (const p of [{ jwk: { ...jwk, alg: 'RSA-OAEP-256' }, alg: 'ECDH-ES', enc: 'A128GCM' }, { jwk, enc: 'A128GCM' }]) {
+      const r = await bad.attempt({ credential_response_encryption: p });
+      expect(r.status).toBe(400);
+      expect(JSON.parse(r.body as string).error).toBe('invalid_encryption_parameters');
+    }
+    expect((await bad.attempt({})).status).toBe(200); // nothing was consumed
+  });
+
   it('supports RSA-OAEP-256 with A256GCM', async () => {
     const { session } = await setup();
     const { attempt } = await session('payment');
