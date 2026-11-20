@@ -351,6 +351,50 @@
           "mdocElements": [
             "birthdate"
           ]
+        },
+        "probe_payment_all": {
+          "types": [
+            "payment"
+          ],
+          "probe": true,
+          "claims": [
+            "account_holder_name",
+            "iban",
+            "bic",
+            "bank_name",
+            "valid_until"
+          ]
+        },
+        "probe_payment_iban": {
+          "types": [
+            "payment"
+          ],
+          "probe": true,
+          "claims": [
+            "iban"
+          ]
+        },
+        "probe_payment_multivct": {
+          "types": [
+            "payment"
+          ],
+          "probe": true,
+          "claims": [
+            "iban"
+          ],
+          "vctValues": [
+            "urn:eudi:pid:1",
+            "urn:eudi:demo:payment-attestation:1"
+          ]
+        },
+        "probe_account": {
+          "types": [
+            "account"
+          ],
+          "probe": true,
+          "claims": [
+            "account_number"
+          ]
         }
       },
       "attestations": [

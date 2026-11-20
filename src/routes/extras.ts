@@ -27,6 +27,11 @@ export function extrasRouter(ctx: Ctx): Router {
     { key: 'probe_pid_sd_benin', label: 'PID as SD-JWT, Benin rulebook type', detail: 'vct https://credentials.benin.example/pid' },
     { key: 'probe_pid_sd_urn', label: 'PID as SD-JWT, ARF type', detail: 'vct urn:eudi:pid:1' },
     { key: 'probe_pid_sd_eu', label: 'PID as SD-JWT, EUDI reference type', detail: 'vct urn:eu.europa.ec.eudi:pid:1' },
+    // our OWN credentials (local issuer), one variable at a time: the eShop's payment request exactly, then fewer claims, several vct values, another credential
+    { key: 'probe_payment_all', label: 'Payment attestation (local issuer) – exactly the eShop request', detail: 'vct urn:eudi:demo:payment-attestation:1, claims account_holder_name, iban, bic, bank_name, valid_until' },
+    { key: 'probe_payment_iban', label: 'Payment attestation – one claim only', detail: 'same vct, claim iban only' },
+    { key: 'probe_payment_multivct', label: 'Payment attestation – several vct values', detail: 'vct_values [urn:eudi:pid:1, urn:eudi:demo:payment-attestation:1], claim iban' },
+    { key: 'probe_account', label: 'Bank account attestation (local issuer)', detail: 'vct urn:eudi:demo:bank-account:1, claim account_number' },
     { key: 'probe_bc_sd', label: 'Birth certificate as SD-JWT', detail: 'vct urn:eudi:birth_certificate:1 (the SIGMA issuer’s birth certificate)' },
   ];
   // Which QR content does the wallet's own scanner accept? The same bank PID request, in four forms (scan each with the wallet).

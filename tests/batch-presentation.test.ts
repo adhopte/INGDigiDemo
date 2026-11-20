@@ -83,4 +83,25 @@ describe('every copy of a payment attestation batch against the eShop request (l
       expect(tx.status).toBe('complete');
     }
   });
+
+  it('the Android probes (our own credentials, one variable at a time) ask what they say and are accepted when answered', async () => {
+    const { cfg, svc, copies } = await receiveBatch(2);
+    const bank = cfg.rps.find((r) => r.id === 'bank')!;
+    const expectations: Record<string, { claims: string[]; vct: string[] }> = {
+      probe_payment_all: { claims: ['account_holder_name', 'iban', 'bic', 'bank_name', 'valid_until'], vct: ['urn:eudi:demo:payment-attestation:1'] },
+      probe_payment_iban: { claims: ['iban'], vct: ['urn:eudi:demo:payment-attestation:1'] },
+      probe_payment_multivct: { claims: ['iban'], vct: ['urn:eudi:pid:1', 'urn:eudi:demo:payment-attestation:1'] },
+    };
+    for (const [key, want] of Object.entries(expectations)) {
+      const tx = await svc.verifier.createTransaction(bank, key, '/wallet-check');
+      const dcql = JSON.parse(new URL(svc.verifier.walletLink(tx, true)).searchParams.get('dcql_query')!) as { credentials: DcqlCredential[] };
+      expect(dcql.credentials, key).toHaveLength(1);
+      expect(dcql.credentials[0]!.meta!.vct_values, key).toEqual(want.vct);
+      expect(dcql.credentials[0]!.claims!.map((c) => c.path[0]), key).toEqual(want.claims);
+      expect(matches(copies[0]!.credential, { ...dcql.credentials[0]!, meta: { vct_values: ['urn:eudi:demo:payment-attestation:1'] } }).ok, key).toBe(true); // the credential has all of it
+      const vp = await presentSdJwt({ credential: copies[0]!.credential, reveal: want.claims, holderPrivateKey: copies[0]!.holder.priv, aud: svc.verifier.clientIdFor(tx), nonce: tx.nonce });
+      await respondToVerifier(svc.verifier, tx, { vp_token: { [dcql.credentials[0]!.id]: [vp] } });
+      expect(tx.status, key).toBe('complete');
+    }
+  });
 });
