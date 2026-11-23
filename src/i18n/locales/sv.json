@@ -482,5 +482,13 @@
   "rental.confirm.paid_by": "Betalt med",
   "rental.book.pay_hint": "Du betalar med betalningsintyget i din EU-plånbok (utfärdat av Demo Bank).",
   "admin.issuer.local_sdjwt": "Lokal demoutfärdare – SD-JWT (endast online)",
-  "portal.create_local_sdjwt": "Utfärda lokalt som SD-JWT"
+  "portal.create_local_sdjwt": "Utfärda lokalt som SD-JWT",
+  "rental.mismatch.title": "Namnen stämmer inte överens",
+  "rental.mismatch.intro": "Namnet på ditt körkort skiljer sig från kontoinnehavaren på betalningsintyget.",
+  "rental.mismatch.compare": "Namn",
+  "rental.mismatch.licence": "Körkort",
+  "rental.mismatch.payment": "Betalningsintyg (kontoinnehavare)",
+  "rental.mismatch.question": "Vill du ändå fortsätta med bokningen?",
+  "rental.mismatch.proceed": "Ja, fortsätt",
+  "rental.mismatch.cancel": "Nej, avbryt bokningen"
 }

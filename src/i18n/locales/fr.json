@@ -482,5 +482,13 @@
   "rental.confirm.paid_by": "Payé avec",
   "rental.book.pay_hint": "Vous payez avec l’attestation de paiement de votre portefeuille UE (délivrée par Demo Bank).",
   "admin.issuer.local_sdjwt": "Émetteur local de démonstration – SD-JWT (en ligne uniquement)",
-  "portal.create_local_sdjwt": "Émettre en local en SD-JWT"
+  "portal.create_local_sdjwt": "Émettre en local en SD-JWT",
+  "rental.mismatch.title": "Les noms ne correspondent pas",
+  "rental.mismatch.intro": "Le nom de votre permis de conduire est différent du titulaire du compte de l’attestation de paiement.",
+  "rental.mismatch.compare": "Noms",
+  "rental.mismatch.licence": "Permis de conduire",
+  "rental.mismatch.payment": "Attestation de paiement (titulaire du compte)",
+  "rental.mismatch.question": "Souhaitez-vous tout de même poursuivre cette réservation ?",
+  "rental.mismatch.proceed": "Oui, continuer",
+  "rental.mismatch.cancel": "Non, annuler la réservation"
 }

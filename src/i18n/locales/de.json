@@ -482,5 +482,13 @@
   "rental.confirm.paid_by": "Bezahlt mit",
   "rental.book.pay_hint": "Sie bezahlen mit dem Zahlungsnachweis in Ihrer EU-Wallet (ausgestellt von Demo Bank).",
   "admin.issuer.local_sdjwt": "Lokaler Demo-Aussteller – SD-JWT (nur online)",
-  "portal.create_local_sdjwt": "Lokal als SD-JWT ausstellen"
+  "portal.create_local_sdjwt": "Lokal als SD-JWT ausstellen",
+  "rental.mismatch.title": "Die Namen stimmen nicht überein",
+  "rental.mismatch.intro": "Der Name auf Ihrem Führerschein weicht vom Kontoinhaber des Zahlungsnachweises ab.",
+  "rental.mismatch.compare": "Namen",
+  "rental.mismatch.licence": "Führerschein",
+  "rental.mismatch.payment": "Zahlungsnachweis (Kontoinhaber)",
+  "rental.mismatch.question": "Möchten Sie diese Buchung trotzdem fortsetzen?",
+  "rental.mismatch.proceed": "Ja, fortfahren",
+  "rental.mismatch.cancel": "Nein, Buchung abbrechen"
 }

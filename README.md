@@ -15,7 +15,7 @@ A demo dashboard with four relying parties (RPs) for the **IN Groupe SIGMA** EU 
 | `/eshop` | **Demo eShop** (generic e-commerce, standalone) | cart → "Pay with EU Wallet" → verifies the **payment attestation** issued by the bank → order confirmation. Age proof shown as "Coming soon". |
 | `/university` | **Demo University** | requires **PID + birth certificate** (one combined request with `MULTI_CREDENTIAL=true`, else two in a row), cross-checks both describe the same person, pre-filled enrolment form → student number |
 | `/electricity` | **Demo Power Co** | PID → access to the customer account |
-| `/rental` | **Demo Drive** (car rental) | **mobile driving licence (mDL)** from the SIGMA issuer → licence checks (valid, held ≥ 1 year, driver ≥ 21) → pick a car → **pay with the payment attestation** issued by the bank (demo, nothing charged) |
+| `/rental` | **Demo Drive** (car rental) | **mobile driving licence (mDL)** from the SIGMA issuer → licence checks (valid, held ≥ 1 year, driver ≥ 21) → pick a car → **pay with the payment attestation** issued by the bank (a warning asks for confirmation when the account holder differs from the licence holder; demo, nothing charged) |
 | `/demo-issuer` | Demo issuer console | create credential offers for a **demo PID** / **birth certificate** for a real wallet |
 
 Languages: **English, Français, Español, Nederlands, Deutsch, Dansk, Malti, Svenska** (switcher on every page, `?lang=xx`, cookie, `Accept-Language`).

@@ -482,5 +482,13 @@
   "rental.confirm.paid_by": "Paid with",
   "rental.book.pay_hint": "You pay with the payment attestation in your EU Wallet (issued by Demo Bank).",
   "admin.issuer.local_sdjwt": "Local demo issuer – SD-JWT (online only)",
-  "portal.create_local_sdjwt": "Issue locally as SD-JWT"
+  "portal.create_local_sdjwt": "Issue locally as SD-JWT",
+  "rental.mismatch.title": "Names do not match",
+  "rental.mismatch.intro": "The name on your driving licence is different from the account holder of the payment attestation.",
+  "rental.mismatch.compare": "Names",
+  "rental.mismatch.licence": "Driving licence",
+  "rental.mismatch.payment": "Payment attestation (account holder)",
+  "rental.mismatch.question": "Do you still want to proceed with this booking?",
+  "rental.mismatch.proceed": "Yes, proceed",
+  "rental.mismatch.cancel": "No, cancel the booking"
 }

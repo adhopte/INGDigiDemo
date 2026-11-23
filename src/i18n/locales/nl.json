@@ -482,5 +482,13 @@
   "rental.confirm.paid_by": "Betaald met",
   "rental.book.pay_hint": "U betaalt met de betaalattestatie in uw EU-wallet (uitgegeven door Demo Bank).",
   "admin.issuer.local_sdjwt": "Lokale demo-uitgever – SD-JWT (alleen online)",
-  "portal.create_local_sdjwt": "Lokaal uitgeven als SD-JWT"
+  "portal.create_local_sdjwt": "Lokaal uitgeven als SD-JWT",
+  "rental.mismatch.title": "De namen komen niet overeen",
+  "rental.mismatch.intro": "De naam op uw rijbewijs verschilt van de rekeninghouder van de betaalattestatie.",
+  "rental.mismatch.compare": "Namen",
+  "rental.mismatch.licence": "Rijbewijs",
+  "rental.mismatch.payment": "Betaalattestatie (rekeninghouder)",
+  "rental.mismatch.question": "Wilt u deze boeking toch voortzetten?",
+  "rental.mismatch.proceed": "Ja, doorgaan",
+  "rental.mismatch.cancel": "Nee, boeking annuleren"
 }

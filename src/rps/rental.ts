@@ -34,6 +34,15 @@ export function licenceChecks(c: Record<string, unknown>, now = new Date()) {
   };
 }
 
+const plainName = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+
+/** Do the name on the driving licence and the account holder of the payment attestation belong together? Order, case, accents and extra given names are ignored. */
+export function namesMatch(licence: string, holder: string): boolean {
+  const a = plainName(licence), b = plainName(holder);
+  if (!a.length || !b.length) return true; // nothing to compare
+  return a.every((x) => b.includes(x)) || b.every((x) => a.includes(x));
+}
+
 export function rentalRouter(ctx: Ctx, rp: RpConfig): Router {
   const router = Router();
   router.use(rpBase(ctx, rp, 'rental'));
@@ -67,12 +76,26 @@ export function rentalRouter(ctx: Ctx, rp: RpConfig): Router {
     res.redirect(`/${rp.id}/verify?p=payment&returnTo=${encodeURIComponent(`/${rp.id}/confirmation`)}`);
   });
 
+  router.post('/confirmation/proceed', guard, (req, res) => {
+    if (req.session.rentalBooking) req.session.rentalBooking.proceed = true;
+    res.redirect(`/${rp.id}/confirmation`);
+  });
+  router.post('/confirmation/cancel', guard, (req, res) => {
+    delete req.session.rentalBooking;
+    res.redirect(`/${rp.id}/booking`);
+  });
+
   router.get('/confirmation', guard, (req, res) => {
     const c = lic(req)!;
     const b = req.session.rentalBooking;
     const paid = req.session.disclosed?.[rp.id]?.payment;
     const pay = claimsOfType(req.session, rp.id, 'payment');
     if (b && (!pay || !paid || paid.at < b.at)) return void res.redirect(`/${rp.id}/booking`); // not paid yet
+    const driver = `${str(c.given_name)} ${str(c.family_name)}`.trim();
+    if (b && pay && !b.proceed && !namesMatch(driver, str(pay.account_holder_name))) {
+      // the payment attestation names somebody else: warn, and let the customer decide
+      return void res.render('rental/name-mismatch', { title: res.locals.t('rental.mismatch.title'), licenceName: driver, holder: str(pay.account_holder_name) });
+    }
     if (b && pay) {
       const end = new Date(Date.now() + b.days * 86_400_000);
       req.session.rentalDone = {

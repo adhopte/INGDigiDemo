@@ -482,5 +482,13 @@
   "rental.confirm.paid_by": "Imħallas permezz ta’",
   "rental.book.pay_hint": "Tħallas bl-attestazzjoni tal-ħlas fil-wallet tal-UE tiegħek (maħruġa minn Demo Bank).",
   "admin.issuer.local_sdjwt": "Min joħroġ demo lokali – SD-JWT (online biss)",
-  "portal.create_local_sdjwt": "Oħroġ lokalment bħala SD-JWT"
+  "portal.create_local_sdjwt": "Oħroġ lokalment bħala SD-JWT",
+  "rental.mismatch.title": "L-ismijiet ma jaqblux",
+  "rental.mismatch.intro": "L-isem fuq il-liċenzja tas-sewqan tiegħek huwa differenti mid-detentur tal-kont fuq l-attestazzjoni tal-ħlas.",
+  "rental.mismatch.compare": "Ismijiet",
+  "rental.mismatch.licence": "Liċenzja tas-sewqan",
+  "rental.mismatch.payment": "Attestazzjoni tal-ħlas (detentur tal-kont)",
+  "rental.mismatch.question": "Għadek tixtieq tkompli b’dan l-ibbukkjar?",
+  "rental.mismatch.proceed": "Iva, kompli",
+  "rental.mismatch.cancel": "Le, ikkanċella l-ibbukkjar"
 }
