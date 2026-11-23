@@ -472,5 +472,10 @@
   "rental.confirm.return": "Ritorn",
   "rental.confirm.total": "Total",
   "rental.confirm.note": "Ibbukkjar demo: ma tteħdet ebda ħlas.",
-  "rental.confirm.again": "Agħmel ibbukkjar ieħor"
+  "rental.confirm.again": "Agħmel ibbukkjar ieħor",
+  "admin.issuer.label": "Ħarreġ",
+  "admin.issuer.sigma": "Min joħroġ SIGMA (ikkontrollat mar-rekords tiegħu)",
+  "admin.issuer.local": "Min joħroġ demo lokali (backup, SD-JWT)",
+  "admin.issuer.hint": "Il-ħarreġ lokali joħroġ eżattament il-valuri mdaħħla hawn taħt, mingħajr kontroll tar-rekords. Uża waqt li l-ħruġ tal-mDL minn SIGMA mhuwiex disponibbli.",
+  "portal.create_local": "Oħroġ lokalment (backup)"
 }

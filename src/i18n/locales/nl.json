@@ -472,5 +472,10 @@
   "rental.confirm.return": "Terugbrengen",
   "rental.confirm.total": "Totaal",
   "rental.confirm.note": "Demoboeking: er is niets in rekening gebracht.",
-  "rental.confirm.again": "Nog een boeking maken"
+  "rental.confirm.again": "Nog een boeking maken",
+  "admin.issuer.label": "Uitgever",
+  "admin.issuer.sigma": "SIGMA-uitgever (gecontroleerd tegen zijn gegevens)",
+  "admin.issuer.local": "Lokale demo-uitgever (back-up, SD-JWT)",
+  "admin.issuer.hint": "De lokale uitgever geeft precies de hieronder ingevoerde waarden uit, zonder gegevenscontrole. Gebruik dit zolang de mDL-uitgifte van SIGMA niet beschikbaar is.",
+  "portal.create_local": "Lokaal uitgeven (back-up)"
 }

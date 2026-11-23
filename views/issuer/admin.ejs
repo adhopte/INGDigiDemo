@@ -28,6 +28,14 @@
     <p class="note"><%= t('admin.form.hint') %></p>
     <form method="post" action="/demo-issuer/admin/check" novalidate>
       <input type="hidden" name="uc" value="<%= uc %>">
+      <% if (uc === 'mdl' && !mockMode) { %>
+      <fieldset class="field issuer-choice">
+        <legend><%= t('admin.issuer.label') %></legend>
+        <label><input type="radio" name="issuer" value="sigma"<%= values.issuer !== 'local' ? ' checked' : '' %>> <%= t('admin.issuer.sigma') %></label>
+        <label><input type="radio" name="issuer" value="local"<%= values.issuer === 'local' ? ' checked' : '' %>> <%= t('admin.issuer.local') %></label>
+        <p class="note"><%= t('admin.issuer.hint') %></p>
+      </fieldset>
+      <% } %>
       <div class="admin-fields">
         <% fields.forEach(function (f) { const val = values[f.name] === undefined ? '' : values[f.name]; const err = errors[f.name]; %>
         <div class="field<%= err ? ' has-error' : '' %>">

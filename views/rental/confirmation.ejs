@@ -1,7 +1,7 @@
 <%- include('../partials/head') %>
 <div class="wrap">
   <div class="alert alert-success" role="status"><strong><%= t('rental.confirm.title') %></strong></div>
-  <h1><%= t('rental.confirm.thanks', { name: c.given_name }) %></h1>
+  <h1><%= t('rental.confirm.thanks', { name: c.given_name || c.family_name }) %></h1>
   <section class="panel" aria-labelledby="sum-h">
     <h2 id="sum-h"><%= t('rental.confirm.summary') %></h2>
     <dl class="meta">
@@ -10,7 +10,7 @@
       <dt><%= t('rental.confirm.pickup') %></dt><dd><%= fmtDate(pickup) %></dd>
       <dt><%= t('rental.confirm.return') %></dt><dd><%= fmtDate(back) %></dd>
       <dt><%= t('rental.form.days') %></dt><dd><%= days %></dd>
-      <dt><%= t('rental.driver.name') %></dt><dd><%= c.given_name %> <%= c.family_name %></dd>
+      <dt><%= t('rental.driver.name') %></dt><dd><%= c.given_name || '' %> <%= c.family_name %></dd>
       <dt><%= t('claim.document_number') %></dt><dd class="mono"><%= c.document_number %></dd>
       <dt><%= t('rental.confirm.total') %></dt><dd><strong><%= fmtMoney(total) %></strong></dd>
     </dl>

@@ -472,5 +472,10 @@
   "rental.confirm.return": "Retour",
   "rental.confirm.total": "Total",
   "rental.confirm.note": "Réservation de démonstration : rien n’a été débité.",
-  "rental.confirm.again": "Faire une autre réservation"
+  "rental.confirm.again": "Faire une autre réservation",
+  "admin.issuer.label": "Émetteur",
+  "admin.issuer.sigma": "Émetteur SIGMA (vérifié dans ses enregistrements)",
+  "admin.issuer.local": "Émetteur de démonstration local (secours, SD-JWT)",
+  "admin.issuer.hint": "L’émetteur local délivre exactement les valeurs saisies ci-dessous, sans vérification d’enregistrement. À utiliser tant que l’émission du mDL par SIGMA est indisponible.",
+  "portal.create_local": "Émettre en local (secours)"
 }

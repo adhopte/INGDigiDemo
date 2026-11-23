@@ -472,5 +472,10 @@
   "rental.confirm.return": "Aflevering",
   "rental.confirm.total": "I alt",
   "rental.confirm.note": "Demo-booking: intet er blevet trukket.",
-  "rental.confirm.again": "Lav en ny booking"
+  "rental.confirm.again": "Lav en ny booking",
+  "admin.issuer.label": "Udsteder",
+  "admin.issuer.sigma": "SIGMA-udsteder (kontrolleret mod dens poster)",
+  "admin.issuer.local": "Lokal demo-udsteder (reserve, SD-JWT)",
+  "admin.issuer.hint": "Den lokale udsteder udsteder præcis de værdier, der er indtastet nedenfor, uden postkontrol. Brug den, mens SIGMA's mDL-udstedelse ikke er tilgængelig.",
+  "portal.create_local": "Udsted lokalt (reserve)"
 }

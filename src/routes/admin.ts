@@ -3,7 +3,7 @@ import { Router, type NextFunction, type Request, type Response } from 'express'
 import { createIssuerProvider, type IssuedOffer } from '../issuer/provider.js';
 import { SOR_LIST_PATH, SOR_USE_CASE_ID, loadPortalUseCases, parseUsers, type PortalUser } from '../issuer/portal.js';
 import { matchConfig } from '../issuer/remote.js';
-import { RECORD_FIELDS, matchRecords, validateRecord } from '../issuer/records.js';
+import { RECORD_FIELDS, claimsFromAttributes, matchRecords, validateRecord } from '../issuer/records.js';
 import type { Ctx } from '../rps/context.js';
 import { q } from '../rps/context.js';
 
@@ -95,10 +95,10 @@ export function adminRouter(ctx: Ctx): Router {
   };
 
   /** SIGMA's offer API for the matched record; the local demo issuer only in mock mode (typed values). */
-  const createOffer = async (uc: string, record: PortalUser, typed: Record<string, string>): Promise<IssuedOffer | undefined> => {
+  const createOffer = async (uc: string, record: PortalUser, typed: Record<string, string>, local = false): Promise<IssuedOffer | undefined> => {
     const att = attOf(uc);
-    if (cfg.mockMode) {
-      const claims = Object.fromEntries(Object.entries(typed).map(([k, v]) => [k, v === 'True' ? true : v === 'False' ? false : v]));
+    if (cfg.mockMode || local) {
+      const claims = claimsFromAttributes(uc, typed);
       return createIssuerProvider({ ...cfg, issuer: { ...cfg.issuer, mode: 'local' } }, svc.local).createOffer(att.key, claims);
     }
     const s = await svc.remote?.summary();
@@ -110,10 +110,10 @@ export function adminRouter(ctx: Ctx): Router {
     return external.createOffer(att.key, {}, { identifier: record.identifier, credentialIdentifier: record.credentialId, ...(record.walletId && uc !== 'mdl' ? { walletIdentifier: record.walletId } : {}) /* the mDL records name a wallet (w-00x): sending it ties the offer to that wallet id, like the PID/birth-certificate offers it is left out */ });
   };
 
-  const showOffer = async (req: Request, res: Response, uc: string, record: PortalUser, typed: Record<string, string>) => {
+  const showOffer = async (req: Request, res: Response, uc: string, record: PortalUser, typed: Record<string, string>, local = false) => {
     const att = attOf(uc);
     try {
-      const offer = await createOffer(uc, record, typed);
+      const offer = await createOffer(uc, record, typed, local);
       if (!offer) return void res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer/admin' });
       if (offer.id) req.session.offerIds = [...(req.session.offerIds ?? []).slice(-19), offer.id];
       res.render('offer', { title: res.locals.t(`att.${att.key}.name`), attestationKey: att.key, offer, returnTo: `/demo-issuer/admin?uc=${uc}`, canSimulate: cfg.mockMode, rp: undefined });
@@ -136,10 +136,13 @@ export function adminRouter(ctx: Ctx): Router {
     if (!v.ok) {
       const values: Record<string, string> = {};
       for (const f of RECORD_FIELDS[uc]!) values[f.name] = q(body[f.name]) ?? '';
+      values.issuer = q(body.issuer) ?? 'sigma';
       return renderForm(res, uc, values, v.errors, 422);
     }
     const typed = enteredValues(uc, body, v.attributes);
-    if (cfg.mockMode) return void (await showOffer(req, res, uc, { identifier: 'typed', credentialId: 'typed', configurationId: '', attributes: v.attributes }, v.attributes));
+    // the driving licence can be issued by the local demo issuer instead of SIGMA (typed values, no record check; SD-JWT)
+    const local = cfg.mockMode || (uc === 'mdl' && q(body.issuer) === 'local');
+    if (local) return void (await showOffer(req, res, uc, { identifier: 'typed', credentialId: 'typed', configurationId: '', attributes: v.attributes }, v.attributes, true));
     const source = await authenticSource(uc);
     const matches = matchRecords(source.users, typed);
     if (matches.length === 1) return void (await showOffer(req, res, uc, matches[0]!, typed));

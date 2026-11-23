@@ -152,6 +152,7 @@ export class Verifier {
   private fitFormats(reqs: ReturnType<typeof requestedCredentials>) {
     if (!this.byValue) return reqs;
     return reqs.map((r) => {
+      if (r.explicitFormats) return r;
       const f = r.formats.filter((x) => this.cfg.verifier.byValueFormats.includes(x));
       return f.length ? { ...r, formats: f } : r;
     });

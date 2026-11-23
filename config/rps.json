@@ -647,17 +647,16 @@
             "expiry_date"
           ],
           "minClaims": [
-            "given_name",
             "family_name",
-            "document_number",
-            "issue_date",
-            "expiry_date"
+            "document_number"
           ],
           "compactClaims": [
-            "given_name",
             "family_name",
-            "document_number",
-            "expiry_date"
+            "document_number"
+          ],
+          "formats": [
+            "mso_mdoc",
+            "dc+sd-jwt"
           ]
         }
       },

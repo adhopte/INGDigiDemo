@@ -212,3 +212,42 @@ describe('mobile driving licence (mDL, mdoc) from the SIGMA issuer', () => {
     expect(res.text).toContain('openid-credential-offer://');
   });
 });
+
+describe('mDL backup: issued by the local demo issuer', () => {
+  it('admin form: choosing the local issuer issues the typed values as SD-JWT without asking SIGMA', async () => {
+    const { agent, offers, fetched } = await setup();
+    await login(agent);
+    const form = await agent.get('/demo-issuer/admin?uc=mdl');
+    expect(form.text).toContain('name="issuer" value="local"');
+    expect((await agent.get('/demo-issuer/admin?uc=pid')).text).not.toContain('name="issuer"'); // only the driving licence has the choice
+    const res = await agent.post('/demo-issuer/admin/check').type('form').send({ uc: 'mdl', issuer: 'local', given_name: 'Test', family_name: 'Driver', birth_date: '1990-01-01' });
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('openid-credential-offer://');
+    expect(res.text).toContain('demo_mdl'); // the local issuer's configuration id
+    expect(offers).toHaveLength(0); // nothing sent to SIGMA's offer API
+    expect(fetched).not.toContain(MDL_LIST_URL);
+    // default stays SIGMA
+    await agent.post('/demo-issuer/admin/check').type('form').send({ uc: 'mdl', issuer: 'sigma', given_name: 'Sophie', family_name: 'Martin', birth_date: '1990-03-12' });
+    expect(offers).toHaveLength(1);
+  });
+
+  it('portal: "issue locally" uses the sample record; a driving licence issued locally is presented to Demo Drive', async () => {
+    const { agent, offers, svc } = await setup();
+    const res = await agent.post('/demo-issuer/local-offer').type('form').send({ type: 'mdl', identifier: 'user-002' });
+    expect(res.status).toBe(200);
+    expect(offers).toHaveLength(0);
+    expect(res.text).toContain('demo_mdl');
+    expect((await agent.post('/demo-issuer/local-offer').type('form').send({ type: 'mdl', identifier: 'ghost' })).status).toBe(400);
+    expect((await agent.post('/demo-issuer/local-offer').type('form').send({ type: 'pid', identifier: 'user-002' })).status).toBe(400);
+    const { claimsFromAttributes } = await import('../src/issuer/records.js');
+    expect(claimsFromAttributes('mdl', { age_over_18: 'True', height: '168', driving_privileges: '[{"vehicle_category_code":"B"}]' })).toMatchObject({ age_over_18: true, height: 168, driving_privileges: [{ vehicle_category_code: 'B' }], issuing_country: 'FR' });
+    // Demo Drive keeps asking for SD-JWT next to mdoc in the by-value (QR) request, so the local licence is accepted by a real wallet
+    const cfg = testConfig({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    const v = (await createServices(cfg)).verifier;
+    const tx = await v.createTransaction(cfg.rps.find((r) => r.id === 'rental')!, 'mdl', '/rental/booking');
+    const link = v.walletLink(tx);
+    expect(JSON.parse(new URL(link).searchParams.get('dcql_query')!).credentials.map((c: any) => c.format).sort()).toEqual(['dc+sd-jwt', 'mso_mdoc']);
+    expect(link.length).toBeLessThan(1700);
+    void svc;
+  });
+});

@@ -69,3 +69,25 @@ export function matchRecords<T extends { attributes: Record<string, string> }>(r
   if (!entries.length) return [];
   return records.filter((r) => entries.every(([k, v]) => r.attributes[k] !== undefined && norm(r.attributes[k]!) === norm(v)));
 }
+
+const NUMERIC = new Set(['sex', 'height', 'weight', 'age_in_years', 'age_birth_year']);
+
+/** Record attributes (strings, as the issuer's record store lists them) → claims for the local demo issuer; fills what a driving licence needs when missing. */
+export function claimsFromAttributes(useCase: string, attributes: Record<string, string>, now = new Date()): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(attributes)) {
+    if (v === 'True' || v === 'true') out[k] = true;
+    else if (v === 'False' || v === 'false') out[k] = false;
+    else if (NUMERIC.has(k) && /^\d+$/.test(v)) out[k] = Number(v);
+    else if (v.startsWith('[') || v.startsWith('{')) { try { out[k] = JSON.parse(v); } catch { out[k] = v; } }
+    else out[k] = v;
+  }
+  if (useCase === 'mdl') {
+    const day = (d: Date) => d.toISOString().slice(0, 10);
+    out.document_number ??= `DL${Math.floor(10000000 + Math.random() * 89999999)}`;
+    out.issue_date ??= day(now);
+    out.expiry_date ??= day(new Date(Date.UTC(now.getUTCFullYear() + 10, now.getUTCMonth(), now.getUTCDate())));
+    out.issuing_country ??= 'FR';
+  }
+  return out;
+}

@@ -472,5 +472,10 @@
   "rental.confirm.return": "Rückgabe",
   "rental.confirm.total": "Gesamt",
   "rental.confirm.note": "Demo-Buchung: Es wurde nichts abgebucht.",
-  "rental.confirm.again": "Weitere Buchung vornehmen"
+  "rental.confirm.again": "Weitere Buchung vornehmen",
+  "admin.issuer.label": "Aussteller",
+  "admin.issuer.sigma": "SIGMA-Aussteller (Abgleich mit dessen Datensätzen)",
+  "admin.issuer.local": "Lokaler Demo-Aussteller (Ersatz, SD-JWT)",
+  "admin.issuer.hint": "Der lokale Aussteller stellt genau die unten eingegebenen Werte aus, ohne Datensatzprüfung. Nutzen, solange die mDL-Ausstellung bei SIGMA nicht verfügbar ist.",
+  "portal.create_local": "Lokal ausstellen (Ersatz)"
 }

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { createIssuerProvider } from '../issuer/provider.js';
 import { matchConfig } from '../issuer/remote.js';
 import { loadPortalUseCases } from '../issuer/portal.js';
+import { claimsFromAttributes } from '../issuer/records.js';
 import { qrDataUrlOrUndefined } from '../issuer/offer.js';
 import { PERSONAS, demoClaims, heldClaims, personaFor, redeemOffer } from '../mock/wallet.js';
 import type { Ctx } from '../rps/context.js';
@@ -109,6 +110,16 @@ export function extrasRouter(ctx: Ctx): Router {
     } catch {
       res.status(502).render('error', { title: res.locals.t('error.title'), message: res.locals.t('dash.sigma.unreachable'), retryHref: '/demo-issuer' });
     }
+  });
+
+  /** Backup for the driving licence: the local demo issuer issues it (SD-JWT) from the data of a SIGMA sample record. */
+  r.post('/demo-issuer/local-offer', async (req, res) => {
+    const uc = portal.find((u) => u.id === 'mdl');
+    const rec = uc?.users.find((u) => u.identifier === q(req.body?.identifier));
+    if (!uc || !rec || q(req.body?.type) !== 'mdl') return void res.status(400).render('error', { title: res.locals.t('error.title'), message: res.locals.t('error.generic'), retryHref: '/demo-issuer' });
+    const offer = await localProvider.createOffer('mdl', claimsFromAttributes('mdl', rec.attributes));
+    if (offer.id) req.session.offerIds = [...(req.session.offerIds ?? []).slice(-19), offer.id];
+    res.render('offer', { title: res.locals.t('att.mdl.name'), attestationKey: 'mdl', offer, returnTo: '/demo-issuer/use-case/mdl', canSimulate: cfg.mockMode, rp: undefined });
   });
 
   r.post('/demo-issuer/offer', async (req, res) => {

@@ -472,5 +472,10 @@
   "rental.confirm.return": "Return",
   "rental.confirm.total": "Total",
   "rental.confirm.note": "Demo booking: nothing was charged.",
-  "rental.confirm.again": "Make another booking"
+  "rental.confirm.again": "Make another booking",
+  "admin.issuer.label": "Issuer",
+  "admin.issuer.sigma": "SIGMA issuer (checked against its records)",
+  "admin.issuer.local": "Local demo issuer (backup, SD-JWT)",
+  "admin.issuer.hint": "The local issuer issues exactly the values typed below, without a record check. Use it while SIGMA's mDL issuance is unavailable.",
+  "portal.create_local": "Issue locally (backup)"
 }

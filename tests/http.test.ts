@@ -549,9 +549,11 @@ describe('Demo Drive (car rental): mobile driving licence', () => {
     const { svc, cfg } = await boot({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' });
     const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'rental')!, 'mdl', '/rental/booking');
     const q = JSON.parse(new URL(svc.verifier.walletLink(tx)).searchParams.get('dcql_query')!);
-    expect(q.credentials).toHaveLength(1);
-    expect(q.credentials[0]).toMatchObject({ format: 'mso_mdoc', meta: { doctype_value: 'org.iso.18013.5.1.mDL' } });
-    expect(q.credentials[0].claims.map((c: any) => c.path)).toContainEqual(['org.iso.18013.5.1', 'document_number']);
+    // mdoc (the SIGMA licence) or SD-JWT (the one issued by the local backup issuer): two alternatives
+    expect(q.credentials.map((c: any) => c.format).sort()).toEqual(['dc+sd-jwt', 'mso_mdoc']);
+    const mdoc = q.credentials.find((c: any) => c.format === 'mso_mdoc');
+    expect(mdoc).toMatchObject({ meta: { doctype_value: 'org.iso.18013.5.1.mDL' } });
+    expect(mdoc.claims.map((c: any) => c.path)).toContainEqual(['org.iso.18013.5.1', 'document_number']);
     const { licenceChecks } = await import('../src/rps/rental.js');
     const now = new Date('2026-11-23T00:00:00Z');
     expect(licenceChecks({ expiry_date: '2032-03-01', issue_date: '2022-03-01', birth_date: '1990-01-01' }, now)).toMatchObject({ valid: true, experienced: true, ofAge: true });

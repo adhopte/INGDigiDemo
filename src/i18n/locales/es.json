@@ -472,5 +472,10 @@
   "rental.confirm.return": "Devolución",
   "rental.confirm.total": "Total",
   "rental.confirm.note": "Reserva de demostración: no se ha cobrado nada.",
-  "rental.confirm.again": "Hacer otra reserva"
+  "rental.confirm.again": "Hacer otra reserva",
+  "admin.issuer.label": "Emisor",
+  "admin.issuer.sigma": "Emisor SIGMA (comprobado con sus registros)",
+  "admin.issuer.local": "Emisor de demostración local (alternativa, SD-JWT)",
+  "admin.issuer.hint": "El emisor local emite exactamente los valores introducidos abajo, sin comprobar registros. Úselo mientras la emisión del mDL de SIGMA no esté disponible.",
+  "portal.create_local": "Emitir localmente (alternativa)"
 }

@@ -17,6 +17,8 @@ export interface RequestedCredential {
   compactClaims: string[];
   /** Formats actually requested (presentation override, else the attestation's). */
   formats: string[];
+  /** The presentation names its formats itself (kept even in by-value requests). */
+  explicitFormats: boolean;
 }
 
 export function requestedCredentials(presentation: PresentationConfig, attestations: Record<string, AttestationConfig>): RequestedCredential[] {
@@ -26,7 +28,7 @@ export function requestedCredentials(presentation: PresentationConfig, attestati
     const subset = presentation.claims.filter((c) => attestation.claims.includes(c));
     const claims = subset.length ? subset : attestation.claims;
     const min = presentation.minClaims.filter((c) => claims.includes(c));
-    return { type, attestation, claims, minClaims: min.length && min.length < claims.length ? min : claims, anyVct: presentation.anyVct, vctValues: presentation.vctValues, probe: presentation.probe, mdocElements: presentation.mdocElements, compactClaims: presentation.compactClaims.filter((c) => claims.includes(c)), formats: presentation.formats.length ? presentation.formats : attestation.formats };
+    return { type, attestation, claims, minClaims: min.length && min.length < claims.length ? min : claims, anyVct: presentation.anyVct, vctValues: presentation.vctValues, probe: presentation.probe, mdocElements: presentation.mdocElements, compactClaims: presentation.compactClaims.filter((c) => claims.includes(c)), formats: presentation.formats.length ? presentation.formats : attestation.formats, explicitFormats: presentation.formats.length > 0 };
   });
 }
 

@@ -472,5 +472,10 @@
   "rental.confirm.return": "Återlämning",
   "rental.confirm.total": "Totalt",
   "rental.confirm.note": "Demobokning: inget har debiterats.",
-  "rental.confirm.again": "Gör en ny bokning"
+  "rental.confirm.again": "Gör en ny bokning",
+  "admin.issuer.label": "Utfärdare",
+  "admin.issuer.sigma": "SIGMA-utfärdare (kontrolleras mot dess poster)",
+  "admin.issuer.local": "Lokal demoutfärdare (reserv, SD-JWT)",
+  "admin.issuer.hint": "Den lokala utfärdaren utfärdar exakt de värden som anges nedan, utan postkontroll. Använd den medan SIGMA:s mDL-utfärdande inte är tillgängligt.",
+  "portal.create_local": "Utfärda lokalt (reserv)"
 }
