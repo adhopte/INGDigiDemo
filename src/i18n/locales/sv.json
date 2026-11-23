@@ -149,7 +149,7 @@
   "bank.hero.note": "Vi verifierar ditt PID och din identitet (KYC) på några sekunder.",
   "bank.hero.goto": "Gå till mitt konto",
   "bank.how.title": "Så fungerar det",
-  "bank.how.1": "Dela ditt PID från din EU Wallet.",
+  "bank.how.1": "Dela ditt PID (ny kund) eller ditt kontobevis (befintlig kund) från din EU-plånbok.",
   "bank.how.2": "Vi verifierar det och öppnar ditt konto.",
   "bank.how.3": "Ladda ned dina konto- och betalningsintyg.",
   "bank.products": "Våra produkter",
@@ -411,5 +411,16 @@
   "admin.batch.label": "Bevis per begäran",
   "admin.batch.option_one": "1 (inte angivet)",
   "admin.batch.apply": "Tillämpa",
-  "admin.batch.saved": "Partistorleken har uppdaterats."
+  "admin.batch.saved": "Partistorleken har uppdaterats.",
+  "bank.login.title": "Logga in hos Demo Bank",
+  "bank.login.intro": "Välj hur du identifierar dig med din EU-plånbok.",
+  "bank.login.existing.title": "Befintlig kund",
+  "bank.login.existing.body": "Logga in med kontobeviset i din EU-plånbok. Namn och kontonummer används för att förbereda ditt betalningsbevis.",
+  "bank.login.existing.btn": "Logga in med mitt kontobevis",
+  "bank.login.new.title": "Ny kund, eller inget bevis än",
+  "bank.login.new.body": "Öppna ditt konto med ditt PID (identitetskontroll, KYC). Därefter kan du hämta ditt kontobevis för framtida inloggningar.",
+  "bank.login.new.btn": "Öppna ett konto med mitt PID",
+  "bank.account.via_pid": "Inloggad med ditt PID (identitetskontroll).",
+  "bank.account.via_account": "Inloggad med ditt kontobevis. Namn och kontonummer används för ditt betalningsbevis.",
+  "bank.att.intro_account": "Ditt betalningsbevis förbereds utifrån attributen i ditt kontobevis."
 }

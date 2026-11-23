@@ -149,7 +149,7 @@
   "bank.hero.note": "Wir prüfen Ihre PID und Ihre Identität (KYC) in Sekunden.",
   "bank.hero.goto": "Zu meinem Konto",
   "bank.how.title": "So funktioniert es",
-  "bank.how.1": "Teilen Sie Ihre PID aus Ihrer EU Wallet.",
+  "bank.how.1": "Teilen Sie Ihre PID (Neukunde) oder Ihren Bankkontonachweis (Bestandskunde) aus Ihrer EU-Wallet.",
   "bank.how.2": "Wir prüfen sie und eröffnen Ihr Konto.",
   "bank.how.3": "Laden Sie Ihren Konto- und Zahlungsnachweis herunter.",
   "bank.products": "Unsere Produkte",
@@ -411,5 +411,16 @@
   "admin.batch.label": "Nachweise pro Anfrage",
   "admin.batch.option_one": "1 (nicht angegeben)",
   "admin.batch.apply": "Übernehmen",
-  "admin.batch.saved": "Batchgröße aktualisiert."
+  "admin.batch.saved": "Batchgröße aktualisiert.",
+  "bank.login.title": "Anmeldung bei Demo Bank",
+  "bank.login.intro": "Wählen Sie, wie Sie sich mit Ihrer EU-Wallet ausweisen.",
+  "bank.login.existing.title": "Bestandskunde",
+  "bank.login.existing.body": "Melden Sie sich mit dem Bankkontonachweis in Ihrer EU-Wallet an. Name und Kontonummer werden genutzt, um Ihren Zahlungsnachweis vorzubereiten.",
+  "bank.login.existing.btn": "Mit meinem Bankkontonachweis anmelden",
+  "bank.login.new.title": "Neukunde oder noch kein Nachweis",
+  "bank.login.new.body": "Eröffnen Sie Ihr Konto mit Ihrer PID (Identitätsprüfung, KYC). Danach können Sie Ihren Bankkontonachweis für künftige Anmeldungen herunterladen.",
+  "bank.login.new.btn": "Konto mit meiner PID eröffnen",
+  "bank.account.via_pid": "Angemeldet mit Ihrer PID (Identitätsprüfung).",
+  "bank.account.via_account": "Angemeldet mit Ihrem Bankkontonachweis. Name und Kontonummer werden für Ihren Zahlungsnachweis genutzt.",
+  "bank.att.intro_account": "Ihr Zahlungsnachweis wird aus den Attributen Ihres Bankkontonachweises erstellt."
 }

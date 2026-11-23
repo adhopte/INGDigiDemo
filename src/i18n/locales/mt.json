@@ -149,7 +149,7 @@
   "bank.hero.note": "Nivverifikaw il-PID u l-identità tiegħek (KYC) f’sekondi.",
   "bank.hero.goto": "Mur fil-kont tiegħi",
   "bank.how.title": "Kif taħdem",
-  "bank.how.1": "Qsam il-PID tiegħek mill-EU Wallet.",
+  "bank.how.1": "Aqsam il-PID tiegħek (klijent ġdid) jew l-attestazzjoni tal-kont bankarju tiegħek (klijent eżistenti) mill-EU Wallet tiegħek.",
   "bank.how.2": "Nivverifikawh u niftħu l-kont tiegħek.",
   "bank.how.3": "Niżżel l-attestazzjonijiet tal-kont u tal-ħlas.",
   "bank.products": "Il-prodotti tagħna",
@@ -411,5 +411,16 @@
   "admin.batch.label": "Credentials għal kull talba",
   "admin.batch.option_one": "1 (mhux iddikjarat)",
   "admin.batch.apply": "Applika",
-  "admin.batch.saved": "Id-daqs tal-lott ġie aġġornat."
+  "admin.batch.saved": "Id-daqs tal-lott ġie aġġornat.",
+  "bank.login.title": "Idħol f’Demo Bank",
+  "bank.login.intro": "Agħżel kif tidentifika lilek innifsek bl-EU Wallet tiegħek.",
+  "bank.login.existing.title": "Klijent eżistenti",
+  "bank.login.existing.body": "Idħol bl-attestazzjoni tal-kont bankarju fl-EU Wallet tiegħek. L-isem u n-numru tal-kont jintużaw biex tipprepara l-attestazzjoni tal-ħlas tiegħek.",
+  "bank.login.existing.btn": "Idħol bl-attestazzjoni tal-kont bankarju tiegħi",
+  "bank.login.new.title": "Klijent ġdid, jew għad m’hemmx attestazzjoni",
+  "bank.login.new.body": "Iftaħ il-kont tiegħek bil-PID tiegħek (verifika tal-identità, KYC). Wara tkun tista’ tniżżel l-attestazzjoni tal-kont bankarju tiegħek għal dħul futur.",
+  "bank.login.new.btn": "Iftaħ kont bil-PID tiegħi",
+  "bank.account.via_pid": "Dħalt bil-PID tiegħek (verifika tal-identità).",
+  "bank.account.via_account": "Dħalt bl-attestazzjoni tal-kont bankarju tiegħek. L-isem u n-numru tal-kont jintużaw għall-attestazzjoni tal-ħlas tiegħek.",
+  "bank.att.intro_account": "L-attestazzjoni tal-ħlas tiegħek hija ppreparata mill-attributi tal-attestazzjoni tal-kont bankarju tiegħek."
 }

@@ -149,7 +149,7 @@
   "bank.hero.note": "Nous vérifions votre PID et votre identité (KYC) en quelques secondes.",
   "bank.hero.goto": "Accéder à mon compte",
   "bank.how.title": "Comment ça marche",
-  "bank.how.1": "Partagez votre PID depuis votre EU Wallet.",
+  "bank.how.1": "Partagez votre PID (nouveau client) ou votre attestation de compte bancaire (client existant) depuis votre portefeuille EU.",
   "bank.how.2": "Nous le vérifions et ouvrons votre compte.",
   "bank.how.3": "Téléchargez vos attestations de compte et de paiement.",
   "bank.products": "Nos produits",
@@ -411,5 +411,16 @@
   "admin.batch.label": "Justificatifs par demande",
   "admin.batch.option_one": "1 (non déclaré)",
   "admin.batch.apply": "Appliquer",
-  "admin.batch.saved": "Taille du lot mise à jour."
+  "admin.batch.saved": "Taille du lot mise à jour.",
+  "bank.login.title": "Connexion à Demo Bank",
+  "bank.login.intro": "Choisissez comment vous identifier avec votre portefeuille EU.",
+  "bank.login.existing.title": "Client existant",
+  "bank.login.existing.body": "Connectez-vous avec l’attestation de compte bancaire de votre portefeuille EU. Son nom et son numéro de compte servent à préparer votre attestation de paiement.",
+  "bank.login.existing.btn": "Me connecter avec mon attestation de compte bancaire",
+  "bank.login.new.title": "Nouveau client, ou pas encore d’attestation",
+  "bank.login.new.body": "Ouvrez votre compte avec votre PID (vérification d’identité, KYC). Vous pourrez ensuite télécharger votre attestation de compte bancaire pour vos prochaines connexions.",
+  "bank.login.new.btn": "Ouvrir un compte avec mon PID",
+  "bank.account.via_pid": "Connecté avec votre PID (vérification d’identité).",
+  "bank.account.via_account": "Connecté avec votre attestation de compte bancaire. Son nom et son numéro de compte servent à votre attestation de paiement.",
+  "bank.att.intro_account": "Votre attestation de paiement est préparée à partir des attributs de votre attestation de compte bancaire."
 }

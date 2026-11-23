@@ -149,7 +149,7 @@
   "bank.hero.note": "Wij controleren uw PID en identiteit (KYC) binnen enkele seconden.",
   "bank.hero.goto": "Naar mijn rekening",
   "bank.how.title": "Hoe het werkt",
-  "bank.how.1": "Deel uw PID vanuit uw EU Wallet.",
+  "bank.how.1": "Deel uw PID (nieuwe klant) of uw bankrekeningattest (bestaande klant) uit uw EU-wallet.",
   "bank.how.2": "Wij verifiëren die en openen uw rekening.",
   "bank.how.3": "Download uw rekening- en betaalattesten.",
   "bank.products": "Onze producten",
@@ -411,5 +411,16 @@
   "admin.batch.label": "Credentials per aanvraag",
   "admin.batch.option_one": "1 (niet aangegeven)",
   "admin.batch.apply": "Toepassen",
-  "admin.batch.saved": "Batchgrootte bijgewerkt."
+  "admin.batch.saved": "Batchgrootte bijgewerkt.",
+  "bank.login.title": "Inloggen bij Demo Bank",
+  "bank.login.intro": "Kies hoe u zich identificeert met uw EU-wallet.",
+  "bank.login.existing.title": "Bestaande klant",
+  "bank.login.existing.body": "Log in met het bankrekeningattest in uw EU-wallet. Naam en rekeningnummer worden gebruikt om uw betalingsattest voor te bereiden.",
+  "bank.login.existing.btn": "Inloggen met mijn bankrekeningattest",
+  "bank.login.new.title": "Nieuwe klant, of nog geen attest",
+  "bank.login.new.body": "Open uw rekening met uw PID (identiteitscontrole, KYC). Daarna kunt u uw bankrekeningattest downloaden voor volgende logins.",
+  "bank.login.new.btn": "Rekening openen met mijn PID",
+  "bank.account.via_pid": "Ingelogd met uw PID (identiteitscontrole).",
+  "bank.account.via_account": "Ingelogd met uw bankrekeningattest. Naam en rekeningnummer worden gebruikt voor uw betalingsattest.",
+  "bank.att.intro_account": "Uw betalingsattest wordt voorbereid met de attributen van uw bankrekeningattest."
 }

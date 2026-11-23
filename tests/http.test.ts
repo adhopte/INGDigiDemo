@@ -386,12 +386,88 @@ describe('OpenID4VP verifier over HTTP (what a wallet calls)', () => {
   });
 });
 
+/** The simulated wallet page as { credential title: { claim label: value } }. */
+function heldCredentials(html: string): Record<string, Record<string, string>> {
+  const out: Record<string, Record<string, string>> = {};
+  for (const section of html.split('<section class="panel"').slice(1)) {
+    const title = /<h2[^>]*>([^<]+)<\/h2>/.exec(section)![1]!;
+    out[title] = Object.fromEntries([...section.matchAll(/<dt>([^<]+)<\/dt>\s*<dd>([^<]*)<\/dd>/g)].map((m) => [m[1]!, m[2]!]));
+  }
+  return out;
+}
+
+describe('bank: PID for the KYC, the bank account attestation for later sign-ins', () => {
+  /** Runs a verification on the simulated wallet and finishes it in the same browser session. */
+  const presentVia = async (a: ReturnType<typeof request.agent>, path: string, add?: { type: 'pid'; persona: string }) => {
+    const loc = (await a.get(path)).headers.location!;
+    const verifyPath = (await a.get(loc)).headers.location!;
+    const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(verifyPath)![1]!;
+    if (add) await a.post(`/bank/verify/wallet/${id}/add`).type('form').send(add);
+    const done = await a.post(`/bank/verify/wallet/${id}/share`);
+    return (await a.get(done.headers.location!)).headers.location; // where the flow continues
+  };
+  const receive = async (a: ReturnType<typeof request.agent>, key: 'account' | 'payment') => {
+    const offer = await a.post(`/bank/attestation/${key}`);
+    expect(offer.status).toBe(200);
+    const offerId = /name="offerId" value="([^"]+)"/.exec(offer.text)![1]!;
+    await a.post('/wallet-sim/redeem').type('form').send({ offerId, returnTo: '/wallet' });
+  };
+
+  it('KYC with the PID, download the account attestation, sign out, sign in with the attestation, get a payment attestation made from its attributes', async () => {
+    const { app } = await boot({ MOCK_MODE: 'true' });
+    const a = request.agent(app);
+    // 1. new customer: the PID (KYC); the account page says how the customer got in
+    expect(await presentVia(a, '/bank/login/pid', { type: 'pid', persona: 'fr' })).toBe('/bank/kyc');
+    expect((await a.get('/bank/kyc')).status).toBe(200);
+    const viaPid = (await a.get('/bank/account')).text;
+    expect(viaPid).toContain('Signed in with your PID');
+    await receive(a, 'account'); // the bank account attestation into the (simulated) wallet
+    await a.post('/bank/signout');
+    expect((await a.get('/bank/account')).headers.location).toBe('/bank/login');
+    // 2. existing customer: the bank account attestation, no PID presented
+    expect(await presentVia(a, '/bank/login/account')).toBe('/bank/account');
+    const viaAccount = await a.get('/bank/account');
+    expect(viaAccount.status).toBe(200);
+    expect(viaAccount.text).toContain('Signed in with your bank account attestation');
+    expect(viaAccount.text).toContain('prepared from the attributes of your bank account attestation');
+    expect((await a.get('/bank/kyc')).headers.location).toBe('/bank/account'); // the KYC page belongs to the PID path
+    // 3. the payment attestation carries what the account attestation said
+    await receive(a, 'payment');
+    const held = heldCredentials((await a.get('/wallet')).text);
+    const account = held['Bank account attestation']!;
+    const payment = held['Payment attestation']!;
+    expect(account['Account number']).toMatch(/^[A-Z]{2}\d{2}/);
+    expect(payment['IBAN']).toBe(account['Account number']); // the IBAN is the account attestation's account number
+    expect(payment['Account holder']).toBe(`${account['Given name']} ${account['Family name']}`); // so is the name
+    expect(payment['Bank']).toBe(account['Bank']);
+  });
+
+  it('the sign-in with the bank account attestation asks for the account attestation (and not the PID)', async () => {
+    const { app, svc, cfg } = await boot({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'account', '/bank/account');
+    const link = new URL(svc.verifier.walletLink(tx, true));
+    const q = JSON.parse(link.searchParams.get('dcql_query')!) as { credentials: Array<{ id: string; format: string; meta: { vct_values: string[] }; claims: Array<{ path: string[] }> }> };
+    expect(q.credentials).toHaveLength(1);
+    expect(q.credentials[0]).toMatchObject({ id: 'account', format: 'dc+sd-jwt', meta: { vct_values: ['urn:eudi:demo:bank-account:1'] } });
+    expect(q.credentials[0]!.claims.map((c) => c.path[0])).toEqual(['given_name', 'family_name', 'birth_date', 'account_number']); // compact: fits a QR code
+    expect(link.searchParams.get('verifier_info')).toBeNull(); // the registration certificate does not cover it
+    expect(svc.verifier.walletLink(tx).length).toBeLessThan(1700);
+    void app;
+  });
+});
+
 describe('RP flows in the browser session', () => {
   it('bank login starts a verification bound to the session; other sessions cannot see it', async () => {
     const { app } = await boot();
     const a = request.agent(app);
-    const login = await a.get('/bank/login');
+    const chooser = await a.get('/bank/login'); // two ways in: bank account attestation (existing customer) or PID (new customer)
+    expect(chooser.status).toBe(200);
+    expect(chooser.text).toContain('href="/bank/login/account"');
+    expect(chooser.text).toContain('href="/bank/login/pid"');
+    const login = await a.get('/bank/login/pid');
     expect(login.status).toBe(302);
+    expect(login.headers.location).toBe('/bank/verify?p=pid&returnTo=%2Fbank%2Fkyc');
+    expect((await a.get('/bank/login/account')).headers.location).toBe('/bank/verify?p=account&returnTo=%2Fbank%2Faccount');
     const start = await a.get(login.headers.location!); // /bank/verify?p=pid… creates the transaction and redirects to its page
     expect(start.status).toBe(302);
     const verify = await a.get(start.headers.location!);

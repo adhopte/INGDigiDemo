@@ -1,0 +1,18 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <h1><%= t('bank.login.title') %></h1>
+  <p class="lead"><%= t('bank.login.intro') %></p>
+  <div class="att-grid">
+    <section class="panel att-card" aria-labelledby="ex-h">
+      <h2 id="ex-h"><%= t('bank.login.existing.title') %></h2>
+      <p><%= t('bank.login.existing.body') %></p>
+      <p><a class="btn btn-large" href="/bank/login/account"><%= t('bank.login.existing.btn') %></a></p>
+    </section>
+    <section class="panel att-card" aria-labelledby="new-h">
+      <h2 id="new-h"><%= t('bank.login.new.title') %></h2>
+      <p><%= t('bank.login.new.body') %></p>
+      <p><a class="btn btn-large btn-secondary" href="/bank/login/pid"><%= t('bank.login.new.btn') %></a></p>
+    </section>
+  </div>
+</div>
+<%- include('../partials/foot') %>

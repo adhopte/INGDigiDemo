@@ -149,7 +149,7 @@
   "bank.hero.note": "Verificamos su PID y su identidad (KYC) en segundos.",
   "bank.hero.goto": "Ir a mi cuenta",
   "bank.how.title": "Cómo funciona",
-  "bank.how.1": "Comparta su PID desde su EU Wallet.",
+  "bank.how.1": "Comparta su PID (cliente nuevo) o su atestación de cuenta bancaria (cliente existente) desde su cartera EU.",
   "bank.how.2": "Lo verificamos y abrimos su cuenta.",
   "bank.how.3": "Descargue sus atestaciones de cuenta y de pago.",
   "bank.products": "Nuestros productos",
@@ -411,5 +411,16 @@
   "admin.batch.label": "Credenciales por solicitud",
   "admin.batch.option_one": "1 (no declarado)",
   "admin.batch.apply": "Aplicar",
-  "admin.batch.saved": "Tamaño del lote actualizado."
+  "admin.batch.saved": "Tamaño del lote actualizado.",
+  "bank.login.title": "Iniciar sesión en Demo Bank",
+  "bank.login.intro": "Elija cómo identificarse con su cartera EU.",
+  "bank.login.existing.title": "Cliente existente",
+  "bank.login.existing.body": "Inicie sesión con la atestación de cuenta bancaria de su cartera EU. Su nombre y número de cuenta se usan para preparar su atestación de pago.",
+  "bank.login.existing.btn": "Iniciar sesión con mi atestación de cuenta bancaria",
+  "bank.login.new.title": "Cliente nuevo, o aún sin atestación",
+  "bank.login.new.body": "Abra su cuenta con su PID (verificación de identidad, KYC). Después podrá descargar su atestación de cuenta bancaria para futuros inicios de sesión.",
+  "bank.login.new.btn": "Abrir una cuenta con mi PID",
+  "bank.account.via_pid": "Sesión iniciada con su PID (verificación de identidad).",
+  "bank.account.via_account": "Sesión iniciada con su atestación de cuenta bancaria. Su nombre y número de cuenta se usan para su atestación de pago.",
+  "bank.att.intro_account": "Su atestación de pago se prepara a partir de los atributos de su atestación de cuenta bancaria."
 }

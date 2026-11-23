@@ -1,6 +1,7 @@
 <%- include('../partials/head') %>
 <div class="wrap">
   <h1><%= t('bank.account.hello', { name: c.given }) %></h1>
+  <p class="alert alert-success" role="status"><%= via === 'account' ? t('bank.account.via_account') : t('bank.account.via_pid') %></p>
   <div class="account-grid">
     <section class="panel" aria-labelledby="bal-h">
       <h2 id="bal-h"><%= t('bank.account.current') %></h2>
@@ -24,7 +25,7 @@
 
   <section aria-labelledby="att-h" class="panel">
     <h2 id="att-h"><%= t('bank.att.title') %></h2>
-    <p><%= t('bank.att.intro') %></p>
+    <p><%= via === 'account' ? t('bank.att.intro_account') : t('bank.att.intro') %></p>
     <div class="att-grid">
       <form method="post" action="/bank/attestation/account" class="att-card">
         <h3><%= t('att.account.name') %></h3>

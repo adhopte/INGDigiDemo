@@ -152,6 +152,29 @@
             "birth_date"
           ]
         },
+        "account": {
+          "types": [
+            "account"
+          ],
+          "claims": [
+            "given_name",
+            "family_name",
+            "birth_date",
+            "account_number",
+            "bank_name"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name",
+            "account_number"
+          ],
+          "compactClaims": [
+            "given_name",
+            "family_name",
+            "birth_date",
+            "account_number"
+          ]
+        },
         "pid_any": {
           "types": [
             "pid"

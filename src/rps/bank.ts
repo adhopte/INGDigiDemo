@@ -13,29 +13,40 @@ export function bankRouter(ctx: Ctx, rp: RpConfig): Router {
   router.use(r);
 
   const pid = (req: Request) => claimsOfType(req.session, rp.id, 'pid');
-  const guard = (req: Request, res: Response, next: NextFunction) => (pid(req) ? next() : res.redirect(`/${rp.id}/login`));
+  const acct = (req: Request) => claimsOfType(req.session, rp.id, 'account');
+  const guard = (req: Request, res: Response, next: NextFunction) => (pid(req) || acct(req) ? next() : res.redirect(`/${rp.id}/login`));
 
-  /** The customer record is derived from the verified PID (stateless demo). */
+  /**
+   * The customer. An existing customer signs in with the bank account attestation: its attributes (name, birth date, account number = IBAN)
+   * are the bank's own record. A new customer opens the account with the PID (KYC), the IBAN being derived from it (stateless demo).
+   */
   const customer = (req: Request) => {
+    const a = acct(req);
+    if (a) {
+      const given = str(a.given_name), family = str(a.family_name), born = str(a.birth_date);
+      return { via: 'account' as const, claims: a, given, family, born, iban: str(a.account_number), nationality: '', opened: str(a.account_opened) };
+    }
     const c = pid(req)!;
     const given = str(c.given_name), family = str(c.family_name), born = str(c.birth_date);
-    return { claims: c, given, family, born, iban: demoIban(given, family, born) };
+    return { via: 'pid' as const, claims: c, given, family, born, iban: demoIban(given, family, born), nationality: str(c.nationality), opened: '' };
   };
 
-  router.get('/', (req, res) => res.render('bank/home', { title: BANK_NAME, loggedIn: !!pid(req) }));
+  router.get('/', (req, res) => res.render('bank/home', { title: BANK_NAME, loggedIn: !!(pid(req) || acct(req)) }));
 
-  // KYC with the PID: this is how the customer opens the account and signs in.
-  router.get('/login', (_req, res) => res.redirect(`/${rp.id}/verify?p=pid&returnTo=${encodeURIComponent(`/${rp.id}/kyc`)}`));
+  // Two ways in: the bank account attestation (existing customer) or the PID (KYC, new customer).
+  router.get('/login', (_req, res) => res.render('bank/login', { title: res.locals.t('bank.login.title') }));
+  router.get('/login/pid', (_req, res) => res.redirect(`/${rp.id}/verify?p=pid&returnTo=${encodeURIComponent(`/${rp.id}/kyc`)}`));
+  router.get('/login/account', (_req, res) => res.redirect(`/${rp.id}/verify?p=account&returnTo=${encodeURIComponent(`/${rp.id}/account`)}`));
 
-  router.get('/kyc', guard, (req, res) => {
-    const c = customer(req);
+  router.get('/kyc', (req, res, next) => (pid(req) ? next() : res.redirect(`/${rp.id}/${acct(req) ? 'account' : 'login'}`)), (req, res) => {
+    const c = { ...customer(req), claims: pid(req)! }; // the KYC page shows the verified PID, whatever else the session holds
     const d = req.session.disclosed?.[rp.id]?.pid;
     res.render('bank/kyc', { title: res.locals.t('bank.kyc.title'), c, issuers: d?.issuers ?? [], mockData: d?.mock ?? false });
   });
 
   router.get('/account', guard, (req, res) => {
     const c = customer(req);
-    res.render('bank/account', { title: res.locals.t('bank.account.title'), c, ibanMasked: maskIban(c.iban) });
+    res.render('bank/account', { title: res.locals.t('bank.account.title'), c, ibanMasked: maskIban(c.iban), via: c.via, hasPid: !!pid(req) });
   });
 
   router.post('/attestation/:key', guard, async (req, res) => {
@@ -48,8 +59,8 @@ export function bankRouter(ctx: Ctx, rp: RpConfig): Router {
       key === 'account'
         ? {
             given_name: c.given, family_name: c.family, birth_date: c.born,
-            nationality: c.claims.nationality ?? '',
-            account_number: c.iban, account_opened: today.toISOString().slice(0, 10), bank_name: BANK_NAME,
+            nationality: c.nationality,
+            account_number: c.iban, account_opened: c.opened || today.toISOString().slice(0, 10), bank_name: BANK_NAME,
           }
         : { account_holder_name: `${c.given} ${c.family}`, iban: c.iban, bic: BIC, bank_name: BANK_NAME, valid_until: plus2y.toISOString().slice(0, 10) };
     await renderOffer(ctx, req, res, rp, key, claims, `/${rp.id}/account`);

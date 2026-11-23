@@ -42,7 +42,9 @@ async function run(vpName, size) {
   // ---- Bank
   await go('/bank/'); await step('bank-home');
   await page.getByRole('link', { name: /Open an account/ }).first().click();
-  await page.waitForURL(/\/bank\/verify\/[0-9a-f-]+$/); await step('bank-verify');
+  await page.waitForURL(/\/bank\/login$/); await step('bank-login'); // two ways in: bank account attestation or PID (KYC)
+  await page.getByRole('link', { name: 'Open an account with my PID' }).click();
+  await page.waitForURL(/\/bank\/verify\/[A-Za-z0-9_-]{16}$/); await step('bank-verify');
   await page.getByRole('link', { name: 'Open the simulated wallet' }).click(); await step('bank-wallet-empty');
   await page.getByRole('button', { name: 'Add demo PID' }).click();
   await page.getByRole('button', { name: 'Approve and share' }).click();
@@ -61,7 +63,7 @@ async function run(vpName, size) {
   await page.getByRole('button', { name: /Add to cart/ }).nth(2).click();
   await go('/eshop/cart'); await step('eshop-cart');
   await page.getByRole('link', { name: 'Pay with EU Wallet' }).click();
-  await page.waitForURL(/\/eshop\/verify\/[0-9a-f-]+$/); await step('eshop-verify');
+  await page.waitForURL(/\/eshop\/verify\/[A-Za-z0-9_-]{16}$/); await step('eshop-verify');
   await page.getByRole('link', { name: 'Open the simulated wallet' }).click(); await step('eshop-wallet');
   await page.getByRole('button', { name: 'Approve and share' }).click();
   await page.waitForURL(/\/eshop\/order$/); await step('eshop-order');
