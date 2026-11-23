@@ -23,6 +23,8 @@ export interface WalletCredential {
 
 export interface CartItem { id: string; qty: number }
 export interface Order { number: string; items: { id: string; qty: number; unit: number }[]; total: number; holder: string; ibanMasked: string; at: string }
+export interface RentalBooking { car: string; days: number; total: number; at: string }
+export interface RentalDone extends RentalBooking { ref: string; pickup: string; back: string; holder: string; ibanMasked: string; bank: string; driver: string; licence: string }
 export interface Enrolment { studentNumber: string; programme: string; email: string; at: string }
 
 declare module 'express-session' {
@@ -41,6 +43,9 @@ declare module 'express-session' {
     cart?: CartItem[];
     order?: Order;
     enrolment?: Enrolment;
+    /** Car rental: the booking waiting for its payment, and the confirmed one. */
+    rentalBooking?: RentalBooking;
+    rentalDone?: RentalDone;
     flash?: string;
     /** Wallet-check probes that were answered and verified in this session. */
     probes?: Record<string, { at: string; issuer: string }>;

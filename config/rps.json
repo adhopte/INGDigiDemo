@@ -658,6 +658,18 @@
             "mso_mdoc",
             "dc+sd-jwt"
           ]
+        },
+        "payment": {
+          "types": [
+            "payment"
+          ],
+          "claims": [
+            "account_holder_name",
+            "iban",
+            "bic",
+            "bank_name",
+            "valid_until"
+          ]
         }
       },
       "attestations": []

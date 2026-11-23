@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import type { RpConfig } from '../config.js';
-import { claimsOfType, q, str, type Ctx } from './context.js';
+import { claimsOfType, maskIban, q, str, type Ctx } from './context.js';
 import { rpBase } from './common.js';
 
 /** The fleet (demo prices per day). */
@@ -62,11 +62,29 @@ export function rentalRouter(ctx: Ctx, rp: RpConfig): Router {
     if (!car || !Number.isInteger(days) || days < 1 || days > MAX_DAYS) return void page(req, res, { error: 'rental.err.choice' }, 422);
     const end = new Date(Date.now() + days * 86_400_000);
     if (k.expiry && k.expiry < end) return void page(req, res, { error: 'rental.err.ends_before' }, 422); // the licence must cover the whole rental
-    res.render('rental/confirmation', {
-      title: res.locals.t('rental.confirm.title'), c, car, days, total: car.price * days,
-      ref: `DR-${randomBytes(3).toString('hex').toUpperCase()}`,
-      pickup: new Date().toISOString().slice(0, 10), back: end.toISOString().slice(0, 10),
-    });
+    // the booking is paid with the payment attestation: a fresh presentation is needed for every booking
+    req.session.rentalBooking = { car: car.id, days, total: car.price * days, at: new Date().toISOString() };
+    res.redirect(`/${rp.id}/verify?p=payment&returnTo=${encodeURIComponent(`/${rp.id}/confirmation`)}`);
+  });
+
+  router.get('/confirmation', guard, (req, res) => {
+    const c = lic(req)!;
+    const b = req.session.rentalBooking;
+    const paid = req.session.disclosed?.[rp.id]?.payment;
+    const pay = claimsOfType(req.session, rp.id, 'payment');
+    if (b && (!pay || !paid || paid.at < b.at)) return void res.redirect(`/${rp.id}/booking`); // not paid yet
+    if (b && pay) {
+      const end = new Date(Date.now() + b.days * 86_400_000);
+      req.session.rentalDone = {
+        ...b, ref: `DR-${randomBytes(3).toString('hex').toUpperCase()}`, pickup: new Date().toISOString().slice(0, 10), back: end.toISOString().slice(0, 10),
+        holder: str(pay.account_holder_name), ibanMasked: maskIban(str(pay.iban)), bank: str(pay.bank_name),
+        driver: `${str(c.given_name)} ${str(c.family_name)}`.trim(), licence: str(c.document_number),
+      };
+      delete req.session.rentalBooking;
+    }
+    const d = req.session.rentalDone;
+    if (!d) return void res.redirect(`/${rp.id}/booking`);
+    res.render('rental/confirmation', { title: res.locals.t('rental.confirm.title'), c, d, car: CARS.find((x) => x.id === d.car) ?? CARS[0] });
   });
 
   return router;

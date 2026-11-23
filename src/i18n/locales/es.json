@@ -477,5 +477,8 @@
   "admin.issuer.sigma": "Emisor SIGMA (comprobado con sus registros)",
   "admin.issuer.local": "Emisor de demostración local (alternativa, SD-JWT)",
   "admin.issuer.hint": "El emisor local emite exactamente los valores introducidos abajo, sin comprobar registros. Úselo mientras la emisión del mDL de SIGMA no esté disponible.",
-  "portal.create_local": "Emitir localmente (alternativa)"
+  "portal.create_local": "Emitir localmente (alternativa)",
+  "rental.form.pay": "Pagar con la cartera UE",
+  "rental.confirm.paid_by": "Pagado con",
+  "rental.book.pay_hint": "Paga con la atestación de pago de su cartera UE (emitida por Demo Bank)."
 }

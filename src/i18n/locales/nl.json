@@ -477,5 +477,8 @@
   "admin.issuer.sigma": "SIGMA-uitgever (gecontroleerd tegen zijn gegevens)",
   "admin.issuer.local": "Lokale demo-uitgever (back-up, SD-JWT)",
   "admin.issuer.hint": "De lokale uitgever geeft precies de hieronder ingevoerde waarden uit, zonder gegevenscontrole. Gebruik dit zolang de mDL-uitgifte van SIGMA niet beschikbaar is.",
-  "portal.create_local": "Lokaal uitgeven (back-up)"
+  "portal.create_local": "Lokaal uitgeven (back-up)",
+  "rental.form.pay": "Betalen met EU-wallet",
+  "rental.confirm.paid_by": "Betaald met",
+  "rental.book.pay_hint": "U betaalt met de betaalattestatie in uw EU-wallet (uitgegeven door Demo Bank)."
 }

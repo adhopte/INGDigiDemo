@@ -37,7 +37,8 @@
         <label for="days"><%= t('rental.form.days') %></label>
         <select id="days" name="days"><% for (let d = 1; d <= maxDays; d++) { %><option value="<%= d %>"<%= d === 3 ? ' selected' : '' %>><%= d %></option><% } %></select>
       </div>
-      <button class="btn btn-large" type="submit"><%= t('rental.form.submit') %></button>
+      <button class="btn btn-large" type="submit"><%= t('rental.form.pay') %></button>
+      <p class="note"><%= t('rental.book.pay_hint') %></p>
     </form>
   </section>
   <% } else { %><div class="alert alert-error" role="alert"><%= t('rental.err.ineligible') %></div><% } %>

@@ -561,28 +561,55 @@ describe('Demo Drive (car rental): mobile driving licence', () => {
     expect(licenceChecks({}, now)).toMatchObject({ valid: undefined, experienced: undefined, ofAge: undefined });
   });
 
-  it('sign in with a demo licence, book a car; nothing is possible without the licence', async () => {
+  it('sign in with a demo licence, pick a car, pay with the payment attestation; nothing is possible without them', async () => {
     const { app } = await boot({ MOCK_MODE: 'true' });
     const a = request.agent(app);
     expect((await a.get('/rental/booking')).headers.location).toBe('/rental/login');
     expect((await a.post('/rental/book').type('form').send({ car: 'city', days: '2' })).headers.location).toBe('/rental/login');
+    expect((await a.get('/rental/confirmation')).headers.location).toBe('/rental/login');
     expect((await a.get('/rental/')).text).toContain('Demo Drive');
-    const loc = (await a.get('/rental/login')).headers.location!;
-    expect(loc).toBe('/rental/verify?p=mdl&returnTo=%2Frental%2Fbooking');
-    const verifyPath = (await a.get(loc)).headers.location!;
-    const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(verifyPath)![1]!;
-    await a.post(`/rental/verify/wallet/${id}/add`).type('form').send({ type: 'mdl', persona: 'fr' });
-    const done = await a.post(`/rental/verify/wallet/${id}/share`);
-    expect((await a.get(done.headers.location!)).headers.location).toBe('/rental/booking');
+    // the wallet holds a payment attestation (the bank issues it after a sign-in with the bank account attestation)
+    const present = async (rp: string, path: string, add?: { type: string; persona: string }) => {
+      const verifyPath = (await a.get((await a.get(path)).headers.location!)).headers.location!;
+      const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(verifyPath)![1]!;
+      if (add) await a.post(`/${rp}/verify/wallet/${id}/add`).type('form').send(add);
+      const done = await a.post(`/${rp}/verify/wallet/${id}/share`);
+      return (await a.get(done.headers.location!)).headers.location;
+    };
+    const receive = async (key: string) => {
+      const offer = await a.post(`/bank/attestation/${key}`);
+      const offerId = /name="offerId" value="([^"]+)"/.exec(offer.text)![1]!;
+      await a.post('/wallet-sim/redeem').type('form').send({ offerId, returnTo: '/wallet' });
+    };
+    await present('bank', '/bank/login/pid', { type: 'pid', persona: 'fr' });
+    await receive('account'); await a.post('/bank/signout');
+    await present('bank', '/bank/login/account');
+    await receive('payment');
+    // sign in with the licence
+    expect(await present('rental', '/rental/login', { type: 'mdl', persona: 'fr' })).toBe('/rental/booking');
     const page = await a.get('/rental/booking');
     expect(page.status).toBe(200);
     expect(page.text).toContain('Licence is valid');
     expect(page.text).toContain('Camille');
     expect((await a.post('/rental/book').type('form').send({ car: 'nope', days: '2' })).status).toBe(422);
     expect((await a.post('/rental/book').type('form').send({ car: 'city', days: '99' })).status).toBe(422);
-    const ok = await a.post('/rental/book').type('form').send({ car: 'suv', days: '3' });
+    expect((await a.get('/rental/confirmation')).headers.location).toBe('/rental/booking'); // nothing booked yet
+    // booking → payment request → confirmation
+    const book = await a.post('/rental/book').type('form').send({ car: 'suv', days: '3' });
+    expect(book.headers.location).toBe('/rental/verify?p=payment&returnTo=%2Frental%2Fconfirmation');
+    expect((await a.get('/rental/confirmation')).headers.location).toBe('/rental/booking'); // not paid yet
+    const verifyPath = (await a.get(book.headers.location!)).headers.location!;
+    const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(verifyPath)![1]!;
+    const done = await a.post(`/rental/verify/wallet/${id}/share`);
+    expect((await a.get(done.headers.location!)).headers.location).toBe('/rental/confirmation');
+    const ok = await a.get('/rental/confirmation');
     expect(ok.status).toBe(200);
     expect(ok.text).toMatch(/DR-[0-9A-F]{6}/);
     expect(ok.text).toContain('237'); // 3 days x 79
+    expect(ok.text).toMatch(/XX00 •••• •••• \d{4}/); // paid with the payment attestation
+    expect((await a.get('/rental/confirmation')).status).toBe(200); // a reload shows the same confirmation
+    // a second booking needs a fresh payment presentation
+    await a.post('/rental/book').type('form').send({ car: 'city', days: '1' });
+    expect((await a.get('/rental/confirmation')).headers.location).toBe('/rental/booking');
   });
 });

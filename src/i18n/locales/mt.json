@@ -477,5 +477,8 @@
   "admin.issuer.sigma": "Min joħroġ SIGMA (ikkontrollat mar-rekords tiegħu)",
   "admin.issuer.local": "Min joħroġ demo lokali (backup, SD-JWT)",
   "admin.issuer.hint": "Il-ħarreġ lokali joħroġ eżattament il-valuri mdaħħla hawn taħt, mingħajr kontroll tar-rekords. Uża waqt li l-ħruġ tal-mDL minn SIGMA mhuwiex disponibbli.",
-  "portal.create_local": "Oħroġ lokalment (backup)"
+  "portal.create_local": "Oħroġ lokalment (backup)",
+  "rental.form.pay": "Ħallas bil-wallet tal-UE",
+  "rental.confirm.paid_by": "Imħallas permezz ta’",
+  "rental.book.pay_hint": "Tħallas bl-attestazzjoni tal-ħlas fil-wallet tal-UE tiegħek (maħruġa minn Demo Bank)."
 }

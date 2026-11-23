@@ -477,5 +477,8 @@
   "admin.issuer.sigma": "SIGMA-utfärdare (kontrolleras mot dess poster)",
   "admin.issuer.local": "Lokal demoutfärdare (reserv, SD-JWT)",
   "admin.issuer.hint": "Den lokala utfärdaren utfärdar exakt de värden som anges nedan, utan postkontroll. Använd den medan SIGMA:s mDL-utfärdande inte är tillgängligt.",
-  "portal.create_local": "Utfärda lokalt (reserv)"
+  "portal.create_local": "Utfärda lokalt (reserv)",
+  "rental.form.pay": "Betala med EU-plånboken",
+  "rental.confirm.paid_by": "Betalt med",
+  "rental.book.pay_hint": "Du betalar med betalningsintyget i din EU-plånbok (utfärdat av Demo Bank)."
 }

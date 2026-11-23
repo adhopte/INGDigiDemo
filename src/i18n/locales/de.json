@@ -477,5 +477,8 @@
   "admin.issuer.sigma": "SIGMA-Aussteller (Abgleich mit dessen Datensätzen)",
   "admin.issuer.local": "Lokaler Demo-Aussteller (Ersatz, SD-JWT)",
   "admin.issuer.hint": "Der lokale Aussteller stellt genau die unten eingegebenen Werte aus, ohne Datensatzprüfung. Nutzen, solange die mDL-Ausstellung bei SIGMA nicht verfügbar ist.",
-  "portal.create_local": "Lokal ausstellen (Ersatz)"
+  "portal.create_local": "Lokal ausstellen (Ersatz)",
+  "rental.form.pay": "Mit EU-Wallet bezahlen",
+  "rental.confirm.paid_by": "Bezahlt mit",
+  "rental.book.pay_hint": "Sie bezahlen mit dem Zahlungsnachweis in Ihrer EU-Wallet (ausgestellt von Demo Bank)."
 }

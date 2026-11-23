@@ -123,8 +123,11 @@ async function run(vpName, size) {
   await page.getByRole('button', { name: 'Add demo driving licence' }).click();
   await page.getByRole('button', { name: 'Approve and share' }).click();
   await page.waitForURL(/\/rental\/booking$/); await step('rental-booking');
-  await page.getByRole('button', { name: 'Book now' }).click();
-  await page.waitForURL(/\/rental\/book$/); await step('rental-confirmation');
+  await page.getByRole('button', { name: 'Pay with EU Wallet' }).click();
+  await page.waitForURL(/\/rental\/verify\/[A-Za-z0-9_-]{16}$/);
+  await page.getByRole('link', { name: 'Open the simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Approve and share' }).click();
+  await page.waitForURL(/\/rental\/confirmation$/); await step('rental-confirmation');
 
   await go('/wallet'); await step('wallet');
   await browser.close();
