@@ -422,5 +422,6 @@
   "bank.login.new.btn": "Åbn en konto med mit PID",
   "bank.account.via_pid": "Logget ind med dit PID (identitetskontrol).",
   "bank.account.via_account": "Logget ind med dit bankkontobevis. Navn og kontonummer bruges til dit betalingsbevis.",
-  "bank.att.intro_account": "Dit betalingsbevis forberedes ud fra attributterne i dit bankkontobevis."
+  "bank.att.intro_account": "Dit betalingsbevis forberedes ud fra attributterne i dit bankkontobevis.",
+  "bank.att.payment_locked": "Betalingsbeviset er kun tilgængeligt, når du logger ind med dit bankkontobevis. Hent først dit bankkontobevis, log derefter ud og ind igen med det."
 }

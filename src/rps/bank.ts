@@ -52,6 +52,8 @@ export function bankRouter(ctx: Ctx, rp: RpConfig): Router {
   router.post('/attestation/:key', guard, async (req, res) => {
     const key = String(req.params.key);
     if (key !== 'account' && key !== 'payment') return void res.sendStatus(404);
+    // The payment attestation is only for customers who signed in with the bank account attestation (not the PID / KYC path).
+    if (key === 'payment' && !acct(req)) return void res.sendStatus(403);
     const c = customer(req);
     const today = new Date();
     const plus2y = new Date(today.getFullYear() + 2, today.getMonth(), today.getDate());

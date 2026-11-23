@@ -421,6 +421,8 @@ describe('bank: PID for the KYC, the bank account attestation for later sign-ins
     expect((await a.get('/bank/kyc')).status).toBe(200);
     const viaPid = (await a.get('/bank/account')).text;
     expect(viaPid).toContain('Signed in with your PID');
+    expect(viaPid).not.toContain('action="/bank/attestation/payment"'); // the payment attestation is not offered after the KYC sign-in
+    expect((await a.post('/bank/attestation/payment')).status).toBe(403);
     await receive(a, 'account'); // the bank account attestation into the (simulated) wallet
     await a.post('/bank/signout');
     expect((await a.get('/bank/account')).headers.location).toBe('/bank/login');
@@ -429,6 +431,7 @@ describe('bank: PID for the KYC, the bank account attestation for later sign-ins
     const viaAccount = await a.get('/bank/account');
     expect(viaAccount.status).toBe(200);
     expect(viaAccount.text).toContain('Signed in with your bank account attestation');
+    expect(viaAccount.text).toContain('action="/bank/attestation/payment"');
     expect(viaAccount.text).toContain('prepared from the attributes of your bank account attestation');
     expect((await a.get('/bank/kyc')).headers.location).toBe('/bank/account'); // the KYC page belongs to the PID path
     // 3. the payment attestation carries what the account attestation said

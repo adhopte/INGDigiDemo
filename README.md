@@ -11,7 +11,7 @@ A demo dashboard with four relying parties (RPs) for the **IN Groupe SIGMA** EU 
 | Path | Site | What it does |
 |---|---|---|
 | `/` | **EU Wallet Demo Dashboard** (IN Groupe branding) | entry point, mode indicators, links |
-| `/bank` | **Demo Bank** (typical European bank look) | **New customer:** KYC with any PID → account opened → download **account attestation** and **payment attestation**. **Existing customer:** sign in with the **bank account attestation** (its name + account number are used for the payment attestation; no PID needed) (QR or deeplink) |
+| `/bank` | **Demo Bank** (typical European bank look) | **New customer:** KYC with any PID → account opened → download the **account attestation** (the payment attestation is not offered on this path). **Existing customer:** sign in with the **bank account attestation** (no PID needed): only this sign-in can get the **payment attestation**, built from its name + account number (QR or deeplink) |
 | `/eshop` | **Demo eShop** (generic e-commerce, standalone) | cart → "Pay with EU Wallet" → verifies the **payment attestation** issued by the bank → order confirmation. Age proof shown as "Coming soon". |
 | `/university` | **Demo University** | requires **PID + birth certificate** (one combined request with `MULTI_CREDENTIAL=true`, else two in a row), cross-checks both describe the same person, pre-filled enrolment form → student number |
 | `/electricity` | **Demo Power Co** | PID → access to the customer account |

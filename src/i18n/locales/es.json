@@ -422,5 +422,6 @@
   "bank.login.new.btn": "Abrir una cuenta con mi PID",
   "bank.account.via_pid": "Sesión iniciada con su PID (verificación de identidad).",
   "bank.account.via_account": "Sesión iniciada con su atestación de cuenta bancaria. Su nombre y número de cuenta se usan para su atestación de pago.",
-  "bank.att.intro_account": "Su atestación de pago se prepara a partir de los atributos de su atestación de cuenta bancaria."
+  "bank.att.intro_account": "Su atestación de pago se prepara a partir de los atributos de su atestación de cuenta bancaria.",
+  "bank.att.payment_locked": "La atestación de pago solo está disponible tras iniciar sesión con su atestación de cuenta bancaria. Descargue primero su atestación de cuenta bancaria, cierre sesión e inicie sesión con ella."
 }

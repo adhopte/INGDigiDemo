@@ -422,5 +422,6 @@
   "bank.login.new.btn": "Iftaħ kont bil-PID tiegħi",
   "bank.account.via_pid": "Dħalt bil-PID tiegħek (verifika tal-identità).",
   "bank.account.via_account": "Dħalt bl-attestazzjoni tal-kont bankarju tiegħek. L-isem u n-numru tal-kont jintużaw għall-attestazzjoni tal-ħlas tiegħek.",
-  "bank.att.intro_account": "L-attestazzjoni tal-ħlas tiegħek hija ppreparata mill-attributi tal-attestazzjoni tal-kont bankarju tiegħek."
+  "bank.att.intro_account": "L-attestazzjoni tal-ħlas tiegħek hija ppreparata mill-attributi tal-attestazzjoni tal-kont bankarju tiegħek.",
+  "bank.att.payment_locked": "L-attestazzjoni tal-ħlas hija disponibbli biss wara li tidħol bl-attestazzjoni tal-kont bankarju tiegħek. Niżżel l-ewwel l-attestazzjoni tal-kont bankarju, ħu ħruġ u erġa' idħol biha."
 }

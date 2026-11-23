@@ -422,5 +422,6 @@
   "bank.login.new.btn": "Ouvrir un compte avec mon PID",
   "bank.account.via_pid": "Connecté avec votre PID (vérification d’identité).",
   "bank.account.via_account": "Connecté avec votre attestation de compte bancaire. Son nom et son numéro de compte servent à votre attestation de paiement.",
-  "bank.att.intro_account": "Votre attestation de paiement est préparée à partir des attributs de votre attestation de compte bancaire."
+  "bank.att.intro_account": "Votre attestation de paiement est préparée à partir des attributs de votre attestation de compte bancaire.",
+  "bank.att.payment_locked": "L'attestation de paiement n'est disponible qu'après connexion avec votre attestation de compte bancaire. Téléchargez d'abord votre attestation de compte bancaire, déconnectez-vous puis reconnectez-vous avec elle."
 }

@@ -422,5 +422,6 @@
   "bank.login.new.btn": "Öppna ett konto med mitt PID",
   "bank.account.via_pid": "Inloggad med ditt PID (identitetskontroll).",
   "bank.account.via_account": "Inloggad med ditt kontobevis. Namn och kontonummer används för ditt betalningsbevis.",
-  "bank.att.intro_account": "Ditt betalningsbevis förbereds utifrån attributen i ditt kontobevis."
+  "bank.att.intro_account": "Ditt betalningsbevis förbereds utifrån attributen i ditt kontobevis.",
+  "bank.att.payment_locked": "Betalningsintyget är bara tillgängligt efter inloggning med ditt bankkontointyg. Hämta först ditt bankkontointyg, logga ut och logga sedan in med det."
 }

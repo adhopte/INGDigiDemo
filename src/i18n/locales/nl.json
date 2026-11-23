@@ -422,5 +422,6 @@
   "bank.login.new.btn": "Rekening openen met mijn PID",
   "bank.account.via_pid": "Ingelogd met uw PID (identiteitscontrole).",
   "bank.account.via_account": "Ingelogd met uw bankrekeningattest. Naam en rekeningnummer worden gebruikt voor uw betalingsattest.",
-  "bank.att.intro_account": "Uw betalingsattest wordt voorbereid met de attributen van uw bankrekeningattest."
+  "bank.att.intro_account": "Uw betalingsattest wordt voorbereid met de attributen van uw bankrekeningattest.",
+  "bank.att.payment_locked": "De betaalattestatie is alleen beschikbaar na inloggen met uw bankrekeningattestatie. Download eerst uw bankrekeningattestatie, log uit en log er daarna mee in."
 }

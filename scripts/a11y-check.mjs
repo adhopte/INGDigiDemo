@@ -54,6 +54,15 @@ async function run(vpName, size) {
   await page.getByRole('button', { name: 'Receive in simulated wallet' }).click();
   await page.waitForURL(/\/bank\/account$/);
   if (!(await page.getByText('stored in the simulated wallet').count())) { failures++; log('  ✗ flash missing after redeem'); }
+  if (await page.getByRole('button', { name: 'Get payment attestation' }).count()) { failures++; log('  ✗ payment attestation offered after the PID sign-in'); }
+  // existing customer: sign out, sign in with the bank account attestation, then the payment attestation is offered
+  await page.getByRole('button', { name: 'Sign out' }).click();
+  await go('/bank/login');
+  await page.getByRole('link', { name: 'Sign in with my bank account attestation' }).click();
+  await page.waitForURL(/\/bank\/verify\/[A-Za-z0-9_-]{16}$/);
+  await page.getByRole('link', { name: 'Open the simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Approve and share' }).click();
+  await page.waitForURL(/\/bank\/account$/); await step('bank-account-via-attestation');
   await page.getByRole('button', { name: 'Get payment attestation' }).click(); await step('bank-offer-payment');
   await page.getByRole('button', { name: 'Receive in simulated wallet' }).click();
 

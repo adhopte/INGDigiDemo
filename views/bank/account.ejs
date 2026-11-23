@@ -32,11 +32,18 @@
         <p><%= t('bank.att.account.desc') %></p>
         <button class="btn" type="submit"><%= t('bank.att.account.btn') %></button>
       </form>
+      <% if (via === 'account') { %>
       <form method="post" action="/bank/attestation/payment" class="att-card">
         <h3><%= t('att.payment.name') %></h3>
         <p><%= t('bank.att.payment.desc') %></p>
         <button class="btn" type="submit"><%= t('bank.att.payment.btn') %></button>
       </form>
+      <% } else { %>
+      <div class="att-card">
+        <h3><%= t('att.payment.name') %></h3>
+        <p><%= t('bank.att.payment_locked') %></p>
+      </div>
+      <% } %>
     </div>
     <p class="note"><%= t('bank.att.eshop_hint') %> <a href="/eshop/"><%= t('bank.att.eshop_link') %></a></p>
   </section>

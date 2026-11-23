@@ -422,5 +422,6 @@
   "bank.login.new.btn": "Open an account with my PID",
   "bank.account.via_pid": "Signed in with your PID (identity check).",
   "bank.account.via_account": "Signed in with your bank account attestation. Its name and account number are used for your payment attestation.",
-  "bank.att.intro_account": "Your payment attestation is prepared from the attributes of your bank account attestation."
+  "bank.att.intro_account": "Your payment attestation is prepared from the attributes of your bank account attestation.",
+  "bank.att.payment_locked": "The payment attestation is only available after signing in with your bank account attestation. Download your bank account attestation first, then sign out and sign in with it."
 }
