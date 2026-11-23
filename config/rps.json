@@ -126,7 +126,8 @@
       "credentialConfigurationId": "demo_mdl",
       "vct": "urn:eudi:demo:mdl:1",
       "formats": [
-        "mso_mdoc"
+        "mso_mdoc",
+        "dc+sd-jwt"
       ],
       "mdoc": {
         "docType": "org.iso.18013.5.1.mDL",
@@ -206,6 +207,9 @@
           "walletIdentifier": "w-003",
           "label": "Lena Schneider – driving licence (user-003)"
         }
+      ],
+      "acceptedVct": [
+        "urn:eudi:demo:mdl:1"
       ]
     }
   },
@@ -623,6 +627,40 @@
             "given_name",
             "family_name",
             "birth_date"
+          ]
+        }
+      },
+      "attestations": []
+    },
+    {
+      "id": "rental",
+      "displayName": "Demo Drive",
+      "themeColor": "#1d4ed8",
+      "presentations": {
+        "mdl": {
+          "types": [
+            "mdl"
+          ],
+          "claims": [
+            "given_name",
+            "family_name",
+            "birth_date",
+            "document_number",
+            "issue_date",
+            "expiry_date"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name",
+            "document_number",
+            "issue_date",
+            "expiry_date"
+          ],
+          "compactClaims": [
+            "given_name",
+            "family_name",
+            "document_number",
+            "expiry_date"
           ]
         }
       },

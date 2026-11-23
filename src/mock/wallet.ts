@@ -44,6 +44,12 @@ export function demoClaims(typeKey: string, p: Persona): Claims {
         birth_record_reference: `ACTE-${Math.floor(100000 + Math.random() * 899999)}`,
         issuing_authority: `Civil registry of ${p.city} (demo)`,
       };
+    case 'mdl':
+      return {
+        family_name: p.family, given_name: p.given, birth_date: p.born, issue_date: '2022-03-01', expiry_date: '2032-03-01',
+        issuing_country: cc, issuing_authority: `Driving licence office of ${p.city} (demo)`, document_number: `DL${Math.floor(10000000 + Math.random() * 89999999)}`,
+        un_distinguishing_sign: cc, sex: 9, birth_place: p.city, resident_city: p.city, resident_country: cc, age_over_18: true, age_over_21: true,
+      };
     default:
       throw new Error(`No demo data for ${typeKey}`);
   }

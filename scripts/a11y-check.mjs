@@ -116,6 +116,16 @@ async function run(vpName, size) {
   await page.getByRole('button', { name: 'Approve and share' }).click();
   await page.waitForURL(/\/electricity\/account$/); await step('el-account');
 
+  // ---- Demo Drive (car rental): mobile driving licence
+  await go('/rental/'); await step('rental-home');
+  await page.getByRole('link', { name: /Continue with EU Wallet/ }).first().click();
+  await page.getByRole('link', { name: 'Open the simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Add demo driving licence' }).click();
+  await page.getByRole('button', { name: 'Approve and share' }).click();
+  await page.waitForURL(/\/rental\/booking$/); await step('rental-booking');
+  await page.getByRole('button', { name: 'Book now' }).click();
+  await page.waitForURL(/\/rental\/book$/); await step('rental-confirmation');
+
   await go('/wallet'); await step('wallet');
   await browser.close();
 }
@@ -127,11 +137,11 @@ async function languages() {
   for (const lang of ['en', 'fr', 'es', 'nl', 'de', 'da', 'mt', 'sv']) {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, bypassCSP: true });
     const page = await ctx.newPage();
-    for (const path of ['/', '/bank/', '/eshop/', '/eshop/cart', '/university/', '/electricity/', '/demo-issuer']) {
+    for (const path of ['/', '/bank/', '/eshop/', '/eshop/cart', '/university/', '/electricity/', '/rental/', '/demo-issuer']) {
       await page.goto(`${BASE}${path}?lang=${lang}`);
       const htmlLang = await page.getAttribute('html', 'lang');
       const text = (await page.locator('body').innerText()).replace(/https?:\/\/\S+/g, '').replace(/\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:io|com|org|net)\b/gi, '');
-      const leaked = text.match(/\b(?:bank|eshop|uni|el|dash|verify|offer|mockw|claim|att|rp|shop|prog|nav|btn|form|footer|mock|issuer)\.[a-z_0-9]+(?:\.[a-z_0-9]+)*\b/g);
+      const leaked = text.match(/\b(?:bank|eshop|uni|el|rental|dash|verify|offer|mockw|claim|att|rp|shop|prog|nav|btn|form|footer|mock|issuer)\.[a-z_0-9]+(?:\.[a-z_0-9]+)*\b/g);
       if (htmlLang !== lang) { failures++; log(`  ✗ [${lang}${path}] html lang=${htmlLang}`); }
       if (leaked) { failures++; log(`  ✗ [${lang}${path}] untranslated keys: ${[...new Set(leaked)].join(', ')}`); }
       await axe(page, `${lang}:${path}`);

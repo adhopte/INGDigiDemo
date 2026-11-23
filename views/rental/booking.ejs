@@ -1,0 +1,45 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <div class="alert alert-success" role="status"><strong><%= t('rental.book.granted') %></strong></div>
+  <h1><%= t('rental.book.hello', { name: c.given_name }) %></h1>
+  <% if (error) { %><div class="alert alert-error" role="alert"><%= t(error) %></div><% } %>
+  <div class="account-grid">
+    <section class="panel" aria-labelledby="dr-h">
+      <h2 id="dr-h"><%= t('rental.driver.title') %></h2>
+      <dl class="meta">
+        <dt><%= t('rental.driver.name') %></dt><dd><%= c.given_name %> <%= c.family_name %></dd>
+        <% if (c.birth_date) { %><dt><%= t('claim.birth_date') %></dt><dd><%= fmtClaim('birth_date', c.birth_date) %></dd><% } %>
+        <dt><%= t('claim.document_number') %></dt><dd class="mono"><%= c.document_number %></dd>
+        <% if (c.issue_date) { %><dt><%= t('claim.issue_date') %></dt><dd><%= fmtClaim('issue_date', c.issue_date) %></dd><% } %>
+        <dt><%= t('claim.expiry_date') %></dt><dd><%= fmtClaim('expiry_date', c.expiry_date) %></dd>
+      </dl>
+    </section>
+    <section class="panel" aria-labelledby="ck-h">
+      <h2 id="ck-h"><%= t('rental.check.title') %></h2>
+      <ul class="checks">
+        <% if (k.valid !== undefined) { %><li class="<%= k.valid ? 'good' : 'bad' %>"><span aria-hidden="true"><%= k.valid ? '✔' : '✘' %> </span><%= k.valid ? t('rental.check.valid') : t('rental.check.expired') %></li><% } %>
+        <% if (k.experienced !== undefined) { %><li class="<%= k.experienced ? 'good' : 'bad' %>"><span aria-hidden="true"><%= k.experienced ? '✔' : '✘' %> </span><%= k.experienced ? t('rental.check.experienced') : t('rental.check.too_new') %></li><% } %>
+        <% if (k.ofAge !== undefined) { %><li class="<%= k.ofAge ? 'good' : 'bad' %>"><span aria-hidden="true"><%= k.ofAge ? '✔' : '✘' %> </span><%= k.ofAge ? t('rental.check.age_ok', { n: minAge }) : t('rental.check.age_bad', { n: minAge }) %></li><% } %>
+      </ul>
+    </section>
+  </div>
+  <% if (eligible) { %>
+  <section class="panel" aria-labelledby="bk-h">
+    <h2 id="bk-h"><%= t('rental.form.title') %></h2>
+    <form method="post" action="/rental/book">
+      <fieldset>
+        <legend><%= t('rental.form.car') %></legend>
+        <% cars.forEach(function (car, i) { %>
+        <label><input type="radio" name="car" value="<%= car.id %>"<%= i === 0 ? ' checked' : '' %>> <%= t('rental.car.' + car.id) %> – <%= fmtMoney(car.price) %> <%= t('rental.per_day') %></label>
+        <% }) %>
+      </fieldset>
+      <div class="field">
+        <label for="days"><%= t('rental.form.days') %></label>
+        <select id="days" name="days"><% for (let d = 1; d <= maxDays; d++) { %><option value="<%= d %>"<%= d === 3 ? ' selected' : '' %>><%= d %></option><% } %></select>
+      </div>
+      <button class="btn btn-large" type="submit"><%= t('rental.form.submit') %></button>
+    </form>
+  </section>
+  <% } else { %><div class="alert alert-error" role="alert"><%= t('rental.err.ineligible') %></div><% } %>
+</div>
+<%- include('../partials/foot') %>

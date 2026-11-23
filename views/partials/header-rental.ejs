@@ -1,0 +1,18 @@
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/rental/"><img class="brand-logo" src="/img/rp-rental.svg" alt="" width="42" height="42"><span class="brand-name">Demo Drive</span></a>
+    <nav aria-label="<%= t('nav.main') %>">
+      <ul class="nav-list">
+        <li><a href="/rental/"><%= t('nav.home') %></a></li>
+        <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
+          <li><a href="/rental/booking"><%= t('rental.nav.booking') %></a></li>
+          <li><form method="post" action="/rental/signout"><button class="link-btn" type="submit"><%= t('btn.signout') %></button></form></li>
+        <% } else { %>
+          <li><a class="btn btn-small" href="/rental/login"><%= t('rental.nav.login') %></a></li>
+        <% } %>
+        <li><a href="/"><%= t('nav.all_demos') %></a></li>
+      </ul>
+    </nav>
+    <%- include('lang') %>
+  </div>
+</header>

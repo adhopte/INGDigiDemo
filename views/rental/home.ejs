@@ -1,0 +1,26 @@
+<%- include('../partials/head') %>
+<section class="hero"><div class="wrap hero-grid">
+  <div>
+    <h1><%= t('rental.hero.title') %></h1>
+    <p class="lead"><%= t('rental.hero.sub') %></p>
+    <% if (loggedIn) { %>
+      <p><a class="btn btn-large" href="/rental/booking"><%= t('rental.hero.goto') %></a></p>
+    <% } else { %>
+      <p><a class="btn btn-large" href="/rental/login"><%= t('rental.hero.cta') %></a></p>
+      <p class="note"><%= t('rental.hero.note') %></p>
+    <% } %>
+  </div>
+  <div class="hero-card" role="note">
+    <h2><%= t('rental.why.title') %></h2>
+    <ul class="plain"><li><%= t('rental.why.1') %></li><li><%= t('rental.why.2') %></li><li><%= t('rental.why.3') %></li></ul>
+  </div>
+</div></section>
+<div class="wrap">
+  <h2><%= t('rental.fleet.title') %></h2>
+  <ul class="fleet">
+    <% cars.forEach(function (car) { %>
+    <li class="car-card"><h3><%= t('rental.car.' + car.id) %></h3><p><strong><%= fmtMoney(car.price) %></strong> <%= t('rental.per_day') %></p></li>
+    <% }) %>
+  </ul>
+</div>
+<%- include('../partials/foot') %>

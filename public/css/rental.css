@@ -1,0 +1,22 @@
+/* Demo Drive: deep blue + orange */
+:root { --font: "Inter", system-ui, sans-serif; --primary: #1d4ed8; --primary-dark: #1e3a8a; --link: #1e3a8a; --accent: #f97316; --header-bg: #0b2a6f; --header-fg: #fff; --hero-bg: #e8effe; --footer-bg: #0b2a6f; }
+.skin-rental .site-header { box-shadow: none; border-bottom: 3px solid #f97316; }
+.skin-rental .nav-list a:hover, .skin-rental .link-btn:hover { color: #fdba74; }
+.skin-rental .hero { background: radial-gradient(520px 300px at 88% 10%, rgba(249, 115, 22, .3), transparent 70%), linear-gradient(135deg, #0b2a6f 0%, #1d4ed8 100%); color: #fff; padding: 3rem 0; }
+.skin-rental .hero h1 { color: #fff; }
+.skin-rental .hero .lead, .skin-rental .hero .note { color: #dbe6ff; }
+.skin-rental .hero .btn { background: #f97316; border-color: #f97316; color: #1f1300; }
+.skin-rental .hero .btn:hover { background: #fb923c; border-color: #fb923c; }
+.skin-rental h2, .skin-rental .hero-card h2 { color: #0b2a6f; }
+.skin-rental .btn-secondary { color: #1e3a8a; border-color: #1d4ed8; }
+.skin-rental .balance { color: #1d4ed8; }
+.skin-rental .site-header a.btn-small { background: #f97316; border-color: #f97316; color: #1f1300; }
+.skin-rental .fleet { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; list-style: none; padding: 0; margin: 1rem 0 2rem; }
+.skin-rental .car-card { border: 1px solid #cbd5e1; border-radius: .75rem; padding: 1rem; background: #fff; }
+.skin-rental .car-card h3 { margin: 0 0 .25rem; }
+.skin-rental .checks { list-style: none; padding: 0; margin: .5rem 0 0; }
+.skin-rental .checks li { padding: .2rem 0; }
+.skin-rental .checks .bad { color: #b91c1c; font-weight: 600; }
+.skin-rental .checks .good { color: #166534; }
+.skin-rental fieldset { border: 1px solid #cbd5e1; border-radius: .5rem; margin: 0 0 1rem; padding: .75rem 1rem; }
+.skin-rental fieldset label { display: block; padding: .3rem 0; }

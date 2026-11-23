@@ -543,3 +543,44 @@ describe('RP flows in the browser session', () => {
     expect(r.text).not.toContain('Unknown presentation');
   });
 });
+
+describe('Demo Drive (car rental): mobile driving licence', () => {
+  it('requests only the mDL (mdoc by value in live mode, SD-JWT too in mock mode) and the checks follow the licence', async () => {
+    const { svc, cfg } = await boot({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'rental')!, 'mdl', '/rental/booking');
+    const q = JSON.parse(new URL(svc.verifier.walletLink(tx)).searchParams.get('dcql_query')!);
+    expect(q.credentials).toHaveLength(1);
+    expect(q.credentials[0]).toMatchObject({ format: 'mso_mdoc', meta: { doctype_value: 'org.iso.18013.5.1.mDL' } });
+    expect(q.credentials[0].claims.map((c: any) => c.path)).toContainEqual(['org.iso.18013.5.1', 'document_number']);
+    const { licenceChecks } = await import('../src/rps/rental.js');
+    const now = new Date('2026-11-23T00:00:00Z');
+    expect(licenceChecks({ expiry_date: '2032-03-01', issue_date: '2022-03-01', birth_date: '1990-01-01' }, now)).toMatchObject({ valid: true, experienced: true, ofAge: true });
+    expect(licenceChecks({ expiry_date: '2025-03-01', issue_date: '2026-06-01', birth_date: '2010-01-01' }, now)).toMatchObject({ valid: false, experienced: false, ofAge: false });
+    expect(licenceChecks({}, now)).toMatchObject({ valid: undefined, experienced: undefined, ofAge: undefined });
+  });
+
+  it('sign in with a demo licence, book a car; nothing is possible without the licence', async () => {
+    const { app } = await boot({ MOCK_MODE: 'true' });
+    const a = request.agent(app);
+    expect((await a.get('/rental/booking')).headers.location).toBe('/rental/login');
+    expect((await a.post('/rental/book').type('form').send({ car: 'city', days: '2' })).headers.location).toBe('/rental/login');
+    expect((await a.get('/rental/')).text).toContain('Demo Drive');
+    const loc = (await a.get('/rental/login')).headers.location!;
+    expect(loc).toBe('/rental/verify?p=mdl&returnTo=%2Frental%2Fbooking');
+    const verifyPath = (await a.get(loc)).headers.location!;
+    const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(verifyPath)![1]!;
+    await a.post(`/rental/verify/wallet/${id}/add`).type('form').send({ type: 'mdl', persona: 'fr' });
+    const done = await a.post(`/rental/verify/wallet/${id}/share`);
+    expect((await a.get(done.headers.location!)).headers.location).toBe('/rental/booking');
+    const page = await a.get('/rental/booking');
+    expect(page.status).toBe(200);
+    expect(page.text).toContain('Licence is valid');
+    expect(page.text).toContain('Camille');
+    expect((await a.post('/rental/book').type('form').send({ car: 'nope', days: '2' })).status).toBe(422);
+    expect((await a.post('/rental/book').type('form').send({ car: 'city', days: '99' })).status).toBe(422);
+    const ok = await a.post('/rental/book').type('form').send({ car: 'suv', days: '3' });
+    expect(ok.status).toBe(200);
+    expect(ok.text).toMatch(/DR-[0-9A-F]{6}/);
+    expect(ok.text).toContain('237'); // 3 days x 79
+  });
+});

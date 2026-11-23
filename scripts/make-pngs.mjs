@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const dir = new URL('../public/img/', import.meta.url).pathname;
-const jobs = [['rp-bank', 256, 256], ['rp-eshop', 256, 256], ['rp-university', 256, 256], ['rp-electricity', 256, 256], ['in-groupe-logo', 640, 308]];
+const jobs = [['rp-bank', 256, 256], ['rp-eshop', 256, 256], ['rp-university', 256, 256], ['rp-electricity', 256, 256], ['rp-rental', 256, 256], ['in-groupe-logo', 640, 308]];
 const b = await chromium.launch();
 for (const [name, w, h] of jobs) {
   const p = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });

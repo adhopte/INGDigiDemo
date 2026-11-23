@@ -112,7 +112,7 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
     r.post('/verify/wallet/:id/add', async (req, res) => {
       const id = String(req.params.id);
       const type = q(req.body?.type);
-      if (!owns(req, id) || (type !== 'pid' && type !== 'birth_certificate')) return void res.sendStatus(400);
+      if (!owns(req, id) || (type !== 'pid' && type !== 'birth_certificate' && type !== 'mdl')) return void res.sendStatus(400);
       await addDemoCredential(svc.local, cfg, req.session, type, q(req.body?.persona) ?? 'ie');
       res.redirect(`/${rp.id}/verify/wallet/${id}`);
     });

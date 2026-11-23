@@ -14,7 +14,7 @@
 .skin-dashboard .btn-secondary:hover { background: #eef3fb; color: #001f5c; }
 .skin-dashboard .card { border-top: 0; }
 .skin-dashboard .card::before { content: ""; position: absolute; left: 1.4rem; right: 1.4rem; top: 0; height: 4px; border-radius: 0 0 4px 4px; background: var(--card-accent, #002f87); }
-.card-bank { --card-accent: #00694e; } .card-eshop { --card-accent: #4338ca; } .card-university { --card-accent: #7a1f3d; } .card-electricity { --card-accent: #facc15; }
+.card-bank { --card-accent: #00694e; } .card-eshop { --card-accent: #4338ca; } .card-university { --card-accent: #7a1f3d; } .card-electricity { --card-accent: #facc15; } .card-rental { --card-accent: #1d4ed8; }
 .skin-dashboard .panel h2 { margin-top: 0; }
 
 .brand-group { display: flex; align-items: center; gap: 1.1rem; }

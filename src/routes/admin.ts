@@ -20,8 +20,7 @@ export function adminRouter(ctx: Ctx): Router {
   const { cfg, svc } = ctx;
   const r = Router();
   const samples = loadPortalUseCases();
-  // the driving licence is mdoc only: it exists at the SIGMA issuer, not in the local (mock) issuer
-  const ucOf = (id: unknown) => (id === 'birth-certificate' ? 'birth-certificate' : id === 'mdl' && !cfg.mockMode ? 'mdl' : 'pid');
+    const ucOf = (id: unknown) => (id === 'birth-certificate' ? 'birth-certificate' : id === 'mdl' ? 'mdl' : 'pid');
   const ATT: Record<string, string> = { pid: 'pid', 'birth-certificate': 'birth_certificate', mdl: 'mdl' };
   const attOf = (uc: string) => cfg.attestations[ATT[uc] ?? 'pid']!;
 
@@ -72,7 +71,7 @@ export function adminRouter(ctx: Ctx): Router {
   });
 
   const renderForm = (res: Response, uc: string, values: Record<string, string>, errors: Record<string, string>, status = 200) =>
-    void res.status(status).render('issuer/admin', { title: res.locals.t('admin.title'), uc, fields: RECORD_FIELDS[uc], values, errors, mockMode: cfg.mockMode, ucs: cfg.mockMode ? ['pid', 'birth-certificate'] : ['pid', 'birth-certificate', 'mdl'], reusePolicy: svc.local.reusePolicy, batchSize: svc.local.batchSize });
+    void res.status(status).render('issuer/admin', { title: res.locals.t('admin.title'), uc, fields: RECORD_FIELDS[uc], values, errors, mockMode: cfg.mockMode, ucs: ['pid', 'birth-certificate', 'mdl'], reusePolicy: svc.local.reusePolicy, batchSize: svc.local.batchSize });
 
   r.get('/demo-issuer/admin', needAdmin, (req, res) => {
     const uc = ucOf(req.query.uc);

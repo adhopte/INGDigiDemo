@@ -202,13 +202,12 @@ describe('mobile driving licence (mDL, mdoc) from the SIGMA issuer', () => {
     expect(users[0]!.portrait).toBeTruthy();
   });
 
-  it('is not offered in mock mode (the local issuer issues SD-JWT only)', async () => {
+  it('mock mode: the local demo issuer issues a demo driving licence as SD-JWT (for the simulated wallet)', async () => {
     const cfg = testConfig({ MOCK_MODE: 'true' });
-    const svc = await createServices(cfg);
-    expect(() => svc.local.createOffer('mdl', {})).toThrow(/mdoc only/);
-    const agent = request.agent(createApp(cfg, svc));
+    const agent = request.agent(createApp(cfg, await createServices(cfg)));
     await login(agent);
-    const page = await agent.get('/demo-issuer/admin?uc=mdl'); // unknown in mock mode: falls back to the PID form
-    expect(page.text).not.toContain('uc=mdl"');
+    const res = await agent.post('/demo-issuer/admin/check').type('form').send({ uc: 'mdl', given_name: 'Amina', family_name: 'Koffi', birth_date: '1990-01-01' });
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('openid-credential-offer://');
   });
 });

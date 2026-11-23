@@ -15,6 +15,7 @@ A demo dashboard with four relying parties (RPs) for the **IN Groupe SIGMA** EU 
 | `/eshop` | **Demo eShop** (generic e-commerce, standalone) | cart → "Pay with EU Wallet" → verifies the **payment attestation** issued by the bank → order confirmation. Age proof shown as "Coming soon". |
 | `/university` | **Demo University** | requires **PID + birth certificate** (one combined request with `MULTI_CREDENTIAL=true`, else two in a row), cross-checks both describe the same person, pre-filled enrolment form → student number |
 | `/electricity` | **Demo Power Co** | PID → access to the customer account |
+| `/rental` | **Demo Drive** (car rental) | **mobile driving licence (mDL)** from the SIGMA issuer → licence checks (valid, held ≥ 1 year, driver ≥ 21) → book a car (demo, nothing charged) |
 | `/demo-issuer` | Demo issuer console | create credential offers for a **demo PID** / **birth certificate** for a real wallet |
 
 Languages: **English, Français, Español, Nederlands, Deutsch, Dansk, Malti, Svenska** (switcher on every page, `?lang=xx`, cookie, `Accept-Language`).
@@ -209,7 +210,7 @@ src/sdjwt/         SD-JWT VC issue / present / verify
 src/issuer/        local OpenID4VCI issuer, external adapter, provider switch, QR + deeplinks
 src/verifier/      OpenID4VP verifier: identity, DCQL/PEX, trust, transactions, HTTP endpoints
 src/mock/          simulated wallet + demo personas
-src/rps/           bank, eshop, university, electricity routers (+ shared verification flow)
+src/rps/           bank, eshop, university, electricity, rental routers (+ shared verification flow)
 src/i18n/          8 locales
 views/ public/     EJS templates, per-site CSS skins, placeholder logo
 tests/ scripts/    vitest suites; a11y walk-through, key generator, i18n check
