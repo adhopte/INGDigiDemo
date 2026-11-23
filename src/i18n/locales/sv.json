@@ -59,6 +59,7 @@
   "att.account.name": "Bankkontointyg",
   "att.payment.name": "Betalningsintyg",
   "att.birth_certificate.name": "Födelsebevis",
+  "att.mdl.name": "Mobilt körkort (mDL)",
   "claim.given_name": "Förnamn",
   "claim.family_name": "Efternamn",
   "claim.birth_date": "Födelsedatum",

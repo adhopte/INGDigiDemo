@@ -10,8 +10,9 @@
 
   <nav aria-label="<%= t('portal.select.label') %>">
     <ul class="chips">
-      <li><a class="chip<%= uc === 'pid' ? ' chip-ok' : '' %>" href="/demo-issuer/admin?uc=pid"<%= uc === 'pid' ? ' aria-current="page"' : '' %>><%= t('att.pid.name') %></a></li>
-      <li><a class="chip<%= uc === 'birth-certificate' ? ' chip-ok' : '' %>" href="/demo-issuer/admin?uc=birth-certificate"<%= uc === 'birth-certificate' ? ' aria-current="page"' : '' %>><%= t('att.birth_certificate.name') %></a></li>
+      <% ucs.forEach(function (id) { const key = id === 'birth-certificate' ? 'birth_certificate' : id; %>
+      <li><a class="chip<%= uc === id ? ' chip-ok' : '' %>" href="/demo-issuer/admin?uc=<%= id %>"<%= uc === id ? ' aria-current="page"' : '' %>><%= t('att.' + key + '.name') %></a></li>
+      <% }) %>
     </ul>
   </nav>
 

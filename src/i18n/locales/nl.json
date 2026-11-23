@@ -59,6 +59,7 @@
   "att.account.name": "Bankrekeningattest",
   "att.payment.name": "Betaalattest",
   "att.birth_certificate.name": "Geboorteakte",
+  "att.mdl.name": "Mobiel rijbewijs (mDL)",
   "claim.given_name": "Voornaam",
   "claim.family_name": "Achternaam",
   "claim.birth_date": "Geboortedatum",

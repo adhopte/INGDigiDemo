@@ -121,6 +121,92 @@
           "label": "Sample user 002 – mandatory claims only"
         }
       ]
+    },
+    "mdl": {
+      "credentialConfigurationId": "demo_mdl",
+      "vct": "urn:eudi:demo:mdl:1",
+      "formats": [
+        "mso_mdoc"
+      ],
+      "mdoc": {
+        "docType": "org.iso.18013.5.1.mDL",
+        "namespace": "org.iso.18013.5.1",
+        "elements": {
+          "family_name": "family_name",
+          "given_name": "given_name",
+          "birth_date": "birth_date",
+          "issue_date": "issue_date",
+          "expiry_date": "expiry_date",
+          "issuing_country": "issuing_country",
+          "issuing_authority": "issuing_authority",
+          "document_number": "document_number",
+          "portrait": "portrait",
+          "driving_privileges": "driving_privileges",
+          "un_distinguishing_sign": "un_distinguishing_sign",
+          "sex": "sex",
+          "height": "height",
+          "weight": "weight",
+          "eye_colour": "eye_colour",
+          "hair_colour": "hair_colour",
+          "birth_place": "birth_place",
+          "resident_city": "resident_city",
+          "resident_state": "resident_state",
+          "resident_postal_code": "resident_postal_code",
+          "resident_country": "resident_country",
+          "age_in_years": "age_in_years",
+          "age_birth_year": "age_birth_year",
+          "age_over_18": "age_over_18",
+          "age_over_21": "age_over_21"
+        }
+      },
+      "claims": [
+        "family_name",
+        "given_name",
+        "birth_date",
+        "issue_date",
+        "expiry_date",
+        "issuing_country",
+        "issuing_authority",
+        "document_number",
+        "portrait",
+        "driving_privileges",
+        "un_distinguishing_sign",
+        "sex",
+        "height",
+        "weight",
+        "eye_colour",
+        "hair_colour",
+        "birth_place",
+        "resident_city",
+        "resident_state",
+        "resident_postal_code",
+        "resident_country",
+        "age_in_years",
+        "age_birth_year",
+        "age_over_18",
+        "age_over_21"
+      ],
+      "externalConfigurationId": "org.iso.18013.5.1.mDL",
+      "externalUsers": [
+        {
+          "identifier": "user-001",
+          "credentialIdentifier": "driving-license",
+          "walletIdentifier": "w-001",
+          "label": "Sophie Martin – driving licence (user-001)"
+        },
+        {
+          "identifier": "user-002",
+          "credentialIdentifier": "driving-license",
+          "walletIdentifier": "w-002",
+          "label": "Marco Rossi – driving licence (user-002)"
+        },
+        {
+          "identifier": "user-003",
+          "credentialIdentifier": "driving-license",
+          "walletIdentifier": "w-003",
+          "label": "Lena Schneider – driving licence (user-003)"
+        }
+      ]
     }
   },
   "rps": [

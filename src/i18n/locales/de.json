@@ -59,6 +59,7 @@
   "att.account.name": "Bankkontonachweis",
   "att.payment.name": "Zahlungsnachweis",
   "att.birth_certificate.name": "Geburtsurkunde",
+  "att.mdl.name": "Mobiler Führerschein (mDL)",
   "claim.given_name": "Vorname",
   "claim.family_name": "Nachname",
   "claim.birth_date": "Geburtsdatum",

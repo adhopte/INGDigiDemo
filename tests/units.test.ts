@@ -23,7 +23,7 @@ describe('config loader', () => {
     expect(c.verifier.responseMode).toBe('direct_post.jwt');
     expect(loadConfig({ MOCK_MODE: 'true', VP_CLIENT_ID_SCHEME: 'x509_san_dns', VP_RESPONSE_MODE: 'direct_post' }).verifier).toMatchObject({ clientIdScheme: 'x509_san_dns', responseMode: 'direct_post' });
     expect(c.rps.map((r) => r.id)).toEqual(['bank', 'eshop', 'university', 'electricity']);
-    expect(Object.keys(c.attestations).sort()).toEqual(['account', 'birth_certificate', 'payment', 'pid']);
+    expect(Object.keys(c.attestations).sort()).toEqual(['account', 'birth_certificate', 'mdl', 'payment', 'pid']);
   });
   it('uses PUBLIC_BASE_URL, then RENDER_EXTERNAL_URL, trimming slashes; reads PORT', () => {
     expect(loadConfig({ MOCK_MODE: 'true', PUBLIC_BASE_URL: 'https://a.example/', RENDER_EXTERNAL_URL: 'https://b.example' }).publicBaseUrl).toBe('https://a.example');

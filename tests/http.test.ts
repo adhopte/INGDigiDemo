@@ -255,7 +255,7 @@ describe('OpenID4VCI issuer over HTTP', () => {
     const md = (await request(app).get('/.well-known/openid-credential-issuer/issuer')).body;
     expect(md.credential_issuer).toBe('https://rp.example.test/issuer');
     expect(md.credential_endpoint).toBe('https://rp.example.test/issuer/credential');
-    expect(Object.keys(md.credential_configurations_supported).sort()).toEqual(Object.values(cfg.attestations).map((a) => a.credentialConfigurationId).sort());
+    expect(Object.keys(md.credential_configurations_supported).sort()).toEqual(Object.values(cfg.attestations).filter((a) => a.formats.includes('dc+sd-jwt')).map((a) => a.credentialConfigurationId).sort()); // the mdoc-only driving licence is issued by SIGMA only
     expect(md.credential_configurations_supported.demo_bank_payment.format).toBe('dc+sd-jwt');
     const as = (await request(app).get('/.well-known/oauth-authorization-server/issuer')).body;
     expect(as['pre-authorized_grant_anonymous_access_supported']).toBe(true);

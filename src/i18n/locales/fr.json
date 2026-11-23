@@ -59,6 +59,7 @@
   "att.account.name": "Attestation de compte bancaire",
   "att.payment.name": "Attestation de paiement",
   "att.birth_certificate.name": "Acte de naissance",
+  "att.mdl.name": "Permis de conduire mobile (mDL)",
   "claim.given_name": "Prénom",
   "claim.family_name": "Nom de famille",
   "claim.birth_date": "Date de naissance",

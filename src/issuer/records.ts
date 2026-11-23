@@ -12,6 +12,14 @@ export const RECORD_FIELDS: Record<string, FieldDef[]> = {
     { name: 'issuance_date', kind: 'date' }, { name: 'expiry_date', kind: 'date' }, { name: 'issuing_authority', kind: 'text' }, { name: 'issuing_country', kind: 'text', max: 2 },
     { name: 'personal_administrative_number', kind: 'text' },
   ],
+  mdl: [
+    { name: 'given_name', kind: 'text', required: true }, { name: 'family_name', kind: 'text', required: true }, { name: 'birth_date', kind: 'date', required: true },
+    { name: 'issue_date', kind: 'date' }, { name: 'expiry_date', kind: 'date' }, { name: 'issuing_country', kind: 'text', max: 2 }, { name: 'issuing_authority', kind: 'text' },
+    { name: 'document_number', kind: 'text' }, { name: 'un_distinguishing_sign', kind: 'text', max: 3 }, { name: 'sex', kind: 'gender' },
+    { name: 'height', kind: 'text', max: 3 }, { name: 'weight', kind: 'text', max: 3 }, { name: 'eye_colour', kind: 'text' }, { name: 'hair_colour', kind: 'text' },
+    { name: 'birth_place', kind: 'text' }, { name: 'resident_city', kind: 'text' }, { name: 'resident_state', kind: 'text' }, { name: 'resident_postal_code', kind: 'text', max: 20 },
+    { name: 'resident_country', kind: 'text', max: 2 }, { name: 'age_over_18', kind: 'boolean' }, { name: 'age_over_21', kind: 'boolean' },
+  ],
   'birth-certificate': [
     { name: 'given_name', kind: 'text', required: true }, { name: 'family_name', kind: 'text', required: true }, { name: 'given_name_birth', kind: 'text' }, { name: 'family_name_birth', kind: 'text' },
     { name: 'birth_date', kind: 'date', required: true }, { name: 'birth_place', kind: 'text' }, { name: 'birth_country', kind: 'text', max: 2 }, { name: 'birth_state', kind: 'text' }, { name: 'birth_city', kind: 'text' }, { name: 'gender', kind: 'gender' },

@@ -59,6 +59,7 @@
   "att.account.name": "Bank account attestation",
   "att.payment.name": "Payment attestation",
   "att.birth_certificate.name": "Birth certificate",
+  "att.mdl.name": "Mobile driving licence (mDL)",
   "claim.given_name": "Given name",
   "claim.family_name": "Family name",
   "claim.birth_date": "Date of birth",

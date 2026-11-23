@@ -17,9 +17,9 @@ describe('SIGMA issuer catalogue vs. what the RPs request', () => {
   const cfg = testConfig({ MOCK_MODE: 'false', TRUST_ANY_ISSUER: 'true' });
   const parsed = parseIssuerMetadata(META);
 
-  it('parses the three real credential configurations', () => {
+  it('parses the four real credential configurations', () => {
     expect(parsed.issuer).toBe('https://issuer.sigma.prep.smartid.nuagein.io');
-    expect(parsed.configs.map((c) => c.id).sort()).toEqual(['eu.europa.ec.eudi.birth_certificate_vc_sd_jwt', 'eu.europa.ec.eudi.pid_mdoc', 'eu.europa.ec.eudi.pid_mdoc_emrtd']);
+    expect(parsed.configs.map((c) => c.id).sort()).toEqual(['eu.europa.ec.eudi.birth_certificate_vc_sd_jwt', 'eu.europa.ec.eudi.pid_mdoc', 'eu.europa.ec.eudi.pid_mdoc_emrtd', 'org.iso.18013.5.1.mDL']);
     expect(parsed.authorizationServers).toContain('https://idp-pid.sigma.prep.smartid.nuagein.io/realms/pid-haip');
   });
 

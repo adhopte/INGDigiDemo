@@ -59,6 +59,7 @@
   "att.account.name": "Attestazzjoni tal-kont bankarju",
   "att.payment.name": "Attestazzjoni tal-ħlas",
   "att.birth_certificate.name": "Ċertifikat tat-twelid",
+  "att.mdl.name": "Liċenzja tas-sewqan mobbli (mDL)",
   "claim.given_name": "Isem",
   "claim.family_name": "Kunjom",
   "claim.birth_date": "Data tat-twelid",

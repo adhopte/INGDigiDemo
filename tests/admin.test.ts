@@ -10,6 +10,7 @@ const META = JSON.parse(readFileSync(new URL('./fixtures/sigma-issuer-metadata.j
 const META_URL = 'https://issuer.sigma.prep.smartid.nuagein.io/.well-known/openid-credential-issuer';
 const ISSUER = 'https://issuer.sigma.prep.smartid.nuagein.io';
 const PID_LIST_URL = `${ISSUER}/api/in-person-portal-sor/oid_pid_inp_uc1/sor/`;
+const MDL_LIST_URL = `${ISSUER}/api/in-person-portal-sor/oid_mdl_uc1/sor/`;
 const BC_LIST_URL = `${ISSUER}/api/in-person-portal-sor/oid_birth_certificate_sd_jwt_uc1/sor/`;
 const file = (n: string) => readFileSync(new URL(`../config/portal/${n}`, import.meta.url), 'utf8');
 const json = (b: unknown, status = 200) => new Response(typeof b === 'string' ? b : JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
@@ -21,6 +22,7 @@ async function setup(opts: { env?: Record<string, string>; pidList?: () => Respo
   const f = (async (url: string, init?: RequestInit) => {
     if (url === META_URL) return json(META);
     if (url === PID_LIST_URL) { fetched.push(url); return opts.pidList ? opts.pidList() : json(file('user_pid_claims.json')); }
+    if (url === MDL_LIST_URL) { fetched.push(url); return json(file('mdl_claims.json')); }
     if (url === BC_LIST_URL) { fetched.push(url); return json(file('birth_certificate_claims_sd_jwt.json')); }
     offers.push(JSON.parse(String(init?.body)));
     return json({ uri: 'openid-credential-offer://?credential_offer=%7B%7D', tx_code: '135790', authorization_code: 'abc' });
@@ -163,5 +165,50 @@ describe('admin console in mock mode', () => {
     const res = await agent.post('/demo-issuer/admin/check').type('form').send({ ...MATHIEU, given_name: 'Amina', family_name: 'Koffi' });
     expect(res.status).toBe(200);
     expect(res.text).toContain('openid-credential-offer://');
+  });
+});
+
+describe('mobile driving licence (mDL, mdoc) from the SIGMA issuer', () => {
+  it('portal: lists the three sample records and creates an offer for the chosen one (config id, credential id, wallet id)', async () => {
+    const { agent, offers } = await setup();
+    const home = await agent.get('/demo-issuer');
+    expect(home.text).toContain('Mobile driving licence (mDL)');
+    const page = await agent.get('/demo-issuer/use-case/mdl');
+    expect(page.status).toBe(200);
+    for (const n of ['Sophie', 'Marco', 'Lena']) expect(page.text).toContain(n);
+    expect((await agent.post('/demo-issuer/sigma-offer').type('form').send({ type: 'mdl', identifier: 'user-002' })).status).toBe(200);
+    expect(offers[0]).toMatchObject({ identifier: 'user-002', walletIdentifier: 'w-002', authorization_details: [{ credential_configuration_id: 'org.iso.18013.5.1.mDL', credential_identifiers: ['driving-license'] }] });
+  });
+
+  it('admin: typed attributes are matched against the record store, then the offer is created for the record', async () => {
+    const { agent, offers, fetched } = await setup();
+    await login(agent);
+    const form = await agent.get('/demo-issuer/admin?uc=mdl');
+    expect(form.text).toContain('value="Sophie"'); // pre-filled from the first sample record
+    const res = await agent.post('/demo-issuer/admin/check').type('form').send({ uc: 'mdl', given_name: 'Marco', family_name: 'ROSSI', birth_date: '1985-08-22', document_number: 'DL87654321', age_over_18: 'True' });
+    expect(res.status).toBe(200);
+    expect(fetched).toContain(MDL_LIST_URL);
+    expect(offers[0]).toMatchObject({ identifier: 'user-002', authorization_details: [{ credential_configuration_id: 'org.iso.18013.5.1.mDL' }] });
+    const none = await agent.post('/demo-issuer/admin/check').type('form').send({ uc: 'mdl', given_name: 'Nobody', family_name: 'Here', birth_date: '1980-01-01' });
+    expect(none.status).toBe(404);
+  });
+
+  it('the SIGMA record layout (booleans, numbers, driving privileges) is read faithfully', async () => {
+    const { parseUsers } = await import('../src/issuer/portal.js');
+    const users = parseUsers(JSON.parse(file('mdl_claims.json')));
+    expect(users).toHaveLength(3);
+    expect(users[0]!.attributes).toMatchObject({ age_over_18: 'True', sex: '2', height: '168' });
+    expect(users[1]!.attributes.driving_privileges).toContain('vehicle_category_code');
+    expect(users[0]!.portrait).toBeTruthy();
+  });
+
+  it('is not offered in mock mode (the local issuer issues SD-JWT only)', async () => {
+    const cfg = testConfig({ MOCK_MODE: 'true' });
+    const svc = await createServices(cfg);
+    expect(() => svc.local.createOffer('mdl', {})).toThrow(/mdoc only/);
+    const agent = request.agent(createApp(cfg, svc));
+    await login(agent);
+    const page = await agent.get('/demo-issuer/admin?uc=mdl'); // unknown in mock mode: falls back to the PID form
+    expect(page.text).not.toContain('uc=mdl"');
   });
 });

@@ -116,6 +116,7 @@ export class LocalIssuer {
     if (this.offers.size >= MAX_OFFERS) throw new IssuerError(503, 'temporarily_unavailable', 'Too many open offers');
     const attestation = this.cfg.attestations[attestationKey];
     if (!attestation) throw new Error(`Unknown attestation "${attestationKey}"`);
+    if (!attestation.formats.includes('dc+sd-jwt')) throw new Error(`The local demo issuer does not issue "${attestationKey}" (mdoc only: use the SIGMA issuer)`);
     const id = randomUUID();
     const code = randomBytes(24).toString('base64url');
     const txCode = this.cfg.issuer.txCode ? String(Math.floor(Math.random() * 10000)).padStart(4, '0') : undefined;
@@ -355,7 +356,7 @@ export class LocalIssuer {
 
   metadata(): Record<string, unknown> {
     const configs: Record<string, unknown> = {};
-    for (const a of Object.values(this.cfg.attestations)) {
+    for (const a of Object.values(this.cfg.attestations).filter((x) => x.formats.includes('dc+sd-jwt'))) { // mdoc-only types (the driving licence) come from the SIGMA issuer
       const display = LOCALES.map((l) => ({ name: translator(l.code)(`att.${a.key}.name`), locale: l.code }));
       configs[a.credentialConfigurationId] = {
         format: SD_JWT_TYP,

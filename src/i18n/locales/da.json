@@ -59,6 +59,7 @@
   "att.account.name": "Bankkontoattest",
   "att.payment.name": "Betalingsattest",
   "att.birth_certificate.name": "Fødselsattest",
+  "att.mdl.name": "Mobilt kørekort (mDL)",
   "claim.given_name": "Fornavn",
   "claim.family_name": "Efternavn",
   "claim.birth_date": "Fødselsdato",
