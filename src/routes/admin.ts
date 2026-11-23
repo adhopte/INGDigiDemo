@@ -107,7 +107,7 @@ export function adminRouter(ctx: Ctx): Router {
       { ...cfg, issuer: { ...cfg.issuer, mode: 'external', fallbackLocal: false, external: { ...cfg.issuer.external, apiBaseUrl: cfg.issuer.external.apiBaseUrl ?? s.issuer } } },
       svc.local, svc.fetchImpl, svc.remote,
     );
-    return external.createOffer(att.key, {}, { identifier: record.identifier, credentialIdentifier: record.credentialId, ...(record.walletId ? { walletIdentifier: record.walletId } : {}) });
+    return external.createOffer(att.key, {}, { identifier: record.identifier, credentialIdentifier: record.credentialId, ...(record.walletId && uc !== 'mdl' ? { walletIdentifier: record.walletId } : {}) /* the mDL records name a wallet (w-00x): sending it ties the offer to that wallet id, like the PID/birth-certificate offers it is left out */ });
   };
 
   const showOffer = async (req: Request, res: Response, uc: string, record: PortalUser, typed: Record<string, string>) => {

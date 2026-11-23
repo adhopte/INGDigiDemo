@@ -192,19 +192,16 @@
         {
           "identifier": "user-001",
           "credentialIdentifier": "driving-license",
-          "walletIdentifier": "w-001",
           "label": "Sophie Martin – driving licence (user-001)"
         },
         {
           "identifier": "user-002",
           "credentialIdentifier": "driving-license",
-          "walletIdentifier": "w-002",
           "label": "Marco Rossi – driving licence (user-002)"
         },
         {
           "identifier": "user-003",
           "credentialIdentifier": "driving-license",
-          "walletIdentifier": "w-003",
           "label": "Lena Schneider – driving licence (user-003)"
         }
       ],

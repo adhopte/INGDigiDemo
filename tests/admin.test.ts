@@ -177,7 +177,8 @@ describe('mobile driving licence (mDL, mdoc) from the SIGMA issuer', () => {
     expect(page.status).toBe(200);
     for (const n of ['Sophie', 'Marco', 'Lena']) expect(page.text).toContain(n);
     expect((await agent.post('/demo-issuer/sigma-offer').type('form').send({ type: 'mdl', identifier: 'user-002' })).status).toBe(200);
-    expect(offers[0]).toMatchObject({ identifier: 'user-002', walletIdentifier: 'w-002', authorization_details: [{ credential_configuration_id: 'org.iso.18013.5.1.mDL', credential_identifiers: ['driving-license'] }] });
+    expect(offers[0]).toMatchObject({ identifier: 'user-002', authorization_details: [{ credential_configuration_id: 'org.iso.18013.5.1.mDL', credential_identifiers: ['driving-license'] }] });
+    expect(offers[0].walletIdentifier).toBeUndefined(); // no wallet id: like the PID / birth certificate offers that work
   });
 
   it('admin: typed attributes are matched against the record store, then the offer is created for the record', async () => {
