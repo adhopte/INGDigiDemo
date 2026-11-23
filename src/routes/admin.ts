@@ -95,11 +95,11 @@ export function adminRouter(ctx: Ctx): Router {
   };
 
   /** SIGMA's offer API for the matched record; the local demo issuer only in mock mode (typed values). */
-  const createOffer = async (uc: string, record: PortalUser, typed: Record<string, string>, local = false): Promise<IssuedOffer | undefined> => {
+  const createOffer = async (uc: string, record: PortalUser, typed: Record<string, string>, local?: { format: 'sd-jwt' | 'mdoc' }): Promise<IssuedOffer | undefined> => {
     const att = attOf(uc);
     if (cfg.mockMode || local) {
       const claims = claimsFromAttributes(uc, typed);
-      return createIssuerProvider({ ...cfg, issuer: { ...cfg.issuer, mode: 'local' } }, svc.local).createOffer(att.key, claims);
+      return createIssuerProvider({ ...cfg, issuer: { ...cfg.issuer, mode: 'local' } }, svc.local).createOffer(att.key, claims, { format: local?.format ?? 'sd-jwt' });
     }
     const s = await svc.remote?.summary();
     if (!s?.reachable || !s.issuer || !matchConfig(att, s.configs)) return undefined;
@@ -110,7 +110,7 @@ export function adminRouter(ctx: Ctx): Router {
     return external.createOffer(att.key, {}, { identifier: record.identifier, credentialIdentifier: record.credentialId, ...(record.walletId && uc !== 'mdl' ? { walletIdentifier: record.walletId } : {}) /* the mDL records name a wallet (w-00x): sending it ties the offer to that wallet id, like the PID/birth-certificate offers it is left out */ });
   };
 
-  const showOffer = async (req: Request, res: Response, uc: string, record: PortalUser, typed: Record<string, string>, local = false) => {
+  const showOffer = async (req: Request, res: Response, uc: string, record: PortalUser, typed: Record<string, string>, local?: { format: 'sd-jwt' | 'mdoc' }) => {
     const att = attOf(uc);
     try {
       const offer = await createOffer(uc, record, typed, local);
@@ -141,8 +141,10 @@ export function adminRouter(ctx: Ctx): Router {
     }
     const typed = enteredValues(uc, body, v.attributes);
     // the driving licence can be issued by the local demo issuer instead of SIGMA (typed values, no record check; SD-JWT)
-    const local = cfg.mockMode || (uc === 'mdl' && q(body.issuer) === 'local');
-    if (local) return void (await showOffer(req, res, uc, { identifier: 'typed', credentialId: 'typed', configurationId: '', attributes: v.attributes }, v.attributes, true));
+    const choice = uc === 'mdl' ? q(body.issuer) : undefined;
+    // local: an mdoc (works online and in proximity; the simulated wallet only holds SD-JWT) or an SD-JWT
+    const local = cfg.mockMode ? { format: 'sd-jwt' as const } : choice === 'local' ? { format: 'mdoc' as const } : choice === 'local-sdjwt' ? { format: 'sd-jwt' as const } : undefined;
+    if (local) return void (await showOffer(req, res, uc, { identifier: 'typed', credentialId: 'typed', configurationId: '', attributes: v.attributes }, v.attributes, local));
     const source = await authenticSource(uc);
     const matches = matchRecords(source.users, typed);
     if (matches.length === 1) return void (await showOffer(req, res, uc, matches[0]!, typed));

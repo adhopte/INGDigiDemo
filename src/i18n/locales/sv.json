@@ -475,10 +475,12 @@
   "rental.confirm.again": "Gör en ny bokning",
   "admin.issuer.label": "Utfärdare",
   "admin.issuer.sigma": "SIGMA-utfärdare (kontrolleras mot dess poster)",
-  "admin.issuer.local": "Lokal demoutfärdare (reserv, SD-JWT)",
+  "admin.issuer.local": "Lokal demoutfärdare – mdoc (online och närdelning)",
   "admin.issuer.hint": "Den lokala utfärdaren utfärdar exakt de värden som anges nedan, utan postkontroll. Använd den medan SIGMA:s mDL-utfärdande inte är tillgängligt.",
-  "portal.create_local": "Utfärda lokalt (reserv)",
+  "portal.create_local": "Utfärda lokalt som mdoc (reserv)",
   "rental.form.pay": "Betala med EU-plånboken",
   "rental.confirm.paid_by": "Betalt med",
-  "rental.book.pay_hint": "Du betalar med betalningsintyget i din EU-plånbok (utfärdat av Demo Bank)."
+  "rental.book.pay_hint": "Du betalar med betalningsintyget i din EU-plånbok (utfärdat av Demo Bank).",
+  "admin.issuer.local_sdjwt": "Lokal demoutfärdare – SD-JWT (endast online)",
+  "portal.create_local_sdjwt": "Utfärda lokalt som SD-JWT"
 }

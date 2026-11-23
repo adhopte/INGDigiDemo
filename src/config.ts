@@ -39,6 +39,8 @@ export interface AttestationConfig {
   /** Credential formats requested for this type: dc+sd-jwt and/or mso_mdoc. */
   formats: string[];
   /** ISO mdoc description (docType, namespace, internal claim → mdoc element). */
+  /** The local demo issuer can also issue it as an mdoc (needed for proximity sharing). */
+  localMdoc: boolean;
   mdoc: { docType: string; namespace: string; elements: Record<string, string> } | undefined;
   claims: string[];
 }
@@ -166,6 +168,7 @@ export function buildAttestations(raw: unknown, env: Env): Record<string, Attest
       vct,
       acceptedVct: env[`ATTESTATION_${upper(key)}_ACCEPTED_VCT`] ? env[`ATTESTATION_${upper(key)}_ACCEPTED_VCT`]!.split(',').map((x) => x.trim()).filter(Boolean) : [...new Set([vct, ...strList(a.acceptedVct)])],
       formats: env[`ATTESTATION_${upper(key)}_FORMATS`] ? env[`ATTESTATION_${upper(key)}_FORMATS`]!.split(',').map((x) => x.trim()).filter(Boolean) : strList(a.formats).length ? strList(a.formats) : ['dc+sd-jwt'],
+      localMdoc: a.localMdoc === true,
       mdoc: a.mdoc && typeof a.mdoc === 'object' ? { docType: str(a.mdoc.docType, `attestations.${key}.mdoc.docType`), namespace: str(a.mdoc.namespace, `attestations.${key}.mdoc.namespace`), elements: { ...(a.mdoc.elements as Record<string, string>) } } : undefined,
       claims: strList(a.claims),
     };

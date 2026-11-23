@@ -117,7 +117,8 @@ export function extrasRouter(ctx: Ctx): Router {
     const uc = portal.find((u) => u.id === 'mdl');
     const rec = uc?.users.find((u) => u.identifier === q(req.body?.identifier));
     if (!uc || !rec || q(req.body?.type) !== 'mdl') return void res.status(400).render('error', { title: res.locals.t('error.title'), message: res.locals.t('error.generic'), retryHref: '/demo-issuer' });
-    const offer = await localProvider.createOffer('mdl', claimsFromAttributes('mdl', rec.attributes));
+    const format = q(req.body?.format) === 'sdjwt' ? 'sd-jwt' : 'mdoc'; // the mdoc is the one that also works in proximity
+    const offer = await localProvider.createOffer('mdl', { ...claimsFromAttributes('mdl', rec.attributes), ...(format === 'mdoc' && rec.portrait ? { portrait: rec.portrait } : {}) }, { format });
     if (offer.id) req.session.offerIds = [...(req.session.offerIds ?? []).slice(-19), offer.id];
     res.render('offer', { title: res.locals.t('att.mdl.name'), attestationKey: 'mdl', offer, returnTo: '/demo-issuer/use-case/mdl', canSimulate: cfg.mockMode, rp: undefined });
   });

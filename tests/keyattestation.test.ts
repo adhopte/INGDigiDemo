@@ -45,7 +45,7 @@ describe('issuer metadata for HAIP wallets', () => {
     const { app, cfg } = await setup();
     const meta = (await request(app).get('/issuer/.well-known/openid-credential-issuer')).body;
     const configs = Object.values(meta.credential_configurations_supported) as any[];
-    expect(configs.length).toBe(Object.values(cfg.attestations).filter((a) => a.formats.includes('dc+sd-jwt')).length);
+    expect(configs.length).toBe(Object.values(cfg.attestations).filter((a) => a.formats.includes('dc+sd-jwt')).reduce((n, a) => n + (a.localMdoc ? 2 : 1), 0));
     for (const c of configs) {
       expect(c.proof_types_supported.jwt.proof_signing_alg_values_supported).toEqual(['ES256']);
       expect(c.proof_types_supported.jwt.key_attestations_required).toEqual({}); // as SIGMA's birth certificate: required, no minimum levels

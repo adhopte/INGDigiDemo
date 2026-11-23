@@ -475,10 +475,12 @@
   "rental.confirm.again": "Lav en ny booking",
   "admin.issuer.label": "Udsteder",
   "admin.issuer.sigma": "SIGMA-udsteder (kontrolleret mod dens poster)",
-  "admin.issuer.local": "Lokal demo-udsteder (reserve, SD-JWT)",
+  "admin.issuer.local": "Lokal demo-udsteder – mdoc (online og deling i nærheden)",
   "admin.issuer.hint": "Den lokale udsteder udsteder præcis de værdier, der er indtastet nedenfor, uden postkontrol. Brug den, mens SIGMA's mDL-udstedelse ikke er tilgængelig.",
-  "portal.create_local": "Udsted lokalt (reserve)",
+  "portal.create_local": "Udsted lokalt som mdoc (reserve)",
   "rental.form.pay": "Betal med EU-wallet",
   "rental.confirm.paid_by": "Betalt med",
-  "rental.book.pay_hint": "Du betaler med betalingsbeviset i din EU-wallet (udstedt af Demo Bank)."
+  "rental.book.pay_hint": "Du betaler med betalingsbeviset i din EU-wallet (udstedt af Demo Bank).",
+  "admin.issuer.local_sdjwt": "Lokal demo-udsteder – SD-JWT (kun online)",
+  "portal.create_local_sdjwt": "Udsted lokalt som SD-JWT"
 }

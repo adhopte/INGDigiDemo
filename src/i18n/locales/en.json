@@ -475,10 +475,12 @@
   "rental.confirm.again": "Make another booking",
   "admin.issuer.label": "Issuer",
   "admin.issuer.sigma": "SIGMA issuer (checked against its records)",
-  "admin.issuer.local": "Local demo issuer (backup, SD-JWT)",
+  "admin.issuer.local": "Local demo issuer – mdoc (online and proximity sharing)",
   "admin.issuer.hint": "The local issuer issues exactly the values typed below, without a record check. Use it while SIGMA's mDL issuance is unavailable.",
-  "portal.create_local": "Issue locally (backup)",
+  "portal.create_local": "Issue locally as mdoc (backup)",
   "rental.form.pay": "Pay with EU Wallet",
   "rental.confirm.paid_by": "Paid with",
-  "rental.book.pay_hint": "You pay with the payment attestation in your EU Wallet (issued by Demo Bank)."
+  "rental.book.pay_hint": "You pay with the payment attestation in your EU Wallet (issued by Demo Bank).",
+  "admin.issuer.local_sdjwt": "Local demo issuer – SD-JWT (online only)",
+  "portal.create_local_sdjwt": "Issue locally as SD-JWT"
 }

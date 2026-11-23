@@ -34,6 +34,8 @@ export interface ExternalOfferOptions {
   walletIdentifier?: string;
   /** Use this credential configuration of the external issuer instead of the attestation's default (e.g. the IdP-login PID). */
   configurationId?: string;
+  /** Local issuer only: issue as an ISO mdoc (proximity-capable) instead of SD-JWT. */
+  format?: 'sd-jwt' | 'mdoc';
 }
 
 let cachedToken: { value: string; exp: number } | undefined;

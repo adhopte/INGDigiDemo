@@ -36,6 +36,7 @@ export async function createIssuerCertificate(cfg: AppConfig, keys: KeyMaterial)
     extensions: [
       new x509.BasicConstraintsExtension(false, undefined, true),
       new x509.KeyUsagesExtension(x509.KeyUsageFlags.digitalSignature, true),
+      new x509.ExtendedKeyUsageExtension(['1.0.18013.5.1.2'], false), // mdoc document signer (ISO 18013-5): readers look for it on the signing certificate
       new x509.SubjectAlternativeNameExtension([{ type: 'dns', value: host }], false),
     ],
   });

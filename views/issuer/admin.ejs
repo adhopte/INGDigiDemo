@@ -33,6 +33,7 @@
         <legend><%= t('admin.issuer.label') %></legend>
         <label><input type="radio" name="issuer" value="sigma"<%= values.issuer !== 'local' ? ' checked' : '' %>> <%= t('admin.issuer.sigma') %></label>
         <label><input type="radio" name="issuer" value="local"<%= values.issuer === 'local' ? ' checked' : '' %>> <%= t('admin.issuer.local') %></label>
+        <label><input type="radio" name="issuer" value="local-sdjwt"<%= values.issuer === 'local-sdjwt' ? ' checked' : '' %>> <%= t('admin.issuer.local_sdjwt') %></label>
         <p class="note"><%= t('admin.issuer.hint') %></p>
       </fieldset>
       <% } %>

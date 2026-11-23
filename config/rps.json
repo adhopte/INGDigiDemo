@@ -207,7 +207,8 @@
       ],
       "acceptedVct": [
         "urn:eudi:demo:mdl:1"
-      ]
+      ],
+      "localMdoc": true
     }
   },
   "rps": [

@@ -27,9 +27,9 @@ export interface IssuerProvider {
 
 /** Selects the local demo issuer or the external Issuer purely from configuration (ISSUER_MODE). */
 export function createIssuerProvider(cfg: AppConfig, local: LocalIssuer | undefined, fetchImpl: typeof fetch = fetch, remote?: RemoteIssuerMetadata): IssuerProvider {
-  const localOffer = async (key: string, claims: Claims, fallback: boolean): Promise<IssuedOffer> => {
+  const localOffer = async (key: string, claims: Claims, fallback: boolean, format: 'sd-jwt' | 'mdoc' = 'sd-jwt'): Promise<IssuedOffer> => {
     if (!local) throw new Error('Local issuer not initialised');
-    const o = local.createOffer(key, claims);
+    const o = local.createOffer(key, claims, format);
     // By value (like the SIGMA issuer's offers): wallets that do not resolve credential_offer_uri still accept it.
     const obj = local.offerObject(o.id);
     const deeplink = obj ? deeplinkForOfferObject(obj) : deeplinkForOfferUri(o.offerUri);
@@ -54,5 +54,5 @@ export function createIssuerProvider(cfg: AppConfig, local: LocalIssuer | undefi
       },
     };
   }
-  return { mode: 'local', createOffer: (key, claims) => localOffer(key, claims, false) };
+  return { mode: 'local', createOffer: (key, claims, options) => localOffer(key, claims, false, options?.format) };
 }

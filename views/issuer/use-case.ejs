@@ -34,6 +34,12 @@
                 <input type="hidden" name="identifier" value="<%= u.identifier %>">
                 <button class="btn btn-small btn-secondary" type="submit"><%= t('portal.create_local') %><span class="sr-only"> – <%= u.attributes.given_name || '' %> <%= u.attributes.family_name || '' %> (<%= u.identifier %>)</span></button>
               </form>
+              <form method="post" action="/demo-issuer/local-offer">
+                <input type="hidden" name="type" value="<%= uc.attestation %>">
+                <input type="hidden" name="identifier" value="<%= u.identifier %>">
+                <input type="hidden" name="format" value="sdjwt">
+                <button class="btn btn-small btn-secondary" type="submit"><%= t('portal.create_local_sdjwt') %><span class="sr-only"> – <%= u.attributes.given_name || '' %> <%= u.attributes.family_name || '' %> (<%= u.identifier %>)</span></button>
+              </form>
               <% } %>
             </td>
           </tr>
