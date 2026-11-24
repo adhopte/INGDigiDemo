@@ -490,5 +490,9 @@
   "rental.mismatch.payment": "Attestazzjoni tal-ħlas (detentur tal-kont)",
   "rental.mismatch.question": "Għadek tixtieq tkompli b’dan l-ibbukkjar?",
   "rental.mismatch.proceed": "Iva, kompli",
-  "rental.mismatch.cancel": "Le, ikkanċella l-ibbukkjar"
+  "rental.mismatch.cancel": "Le, ikkanċella l-ibbukkjar",
+  "portal.steps.label": "Progress",
+  "portal.steps.usecase": "Każ ta’ użu",
+  "portal.steps.record": "Rekord",
+  "portal.steps.offer": "Offerta"
 }

@@ -490,5 +490,9 @@
   "rental.mismatch.payment": "Payment attestation (account holder)",
   "rental.mismatch.question": "Do you still want to proceed with this booking?",
   "rental.mismatch.proceed": "Yes, proceed",
-  "rental.mismatch.cancel": "No, cancel the booking"
+  "rental.mismatch.cancel": "No, cancel the booking",
+  "portal.steps.label": "Progress",
+  "portal.steps.usecase": "Use case",
+  "portal.steps.record": "Record",
+  "portal.steps.offer": "Offer"
 }

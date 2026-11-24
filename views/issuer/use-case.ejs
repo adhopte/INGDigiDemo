@@ -1,6 +1,7 @@
 <%- include('../partials/head') %>
 <% const L = function (n) { const k = 'claim.' + n; const v = t(k); return v === k ? n.replace(/_/g, ' ') : v; }; %>
 <div class="wrap">
+  <%- include('../partials/flow-steps', { current: 2, steps: [t('portal.steps.usecase'), t('portal.steps.record'), t('portal.steps.offer')] }) %>
   <p class="crumbs"><a href="/demo-issuer"><%= t('portal.title') %></a> › <%= t('att.' + uc.attestation + '.name') %></p>
   <h1><%= t('att.' + uc.attestation + '.name') %></h1>
   <p class="lead"><%= t('portal.users.intro') %></p>

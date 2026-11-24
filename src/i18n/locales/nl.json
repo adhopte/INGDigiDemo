@@ -490,5 +490,9 @@
   "rental.mismatch.payment": "Betaalattestatie (rekeninghouder)",
   "rental.mismatch.question": "Wilt u deze boeking toch voortzetten?",
   "rental.mismatch.proceed": "Ja, doorgaan",
-  "rental.mismatch.cancel": "Nee, boeking annuleren"
+  "rental.mismatch.cancel": "Nee, boeking annuleren",
+  "portal.steps.label": "Voortgang",
+  "portal.steps.usecase": "Toepassing",
+  "portal.steps.record": "Gegevens",
+  "portal.steps.offer": "Aanbod"
 }

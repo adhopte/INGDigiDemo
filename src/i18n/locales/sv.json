@@ -490,5 +490,9 @@
   "rental.mismatch.payment": "Betalningsintyg (kontoinnehavare)",
   "rental.mismatch.question": "Vill du ändå fortsätta med bokningen?",
   "rental.mismatch.proceed": "Ja, fortsätt",
-  "rental.mismatch.cancel": "Nej, avbryt bokningen"
+  "rental.mismatch.cancel": "Nej, avbryt bokningen",
+  "portal.steps.label": "Förlopp",
+  "portal.steps.usecase": "Användningsfall",
+  "portal.steps.record": "Post",
+  "portal.steps.offer": "Erbjudande"
 }

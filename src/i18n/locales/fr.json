@@ -490,5 +490,9 @@
   "rental.mismatch.payment": "Attestation de paiement (titulaire du compte)",
   "rental.mismatch.question": "Souhaitez-vous tout de même poursuivre cette réservation ?",
   "rental.mismatch.proceed": "Oui, continuer",
-  "rental.mismatch.cancel": "Non, annuler la réservation"
+  "rental.mismatch.cancel": "Non, annuler la réservation",
+  "portal.steps.label": "Progression",
+  "portal.steps.usecase": "Cas d’usage",
+  "portal.steps.record": "Enregistrement",
+  "portal.steps.offer": "Offre"
 }

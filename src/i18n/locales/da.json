@@ -490,5 +490,9 @@
   "rental.mismatch.payment": "Betalingsbevis (kontohaver)",
   "rental.mismatch.question": "Vil du alligevel fortsætte med denne booking?",
   "rental.mismatch.proceed": "Ja, fortsæt",
-  "rental.mismatch.cancel": "Nej, annuller bookingen"
+  "rental.mismatch.cancel": "Nej, annuller bookingen",
+  "portal.steps.label": "Fremdrift",
+  "portal.steps.usecase": "Anvendelse",
+  "portal.steps.record": "Post",
+  "portal.steps.offer": "Tilbud"
 }

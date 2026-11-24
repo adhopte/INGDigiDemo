@@ -1,32 +1,21 @@
-/* IN Groupe: navy #002F87, red #E4032E, Avenir-style type (Nunito Sans fallback) */
-:root { --font: "IN Avenir", "Avenir Next", Avenir, "Nunito Sans", system-ui, sans-serif; --primary: #002f87; --primary-dark: #001f5c; --accent: #e4032e; --footer-bg: #001a4d; }
-.skin-dashboard .site-header { border-top: 5px solid #e4032e; }
-.skin-dashboard .hero { background: radial-gradient(900px 420px at 88% -10%, rgba(228, 3, 46, .35), transparent 60%), radial-gradient(700px 500px at 0% 120%, rgba(60, 120, 255, .35), transparent 60%), linear-gradient(135deg, #002f87 0%, #0a3a9e 55%, #001f5c 100%); color: #fff; padding: 3.2rem 0 3.6rem; }
-.skin-dashboard .hero h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); max-width: 18ch; }
-.skin-dashboard .hero .lead { max-width: 56ch; color: #e6edff; }
-.skin-dashboard .hero .chip { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.65); backdrop-filter: blur(4px); }
-.skin-dashboard .hero .chip-warn { background: #ffe066; color: #3d2c00; border-color: #ffe066; }
-.skin-dashboard .hero .chip-ok { background: #d6f6dd; color: #0b4a1c; border-color: #d6f6dd; }
-.skin-dashboard h2 { color: #001f5c; }
-.skin-dashboard .btn { background: #e4032e; border-color: #e4032e; }
-.skin-dashboard .btn:hover { background: #b80226; border-color: #b80226; }
-.skin-dashboard .btn-secondary { background: #fff; color: #002f87; border-color: #002f87; }
-.skin-dashboard .btn-secondary:hover { background: #eef3fb; color: #001f5c; }
-.skin-dashboard .card { border-top: 0; }
-.skin-dashboard .card::before { content: ""; position: absolute; left: 1.4rem; right: 1.4rem; top: 0; height: 4px; border-radius: 0 0 4px 4px; background: var(--card-accent, #002f87); }
-.card-bank { --card-accent: #00694e; } .card-eshop { --card-accent: #4338ca; } .card-university { --card-accent: #7a1f3d; } .card-electricity { --card-accent: #facc15; } .card-rental { --card-accent: #1d4ed8; }
+/* IN Groupe dashboard / issuer portal: the reference look (white header, grey canvas, white cards, navy actions) */
+:root { --primary: #003087; --primary-dark: #00205c; --accent: #e4002b; }
+.skin-dashboard .hero h1 { max-width: 22ch; }
+.skin-dashboard .hero .lead { max-width: 60ch; }
+.skin-dashboard .btn-secondary { color: var(--primary-dark); }
+.card-bank { --card-accent: #00694e; } .card-eshop { --card-accent: #4338ca; } .card-university { --card-accent: #7a1f3d; } .card-electricity { --card-accent: #15803d; } .card-rental { --card-accent: #1d4ed8; }
 .skin-dashboard .panel h2 { margin-top: 0; }
 
-.brand-group { display: flex; align-items: center; gap: 1.1rem; }
-.brand-in img { height: 54px; width: auto; }
+.brand-group { display: flex; align-items: center; gap: 1rem; }
+.brand-in img { height: 50px; width: auto; }
 
 /* Issuer portal (use-case selection, sample records, offer) */
 .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1.4rem; align-items: start; }
 .panel.titled { padding: 0; overflow: hidden; }
 .panel.titled > :not(.titlebar) { margin-left: 1.4rem; margin-right: 1.4rem; }
 .panel.titled > :last-child { margin-bottom: 1.4rem; }
-.titlebar { margin: 0 0 1.1rem; padding: .75rem 1.4rem; background: #002f87; color: #fff; font-size: 1.05rem; letter-spacing: .02em; border-bottom: 4px solid #e4032e; }
-.skin-dashboard .panel.titled h2.titlebar { color: #fff; margin-top: 0; }
+.titlebar { margin: 0 0 1.1rem; padding: 1rem 1.4rem; background: #fff; color: var(--head); font-size: 1.05rem; border-bottom: 1px solid var(--border); }
+.skin-dashboard .panel.titled h2.titlebar { margin: 0 0 1.1rem; padding: 1rem 1.4rem; background: #fff; color: var(--head); font-size: 1.05rem; border-bottom: 1px solid var(--border); }
 .portal-form { display: grid; gap: 1rem; max-width: 34rem; }
 .portal-steps { padding-left: 1.3rem; }
 .portal-steps li { margin: .35rem 0; }
@@ -38,9 +27,9 @@
   /* one card per record instead of a wide table */
   .portal-table, .portal-table tbody, .portal-table tr, .portal-table td { display: block; width: 100%; }
   .portal-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  .portal-table tr { border: 1px solid #cfd8ea; border-radius: 12px; margin: 0 0 1rem; padding: .4rem .2rem; background: #fff; }
+  .portal-table tr { border: 1px solid var(--border); border-radius: 12px; margin: 0 0 1rem; padding: .4rem .2rem; background: #fff; }
   .portal-table td { display: flex; justify-content: space-between; gap: 1rem; border: 0; padding: .35rem .8rem; text-align: right; }
-  .portal-table td::before { content: attr(data-label); font-weight: 800; color: #001f5c; text-align: left; flex: none; }
+  .portal-table td::before { content: attr(data-label); font-weight: 800; color: var(--head); text-align: left; flex: none; }
   .portal-table td.cell-portrait { justify-content: flex-start; }
   .portal-table td.cell-portrait::before { content: none; }
   .portal-table td.cell-action { justify-content: flex-end; padding-top: .7rem; }
@@ -60,3 +49,8 @@
 
 .plain-list { padding-left: 1.2rem; }
 .plain-list li { margin: .3rem 0; }
+
+.login-card { max-width: 30rem; }
+.login-card .portal-form { max-width: none; }
+.login-card .field { margin: .2rem 0; }
+.login-card input { max-width: none; }

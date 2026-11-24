@@ -490,5 +490,9 @@
   "rental.mismatch.payment": "Zahlungsnachweis (Kontoinhaber)",
   "rental.mismatch.question": "Möchten Sie diese Buchung trotzdem fortsetzen?",
   "rental.mismatch.proceed": "Ja, fortfahren",
-  "rental.mismatch.cancel": "Nein, Buchung abbrechen"
+  "rental.mismatch.cancel": "Nein, Buchung abbrechen",
+  "portal.steps.label": "Fortschritt",
+  "portal.steps.usecase": "Anwendungsfall",
+  "portal.steps.record": "Datensatz",
+  "portal.steps.offer": "Angebot"
 }

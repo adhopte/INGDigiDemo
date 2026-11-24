@@ -1,5 +1,7 @@
 <%- include('partials/head') %>
 <div class="wrap narrow">
+  <% if (typeof rp === 'undefined' || !rp) { %><%- include('partials/flow-steps', { current: 3, steps: [t('portal.steps.usecase'), t('portal.steps.record'), t('portal.steps.offer')] }) %>
+  <% } %>
   <h1><%= t('offer.title', { name: t('att.' + attestationKey + '.name') }) %></h1>
   <p class="lead"><%= t('offer.intro') %></p>
   <ul class="chips"><li class="chip"><%= offer.provider === 'local' ? t('dash.issuer.local') : t('dash.issuer.external') %></li></ul>

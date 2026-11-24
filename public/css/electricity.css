@@ -1,15 +1,7 @@
-/* Demo Power Co: deep green-black + electric yellow */
-:root { --font: "Inter", system-ui, sans-serif; --primary: #15803d; --primary-dark: #0f5f2d; --link: #0f5f2d; --accent: #facc15; --header-bg: #0c1f17; --header-fg: #fff; --hero-bg: #e9f7ee; --footer-bg: #0c1f17; }
-.skin-electricity .site-header { box-shadow: none; border-bottom: 3px solid #facc15; }
-.skin-electricity .nav-list a:hover, .skin-electricity .link-btn:hover { color: #facc15; }
-.skin-electricity .hero { background: radial-gradient(520px 300px at 88% 10%, rgba(250, 204, 21, .3), transparent 70%), linear-gradient(135deg, #0c1f17 0%, #14452b 100%); color: #fff; padding: 3rem 0; }
-.skin-electricity .hero h1 { color: #fff; }
-.skin-electricity .hero .lead, .skin-electricity .hero .note { color: #d7f0e0; }
-.skin-electricity .hero .btn { background: #facc15; border-color: #facc15; color: #0c1f17; }
-.skin-electricity .hero .btn:hover { background: #fde047; border-color: #fde047; }
-.skin-electricity h2 { color: #0c1f17; }
-.skin-electricity .hero-card h2 { color: #0c1f17; }
-.skin-electricity .btn-secondary { color: #0f5f2d; border-color: #15803d; }
+/* Demo Power Co: green accent on the shared design system */
+:root { --primary: #15803d; --primary-dark: #0f5f2d; --link: #0f5f2d; --accent: #15803d; }
+.skin-electricity .btn { color: #fff; }
+.skin-electricity .btn-secondary { color: var(--primary-dark); }
 .skin-electricity meter { accent-color: #15803d; }
 .skin-electricity .balance { color: #15803d; }
-.skin-electricity .site-header a.btn-small { background: #facc15; border-color: #facc15; color: #0c1f17; }
+.skin-electricity .hero-card { background: #f0f8f3; border-color: #cfe5d8; }

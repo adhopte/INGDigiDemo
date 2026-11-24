@@ -1,5 +1,6 @@
 <%- include('../partials/head') %>
 <div class="wrap">
+  <%- include('../partials/flow-steps', { current: 1, steps: [t('portal.steps.usecase'), t('portal.steps.record'), t('portal.steps.offer')] }) %>
   <h1><%= t('portal.title') %></h1>
   <p class="lead"><%= t('portal.intro') %></p>
 

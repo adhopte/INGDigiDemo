@@ -1,0 +1,7 @@
+<%# current: 1-based step; steps: array of translated labels %>
+<ol class="flow-steps" aria-label="<%= t('portal.steps.label') %>">
+  <% steps.forEach(function (label, i) { const n = i + 1; %>
+    <% if (i > 0) { %><li class="sep" aria-hidden="true"></li><% } %>
+    <li class="<%= n === current ? 'current' : n < current ? 'done' : '' %>"<%= n === current ? ' aria-current="step"' : '' %>><span class="num-step" aria-hidden="true"><%= n < current ? '✓' : n %></span><%= label %></li>
+  <% }) %>
+</ol>

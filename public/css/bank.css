@@ -1,17 +1,12 @@
-/* Demo Bank: emerald, calm and trustworthy */
-:root { --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --primary: #00694e; --primary-dark: #004d39; --link: #00694e; --accent: #00694e; --header-bg: #fff; --header-fg: #0a2f25; --hero-bg: #e8f5f0; --footer-bg: #062a21; }
-.skin-bank body, body.skin-bank { letter-spacing: -.003em; }
-.skin-bank .utility-bar { background: #062a21; color: #d6efe6; font-size: .88rem; }
-.skin-bank .utility-bar a { color: #fff; }
-.skin-bank .utility-inner { display: flex; align-items: center; gap: 1.4rem; min-height: 46px; flex-wrap: wrap; }
+/* Demo Bank: emerald accent on the shared design system */
+:root { --primary: #00694e; --primary-dark: #004d39; --link: #00694e; --accent: #00694e; }
+.skin-bank .utility-bar { background: var(--bg); color: var(--muted); font-size: .8125rem; border-bottom: 1px solid var(--border); }
+.skin-bank .utility-bar a { color: var(--primary-dark); }
+.skin-bank .utility-inner { display: flex; align-items: center; gap: 1.4rem; min-height: 40px; flex-wrap: wrap; }
 .skin-bank .spacer { flex: 1; }
-.skin-bank .utility-bar .lang summary { color: #fff; min-height: 36px; padding: 0 .8rem; font-size: .88rem; }
-.skin-bank .site-header { box-shadow: 0 2px 12px rgba(6, 42, 33, .08); }
-.skin-bank .nav-list a:not(.btn):hover { color: #00694e; }
+.skin-bank .utility-bar .lang summary { min-height: 36px; padding: 0 .5rem; font-size: .8125rem; }
+.skin-bank .utility-bar .lang ul { right: 0; }
 .skin-bank .site-header a.btn { color: #fff; }
-.skin-bank .hero { background: radial-gradient(520px 320px at 85% 20%, rgba(0, 105, 78, .16), transparent 70%), linear-gradient(135deg, #e8f5f0 0%, #f6fbf9 100%); padding-bottom: 3.4rem; }
-.skin-bank .hero::after { content: ""; position: absolute; right: -80px; top: -80px; width: 340px; height: 340px; border-radius: 50%; border: 56px solid rgba(0, 105, 78, .07); pointer-events: none; }
-.skin-bank h1, .skin-bank h2 { color: #0a2f25; }
-.skin-bank .card { border-top: 4px solid #00694e; }
-.skin-bank .balance { color: #00694e; }
-.skin-bank .btn-secondary { color: #004d39; border-color: #00694e; }
+.skin-bank .balance { color: var(--primary); }
+.skin-bank .btn-secondary { color: var(--primary-dark); }
+.skin-bank .hero .hero-card { background: #f1f8f5; border-color: #cfe5dc; }
