@@ -1,7 +1,7 @@
 {
-  "_comment": "IN Groupe branding taken from ingroupe.com: logo in public/img/in-groupe-logo.svg, navy #002F87, red #E4032E, Avenir-style typography (see public/fonts/avenir/README.txt).",
+  "_comment": "IN Groupe Person Portal branding, used with the owner's permission: logo public/img/in-groupe-portal-logo.png, navy #003087, red #e4002b, Inter.",
   "name": "IN Groupe",
   "product": "SIGMA",
-  "primary": "#002f87",
-  "accent": "#e4032e"
+  "primary": "#003087",
+  "accent": "#e4002b"
 }

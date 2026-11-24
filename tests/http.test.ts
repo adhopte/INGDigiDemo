@@ -245,7 +245,7 @@ describe('diagnostics and caching', () => {
     expect((await request(app).get('/fonts/inter-latin-wght-normal.woff2')).headers['cache-control']).toContain('max-age=604800');
     const home = (await request(app).get('/')).text;
     expect(home).toMatch(/\/css\/base\.css\?v=[A-Za-z0-9]+/);
-    expect(home).toMatch(/\/img\/in-groupe-logo\.svg\?v=[A-Za-z0-9]+/);
+    expect(home).toMatch(/\/img\/in-groupe-portal-logo\.png\?v=[A-Za-z0-9]+/);
   });
 });
 

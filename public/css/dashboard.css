@@ -1,5 +1,5 @@
 /* IN Groupe dashboard / issuer portal: the reference look (white header, grey canvas, white cards, navy actions) */
-:root { --primary: #003087; --primary-dark: #00205c; --accent: #e4002b; }
+:root { --primary: #003087; --primary-dark: #002973; --accent: #e4002b; }
 .skin-dashboard .hero h1 { max-width: 22ch; }
 .skin-dashboard .hero .lead { max-width: 60ch; }
 .skin-dashboard .btn-secondary { color: var(--primary-dark); }
@@ -20,7 +20,7 @@
 .portal-steps { padding-left: 1.3rem; }
 .portal-steps li { margin: .35rem 0; }
 .scroll-x { position: relative; overflow-x: auto; max-width: 100%; }
-.scroll-x:focus-visible { outline: 3px solid #002f87; outline-offset: 2px; }
+.scroll-x:focus-visible { outline: 3px solid #003087; outline-offset: 2px; }
 .portal-table td, .portal-table th { padding: .7rem .6rem; }
 .portal-table td { overflow-wrap: anywhere; }
 @media (max-width: 760px) {

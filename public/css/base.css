@@ -2,8 +2,8 @@
    Inter, navy primary actions, red used only as a small accent. Accessibility-first (AA contrast, 44px targets, visible focus).
    Skins only set the custom properties (brand colour) and a few touches. */
 :root {
-  --bg: #f3f6f8; --fg: #14263a; --head: #12253a; --muted: #55697e; --card: #ffffff; --border: #d8e1e9; --field-border: #7d91a4; --soft: #eef2f6;
-  --primary: #003087; --primary-dark: #00205c; --on-primary: #ffffff; --link: #003087;
+  --bg: #f3f6f8; --fg: #14263a; --head: #12253a; --muted: #556a80; --card: #ffffff; --border: #d8e1e9; --field-border: #7d91a4; --soft: #eef2f5; --border-strong: #9eb0d1; --brand-wash: #f4f6fa; --brand-soft: #e8ecf4;
+  --primary: #003087; --primary-dark: #002973; --on-primary: #ffffff; --link: #003087;
   --header-bg: #ffffff; --header-fg: #12253a; --accent: #e4002b;
   --font: "Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; --font-head: var(--font);
   --radius: 14px; --radius-sm: 8px; --shadow: 0 1px 2px rgba(20, 38, 58, .04), 0 6px 20px rgba(20, 38, 58, .05); --shadow-hover: 0 2px 4px rgba(20, 38, 58, .06), 0 12px 28px rgba(20, 38, 58, .1);
