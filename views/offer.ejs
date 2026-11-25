@@ -4,8 +4,6 @@
   <% } %>
   <h1><%= t('offer.title', { name: t('att.' + attestationKey + '.name') }) %></h1>
   <p class="lead"><%= t('offer.intro') %></p>
-  <ul class="chips"><li class="chip"><%= offer.provider === 'local' ? t('dash.issuer.local') : t('dash.issuer.external') %></li></ul>
-  <% if (offer.fallback) { %><p class="alert alert-info" role="note"><%= t('offer.fallback_note') %></p><% } %>
 
   <section class="panel handoff" aria-labelledby="offer-h">
     <h2 id="offer-h"><%= t('offer.get') %></h2>

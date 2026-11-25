@@ -671,3 +671,17 @@ describe('wording and validity (customer feedback)', () => {
     expect(ok.text).toMatch(/XX00 •••• •••• \d{4}/); // only the account reference
   });
 });
+
+describe('offer pages do not expose the local issuer', () => {
+  it('a bank attestation offer says nothing about a local demo issuer', async () => {
+    const { app } = await boot({ MOCK_MODE: 'true' });
+    const a = request.agent(app);
+    const loc = (await a.get('/bank/login/pid')).headers.location!;
+    const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec((await a.get(loc)).headers.location!)![1]!;
+    await a.post(`/bank/verify/wallet/${id}/add`).type('form').send({ type: 'pid', persona: 'fr' });
+    await a.get((await a.post(`/bank/verify/wallet/${id}/share`)).headers.location!);
+    const offer = await a.post('/bank/attestation/account');
+    expect(offer.status).toBe(200);
+    expect(offer.text).not.toMatch(/local demo issuer|does not offer this attestation/i);
+  });
+});
