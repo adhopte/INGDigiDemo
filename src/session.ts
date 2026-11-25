@@ -43,6 +43,8 @@ declare module 'express-session' {
     cart?: CartItem[];
     order?: Order;
     enrolment?: Enrolment;
+    /** University exam registrations of this session. */
+    examRegs?: string[];
     /** Car rental: the booking waiting for its payment, and the confirmed one. */
     rentalBooking?: RentalBooking;
     rentalDone?: RentalDone;

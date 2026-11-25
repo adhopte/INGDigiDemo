@@ -9,6 +9,12 @@
     <dt><%= t('uni.enrol.email') %></dt><dd><%= e.email %></dd>
     <dt><%= t('eshop.order.date') %></dt><dd><%= fmtDate(e.at) %></dd>
   </dl>
-  <p><a class="btn" href="/university/"><%= t('btn.back') %></a></p>
+  <section class="panel" aria-labelledby="sid-h">
+    <h2 id="sid-h"><%= t('uni.sid.title') %></h2>
+    <p><%= t('uni.sid.text') %></p>
+    <form method="post" action="/university/attestation/studentid"><button class="btn btn-large" type="submit"><%= t('uni.sid.btn') %></button></form>
+    <p class="note"><%= t('uni.sid.next') %></p>
+  </section>
+  <p><a class="btn btn-secondary" href="/university/"><%= t('btn.back') %></a></p>
 </div>
 <%- include('../partials/foot') %>

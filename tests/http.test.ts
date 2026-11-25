@@ -685,3 +685,72 @@ describe('offer pages do not expose the local issuer', () => {
     expect(offer.text).not.toMatch(/local demo issuer|does not offer this attestation/i);
   });
 });
+
+describe('Demo University: Student ID attestation and the examination page', () => {
+  it('a new student enrols with PID + birth certificate, gets a Student ID; a returning student signs in with it and registers for an exam', async () => {
+    const { app } = await boot({ MOCK_MODE: 'true' });
+    const a = request.agent(app);
+    const present = async (path: string, add?: { type: string; persona: string }) => {
+      const first = (await a.get(path)).headers.location!;
+      const verifyPath = path.includes('/verify?') ? first : (await a.get(first)).headers.location!;
+      const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(verifyPath)![1]!;
+      if (add) await a.post(`/university/verify/wallet/${id}/add`).type('form').send(add);
+      const done = await a.post(`/university/verify/wallet/${id}/share`);
+      return (await a.get(done.headers.location!)).headers.location;
+    };
+    // nothing without the Student ID
+    expect((await a.get('/university/exams')).headers.location).toBe('/university/login');
+    expect((await a.post('/university/attestation/studentid')).headers.location).toBe('/university/'); // only after the enrolment
+    // 1. enrol with PID + birth certificate
+    await present('/university/verify?p=pid&returnTo=/university/documents', { type: 'pid', persona: 'fr' });
+    await present('/university/verify?p=bc&returnTo=/university/documents', { type: 'birth_certificate', persona: 'fr' });
+    expect((await a.post('/university/enrol').type('form').send({ programme: 'cs', email: 'camille@example.org', consent: 'yes' })).headers.location).toBe('/university/confirmation');
+    const done = await a.get('/university/confirmation');
+    expect(done.text).toContain('Get Student ID attestation');
+    // 2. the Student ID attestation
+    const offer = await a.post('/university/attestation/studentid');
+    expect(offer.status).toBe(200);
+    expect(offer.text).not.toMatch(/local demo issuer/i);
+    const offerId = /name="offerId" value="([^"]+)"/.exec(offer.text)![1]!;
+    await a.post('/wallet-sim/redeem').type('form').send({ offerId, returnTo: '/wallet' });
+    const held = heldCredentials((await a.get('/wallet')).text)['Student ID']!;
+    expect(held['Student number']).toMatch(/^S\d{4}\d{5}$/);
+    expect(held['Institution']).toBe('Demo University');
+    expect(held['Enrolment status']).toBeTruthy();
+    // 3. returning student: sign out, sign in with the Student ID only
+    await a.post('/university/signout');
+    expect((await a.get('/university/exams')).headers.location).toBe('/university/login');
+    expect(await present('/university/login')).toBe('/university/exams');
+    const exams = await a.get('/university/exams');
+    expect(exams.status).toBe(200);
+    expect(exams.text).toContain('Signed in with your Student ID.');
+    expect(exams.text).toContain('Enrolled and valid');
+    expect(exams.text).toContain('Algorithms and Data Structures');
+    expect((await a.post('/university/exams/register').type('form').send({ exam: 'e2' })).headers.location).toBe('/university/exams');
+    expect((await a.get('/university/exams')).text).toContain('Registered');
+    expect((await a.post('/university/exams/register').type('form').send({ exam: 'nope' })).status).toBe(400);
+  });
+
+  it('the standing check: enrolled and within validity', async () => {
+    const { studentStanding } = await import('../src/rps/university.js');
+    const now = new Date('2026-11-25T10:00:00Z');
+    expect(studentStanding({ enrollment_status: 'active', valid_until: '2027-09-30' }, now)).toEqual({ active: true, current: true, ok: true });
+    expect(studentStanding({ enrollment_status: 'active', valid_until: '2026-09-30' }, now).ok).toBe(false); // expired
+    expect(studentStanding({ enrollment_status: 'suspended', valid_until: '2027-09-30' }, now)).toMatchObject({ active: false, ok: false });
+    expect(studentStanding({ valid_until: '2026-11-25' }, now).ok).toBe(true); // valid through the whole last day
+    expect(studentStanding({}, now).ok).toBe(true); // nothing shared: nothing concluded
+  });
+
+  it('the Student ID request is by SD-JWT with the rulebook vct, and the local issuer declares it', async () => {
+    const { svc, cfg } = await boot({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'university')!, 'studentid', '/university/exams');
+    const link = new URL(svc.verifier.walletLink(tx));
+    const q = JSON.parse(link.searchParams.get('dcql_query')!);
+    expect(q.credentials).toHaveLength(1);
+    expect(q.credentials[0]).toMatchObject({ format: 'dc+sd-jwt', meta: { vct_values: ['urn:eudi:studentid:1', 'urn:eudi:studentid:de:1'] } });
+    expect(svc.verifier.walletLink(tx).length).toBeLessThan(1700);
+    const md = (svc.local.metadata() as any).credential_configurations_supported.demo_student_id;
+    expect(md).toMatchObject({ format: 'dc+sd-jwt', vct: 'urn:eudi:studentid:1' });
+    expect(md.claims.map((c: any) => c.path[0])).toEqual(expect.arrayContaining(['student_id', 'institution_name', 'enrollment_status', 'valid_until', 'academic_year']));
+  });
+});

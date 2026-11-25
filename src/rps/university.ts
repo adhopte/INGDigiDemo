@@ -1,16 +1,30 @@
 import { randomInt } from 'node:crypto';
-import { Router, type Request } from 'express';
+import { Router, type NextFunction, type Request, type Response } from 'express';
 import type { RpConfig } from '../config.js';
 import { claimsOfType, q, str, type Ctx } from './context.js';
+import { renderOffer } from './offer.js';
 import { rpBase } from './common.js';
 
 export const PROGRAMMES = ['cs', 'law', 'bio', 'art'] as const;
+/** The demo exams of the examination page: id → days from today. */
+export const EXAMS = [{ id: 'e1', days: 14, hour: '09:00', room: 'A.101' }, { id: 'e2', days: 21, hour: '14:00', room: 'B.204' }, { id: 'e3', days: 30, hour: '10:30', room: 'Aula Magna' }, { id: 'e4', days: 45, hour: '09:00', room: 'C.012' }] as const;
+
+/** Is the Student ID still good for access: enrolled (status active) and within its validity? `undefined` fields are not judged. */
+export function studentStanding(c: Record<string, unknown>, now = new Date()): { active: boolean; current: boolean; ok: boolean } {
+  const status = typeof c.enrollment_status === 'string' ? c.enrollment_status : undefined;
+  const until = typeof c.valid_until === 'string' && /^\d{4}-\d{2}-\d{2}/.test(c.valid_until) ? new Date(`${c.valid_until.slice(0, 10)}T23:59:59Z`) : undefined;
+  const active = status === undefined || status === 'active';
+  const current = until === undefined || until >= now;
+  return { active, current, ok: active && current };
+}
 
 export function universityRouter(ctx: Ctx, rp: RpConfig): Router {
   const router = Router();
   router.use(rpBase(ctx, rp, 'university'));
 
   const pid = (req: Request) => claimsOfType(req.session, rp.id, 'pid');
+  const sid = (req: Request) => claimsOfType(req.session, rp.id, 'studentid');
+  router.use((req, res, next) => { res.locals.loggedIn = !!sid(req); next(); }); // the header offers the exams once a Student ID was presented
   const bc = (req: Request) => claimsOfType(req.session, rp.id, 'birth_certificate');
   const norm = (v: unknown) => str(v).trim().toLowerCase();
 
@@ -24,7 +38,7 @@ export function universityRouter(ctx: Ctx, rp: RpConfig): Router {
   const identityMatches = (req: Request) => !ctx.cfg.universityRequireMatch || sameName(req);
   const differs = (req: Request) => !!pid(req) && !!bc(req) && !sameName(req);
 
-  router.get('/', (req, res) => res.render('university/home', { title: 'Demo University', enrolled: !!req.session.enrolment }));
+  router.get('/', (req, res) => res.render('university/home', { title: 'Demo University', enrolled: !!req.session.enrolment, hasStudentId: !!sid(req) }));
 
   // multi-credential: one request for both; otherwise two requests in a row
   router.get('/start', (_req, res) => {
@@ -70,6 +84,45 @@ export function universityRouter(ctx: Ctx, rp: RpConfig): Router {
     const p = pid(req);
     if (!e || !p) return void res.redirect(`/${rp.id}/`);
     res.render('university/confirmation', { title: res.locals.t('uni.done.title'), e, p });
+  });
+
+  // ---- the Student ID attestation: issued after the enrolment, used to sign in
+  router.post('/attestation/studentid', async (req, res) => {
+    const e = req.session.enrolment;
+    const p = pid(req);
+    if (!e || !p) return void res.redirect(`/${rp.id}/`);
+    const now = new Date();
+    const y = now.getUTCMonth() >= 9 ? now.getUTCFullYear() : now.getUTCFullYear() - 1; // the academic year starts on 1 October
+    const FACULTY: Record<string, string> = { cs: 'Faculty of Engineering', law: 'Faculty of Law', bio: 'Faculty of Sciences', art: 'Faculty of Arts' };
+    const ISCED: Record<string, string> = { cs: '061', law: '042', bio: '051', art: '021' };
+    const claims = {
+      student_id: e.studentNumber, given_name: str(p.given_name), family_name: str(p.family_name),
+      institution_name: 'Demo University', institution_id: 'E DEMOUNI01', enrollment_status: 'active',
+      valid_from: `${y}-10-01`, valid_until: `${y + 1}-09-30`, issuance_date: now.toISOString().slice(0, 10),
+      study_programme: res.locals.t(`prog.${e.programme}`), study_field_isced: ISCED[e.programme] ?? '', faculty: FACULTY[e.programme] ?? '',
+      academic_year: `${y}/${y + 1}`, student_email: e.email,
+    };
+    await renderOffer(ctx, req, res, rp, 'studentid', claims, `/${rp.id}/confirmation`);
+  });
+
+  // ---- returning students: sign in with the Student ID, then the examination page
+  router.get('/login', (_req, res) => res.redirect(`/${rp.id}/verify?p=studentid&returnTo=${encodeURIComponent(`/${rp.id}/exams`)}`));
+  const guard = (req: Request, res: Response, next: NextFunction) => (sid(req) ? next() : res.redirect(`/${rp.id}/login`));
+
+  router.get('/exams', guard, (req, res) => {
+    const c = sid(req)!;
+    const standing = studentStanding(c);
+    const regs = req.session.examRegs ?? [];
+    const day = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
+    res.render('university/exams', { title: res.locals.t('uni.exams.title'), c, standing, exams: EXAMS.map((x) => ({ ...x, date: day(x.days), registered: regs.includes(x.id) })) });
+  });
+
+  router.post('/exams/register', guard, (req, res) => {
+    const exam = EXAMS.find((x) => x.id === q(req.body?.exam));
+    if (!exam || !studentStanding(sid(req)!).ok) return void res.status(exam ? 403 : 400).render('error', { title: res.locals.t('error.title'), message: res.locals.t('uni.exams.not_eligible'), retryHref: `/${rp.id}/exams` });
+    req.session.examRegs = [...new Set([...(req.session.examRegs ?? []), exam.id])];
+    req.session.flash = 'uni.exams.flash_registered';
+    res.redirect(`/${rp.id}/exams`);
   });
 
   return router;

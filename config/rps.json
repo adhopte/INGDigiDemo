@@ -209,6 +209,35 @@
         "urn:eudi:demo:mdl:1"
       ],
       "localMdoc": true
+    },
+    "studentid": {
+      "credentialConfigurationId": "demo_student_id",
+      "vct": "urn:eudi:studentid:1",
+      "acceptedVct": [
+        "urn:eudi:studentid:1",
+        "urn:eudi:studentid:de:1"
+      ],
+      "formats": [
+        "dc+sd-jwt"
+      ],
+      "claims": [
+        "student_id",
+        "given_name",
+        "family_name",
+        "institution_name",
+        "institution_id",
+        "enrollment_status",
+        "valid_from",
+        "valid_until",
+        "issuance_date",
+        "study_programme",
+        "study_field_isced",
+        "eqf_level",
+        "faculty",
+        "academic_year",
+        "student_email",
+        "mobility_partner_institution"
+      ]
     }
   },
   "rps": [
@@ -597,6 +626,33 @@
             "given_name",
             "family_name",
             "birth_date"
+          ]
+        },
+        "studentid": {
+          "types": [
+            "studentid"
+          ],
+          "claims": [
+            "student_id",
+            "given_name",
+            "family_name",
+            "institution_name",
+            "enrollment_status",
+            "valid_until",
+            "study_programme",
+            "academic_year"
+          ],
+          "minClaims": [
+            "student_id",
+            "family_name",
+            "enrollment_status",
+            "valid_until"
+          ],
+          "compactClaims": [
+            "family_name",
+            "student_id",
+            "enrollment_status",
+            "valid_until"
           ]
         }
       },

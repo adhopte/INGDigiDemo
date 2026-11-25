@@ -7,12 +7,20 @@
   <% } else { %>
     <p><a class="btn btn-large" href="/university/start"><%= t('uni.hero.cta') %></a></p>
   <% } %>
+  <p class="hero-secondary">
+    <% if (hasStudentId) { %><a class="btn btn-secondary" href="/university/exams"><%= t('uni.hero.exams') %></a>
+    <% } else { %><a class="btn btn-secondary" href="/university/login"><%= t('uni.hero.login') %></a><% } %>
+  </p>
 </div></section>
 <div class="wrap">
   <h2><%= t('uni.need.title') %></h2>
   <ul class="cards cards-2">
     <li class="card"><h3><%= t('att.pid.name') %></h3><p><%= t('uni.need.pid') %></p></li>
     <li class="card"><h3><%= t('att.birth_certificate.name') %></h3><p><%= t('uni.need.bc') %></p></li>
+  </ul>
+  <h2><%= t('uni.returning.title') %></h2>
+  <ul class="cards cards-2">
+    <li class="card"><h3><%= t('att.studentid.name') %></h3><p><%= t('uni.returning.text') %></p></li>
   </ul>
   <p class="note"><%= multiCredential ? t('uni.mode.multi') : t('uni.mode.two') %></p>
   <p class="note"><%= t('uni.need.get') %> <a href="/demo-issuer"><%= t('nav.issuer') %></a></p>

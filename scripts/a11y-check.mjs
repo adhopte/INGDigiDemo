@@ -108,6 +108,17 @@ async function run(vpName, size) {
   await page.getByLabel(/I confirm/).check();
   await page.getByRole('button', { name: 'Complete enrolment' }).click();
   await page.waitForURL(/\/university\/confirmation$/); await step('uni-confirmation');
+  // Student ID attestation, then the returning-student sign-in and the examination page
+  await page.getByRole('button', { name: 'Get Student ID attestation' }).click(); await step('uni-offer-studentid');
+  await page.getByRole('button', { name: 'Receive in simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Sign out' }).click().catch(() => {});
+  await go('/university/'); await step('uni-home-returning');
+  await page.getByRole('link', { name: 'Sign in with Student ID' }).first().click();
+  await page.waitForURL(/\/university\/verify\/[A-Za-z0-9_-]{16}$/);
+  await page.getByRole('link', { name: 'Open the simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Approve and share' }).click();
+  await page.waitForURL(/\/university\/exams$/); await step('uni-exams');
+  await page.getByRole('button', { name: /^Register/ }).first().click(); await step('uni-exams-registered');
 
   // ---- Electricity
   await go('/electricity/'); await step('el-home');
@@ -140,7 +151,7 @@ async function languages() {
   for (const lang of ['en', 'fr', 'es', 'nl', 'de', 'da', 'mt', 'sv']) {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, bypassCSP: true });
     const page = await ctx.newPage();
-    for (const path of ['/', '/bank/', '/eshop/', '/eshop/cart', '/university/', '/electricity/', '/rental/', '/demo-issuer']) {
+    for (const path of ['/', '/bank/', '/eshop/', '/eshop/cart', '/university/', '/university/exams', '/electricity/', '/rental/', '/demo-issuer']) {
       await page.goto(`${BASE}${path}?lang=${lang}`);
       const htmlLang = await page.getAttribute('html', 'lang');
       const text = (await page.locator('body').innerText()).replace(/https?:\/\/\S+/g, '').replace(/\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:io|com|org|net)\b/gi, '');

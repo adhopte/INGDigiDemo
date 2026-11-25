@@ -4,6 +4,12 @@
     <nav aria-label="<%= t('nav.main') %>">
       <ul class="nav-list">
         <li><a href="/university/"><%= t('nav.home') %></a></li>
+        <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
+          <li><a href="/university/exams"><%= t('uni.nav.exams') %></a></li>
+          <li><form method="post" action="/university/signout"><button class="link-btn" type="submit"><%= t('btn.signout') %></button></form></li>
+        <% } else { %>
+          <li><a href="/university/login"><%= t('uni.nav.login') %></a></li>
+        <% } %>
         <li><a href="/"><%= t('nav.all_demos') %></a></li>
       </ul>
     </nav>

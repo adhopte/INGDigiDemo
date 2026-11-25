@@ -1,0 +1,48 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <div class="alert alert-success" role="status"><strong><%= t('uni.exams.granted') %></strong></div>
+  <h1><%= t('uni.exams.hello', { name: c.given_name || c.family_name }) %></h1>
+  <div class="account-grid">
+    <section class="panel" aria-labelledby="sc-h">
+      <h2 id="sc-h"><%= t('uni.exams.card') %></h2>
+      <dl class="meta">
+        <% if (c.given_name || c.family_name) { %><dt><%= t('rental.driver.name') %></dt><dd><%= c.given_name || '' %> <%= c.family_name %></dd><% } %>
+        <dt><%= t('claim.student_id') %></dt><dd class="mono"><%= c.student_id %></dd>
+        <% if (c.institution_name) { %><dt><%= t('claim.institution_name') %></dt><dd><%= c.institution_name %></dd><% } %>
+        <% if (c.study_programme) { %><dt><%= t('claim.study_programme') %></dt><dd><%= c.study_programme %></dd><% } %>
+        <% if (c.academic_year) { %><dt><%= t('claim.academic_year') %></dt><dd><%= c.academic_year %></dd><% } %>
+        <% if (c.enrollment_status) { %><dt><%= t('claim.enrollment_status') %></dt><dd><%= t('uni.status.' + c.enrollment_status) %></dd><% } %>
+        <% if (c.valid_until) { %><dt><%= t('claim.valid_until') %></dt><dd><%= fmtClaim('valid_until', c.valid_until) %></dd><% } %>
+      </dl>
+    </section>
+    <section class="panel" aria-labelledby="st-h">
+      <h2 id="st-h"><%= t('uni.exams.standing') %></h2>
+      <% if (standing.ok) { %><p class="ok-text"><span aria-hidden="true">✔ </span><%= t('uni.exams.status_ok') %></p>
+      <% } else { %><p class="alert alert-error" role="alert"><%= standing.active ? t('uni.exams.status_expired') : t('uni.exams.status_inactive') %></p><% } %>
+    </section>
+  </div>
+  <section class="panel" aria-labelledby="ex-h">
+    <h2 id="ex-h"><%= t('uni.exams.list') %></h2>
+    <table class="table">
+      <caption class="sr-only"><%= t('uni.exams.list') %></caption>
+      <thead><tr><th scope="col"><%= t('uni.exams.exam') %></th><th scope="col"><%= t('uni.exams.when') %></th><th scope="col"><%= t('uni.exams.room') %></th><th scope="col"><span class="sr-only"><%= t('uni.exams.register') %></span></th></tr></thead>
+      <tbody>
+        <% exams.forEach(function (x) { %>
+        <tr>
+          <td><%= t('uni.exams.' + x.id) %></td>
+          <td><%= fmtDate(x.date) %>, <%= x.hour %></td>
+          <td><%= x.room %></td>
+          <td class="num">
+            <% if (x.registered) { %><span class="ok-text"><span aria-hidden="true">✔ </span><%= t('uni.exams.registered') %></span>
+            <% } else if (standing.ok) { %>
+              <form method="post" action="/university/exams/register"><input type="hidden" name="exam" value="<%= x.id %>"><button class="btn btn-small" type="submit"><%= t('uni.exams.register') %><span class="sr-only"> – <%= t('uni.exams.' + x.id) %></span></button></form>
+            <% } else { %><span class="note">—</span><% } %>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <p class="note"><%= t('uni.exams.note') %></p>
+  </section>
+</div>
+<%- include('../partials/foot') %>
