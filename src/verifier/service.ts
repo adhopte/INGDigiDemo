@@ -10,7 +10,6 @@ import { canonicalizeClaims } from './claims.js';
 import { parseRegistrationCert, registrationCovers, verifierInfo } from './registration.js';
 import { createMdocChainValidator, TrustError } from './trust.js';
 
-const TX_TTL_MS = 10 * 60 * 1000;
 const MAX_TRANSACTIONS = 5000; // in-memory store: bound memory under load
 const SD_JWT_ALGS = { 'sd-jwt_alg_values': ['ES256'], 'kb-jwt_alg_values': ['ES256'] };
 /** mdoc: COSE alg -7 = ES256. Exactly the OpenID4VP 1.0 shape: strict wallet parsers reject unknown members. */
@@ -89,6 +88,7 @@ export function sdJwtShape(presentation: string): Record<string, unknown> | unde
 export class Verifier {
   private txs = new Map<string, Transaction>();
   private events: DiagnosticEvent[] = [];
+  private get ttlMs() { return this.cfg.verifier.requestTtlMinutes * 60_000; }
 
   /** Recent protocol events (no claim values, no tokens) for integrators. */
   record(e: { event: DiagnosticEvent['event']; rp?: string; presentation?: string; [k: string]: unknown }): void {
@@ -109,7 +109,7 @@ export class Verifier {
   private sweep() {
     const t = this.now();
     for (const [id, tx] of this.txs) {
-      if (tx.expiresAt < t - TX_TTL_MS) this.txs.delete(id);
+      if (tx.expiresAt < t - this.ttlMs) this.txs.delete(id);
       else if (tx.expiresAt < t && tx.status === 'pending') tx.status = 'expired';
     }
   }
@@ -134,7 +134,7 @@ export class Verifier {
       state: randomBytes(16).toString('base64url'),
       responseCode: randomBytes(16).toString('base64url'),
       returnTo,
-      expiresAt: this.now() + TX_TTL_MS,
+      expiresAt: this.now() + this.ttlMs,
       status: 'pending',
       consumed: false,
     };

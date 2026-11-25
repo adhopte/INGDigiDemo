@@ -144,7 +144,7 @@ a.chip:hover { border-color: var(--primary); color: var(--primary); }
 .handoff-grid { display: grid; gap: 1.5rem; grid-template-columns: 1fr; }
 .qr { display: block; background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 460px; height: auto; box-shadow: var(--shadow); image-rendering: pixelated; }
 .qr-small { max-width: 190px; }
-.qr-wide { max-width: 720px; } /* big and vector: a dense QR code scans best when its modules are several screen pixels wide */
+.qr-wide { max-width: 400px; } /* big and vector: a dense QR code scans best when its modules are several screen pixels wide */
 .handoff-grid.stack { grid-template-columns: 1fr !important; }
 .phone-scan { margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--border); }
 .phone-scan h3 { margin: 0 0 .3rem; }

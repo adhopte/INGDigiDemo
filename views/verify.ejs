@@ -23,17 +23,10 @@
       </div>
       <div class="handoff-desktop">
         <p><%= t('verify.desktop') %></p>
-        <% if (qr) { %><img class="qr qr-wide" src="<%= qr %>" width="720" height="720" alt="<%= t('verify.qr_alt') %>">
+        <% if (qr) { %><img class="qr qr-wide" src="<%= qr %>" width="400" height="400" alt="<%= t('verify.qr_alt') %>">
         <% } else { %><p class="alert alert-info" role="note"><%= t('verify.qr_too_long') %></p><% } %>
       </div>
     </div>
-    <% if (phoneQr) { %>
-    <div class="phone-scan">
-      <h3><%= t('verify.phone_title') %></h3>
-      <p><%= t('verify.phone_hint') %></p>
-      <img class="qr qr-small" src="<%= phoneQr %>" width="190" height="190" alt="<%= t('verify.phone_alt') %>">
-    </div>
-    <% } %>
     <details class="raw">
       <summary><%= t('verify.show_link') %></summary>
       <p><code class="break"><%= shownLink %></code></p>

@@ -175,15 +175,15 @@ describe('connecting the attestation issuer to the SIGMA URL', () => {
     expect(offer.fallback).toBeUndefined();
   });
 
-  it('the dashboard lists SIGMA\'s catalogue and what is local; the console creates SIGMA offers', async () => {
+  it('the landing page is free of issuer sections; the console creates offers', async () => {
     const cfg = testConfig(env);
     const svc = await createServices(cfg, fetchMeta);
     const app = createApp(cfg, svc);
     const home = (await request(app).get('/')).text;
-    expect(home).toContain('Connected SIGMA issuer');
-    expect(home).toContain('eu.europa.ec.eudi.pid_mdoc');
-    expect(home).toContain('eu.europa.ec.eudi.birth_certificate_vc_sd_jwt');
-    expect(home).toContain('Not offered by SIGMA');
+    // the landing page shows neither the connected issuer's catalogue nor a local-issuer section, and never the term SIGMA
+    expect(home).not.toMatch(/SIGMA/i);
+    expect(home).not.toContain('Local demo issuer');
+    expect(home).not.toContain('eu.europa.ec.eudi.pid_mdoc');
     // issuer portal: use-case selection -> sample records -> create the offer (SIGMA offer API)
     const portalPage = (await request(app).get('/demo-issuer')).text;
     expect(portalPage).toContain('Use case selection');
@@ -203,7 +203,6 @@ describe('connecting the attestation issuer to the SIGMA URL', () => {
     expect((await request(app).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'not-configured' })).status).toBe(400);
     // no metadata URL configured: no panel, no SIGMA button
     const plain = createApp(testConfig({ MOCK_MODE: 'true' }), await createServices(testConfig({ MOCK_MODE: 'true' })));
-    expect((await request(plain).get('/')).text).not.toContain('Connected SIGMA issuer');
     expect((await request(plain).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'user-pid-mdoc-001' })).status).toBe(400);
   });
 });

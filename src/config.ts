@@ -77,6 +77,8 @@ export interface ExternalIssuerConfig {
 }
 
 export interface VerifierConfig {
+  /** How long a presentation request (the QR code / link shown to the customer) stays valid, in minutes (VP_REQUEST_TTL_MINUTES, default 30). */
+  requestTtlMinutes: number;
   /** x509_hash (HAIP default) / x509_san_dns: signed request object with an X.509 chain. redirect_uri: unsigned, by value. */
   clientIdScheme: 'x509_hash' | 'x509_san_dns' | 'redirect_uri';
   responseMode: 'direct_post' | 'direct_post.jwt';
@@ -114,6 +116,8 @@ export interface IssuerConfig {
   reusePolicy: 'sigma' | 'off';
   /** Local issuer: credentials per request (1-10). 1 = batch issuance is not declared and a single proof is accepted. Switchable at runtime by the admin. */
   batchSize: number;
+  /** How long a credential offer of the local issuer can be redeemed (minutes; ISSUER_OFFER_TTL_MINUTES, default 60). */
+  offerTtlMinutes: number;
   signingKeyJwk: string | undefined;
   external: ExternalIssuerConfig;
 }
@@ -264,6 +268,7 @@ export function loadConfig(
 
   const pems = (v: string | undefined) => (v ? v.replace(/\\n/g, '\n').split(/(?<=-----END CERTIFICATE-----)\s*/).map((x) => x.trim()).filter(Boolean) : []);
   const verifier: VerifierConfig = {
+    requestTtlMinutes: ((n) => (Number.isFinite(n) && n >= 1 && n <= 1440 ? n : 30))(Number(env.VP_REQUEST_TTL_MINUTES ?? 30)),
     clientIdScheme: (['x509_san_dns', 'redirect_uri'] as const).find((s) => s === env.VP_CLIENT_ID_SCHEME) ?? 'x509_hash',
     // HAIP wallets require an encrypted response, so direct_post.jwt is the default.
     responseMode: env.VP_RESPONSE_MODE === 'direct_post' ? 'direct_post' : 'direct_post.jwt',
@@ -311,7 +316,7 @@ export function loadConfig(
     verifier,
     brand: {
       name: str(rawBrand.name, 'brand.name'),
-      product: str(rawBrand.product, 'brand.product'),
+      product: typeof rawBrand.product === 'string' ? rawBrand.product : '',
       primary: env.BRAND_PRIMARY ?? str(rawBrand.primary, 'brand.primary'),
       accent: env.BRAND_ACCENT ?? str(rawBrand.accent, 'brand.accent'),
     },
@@ -324,6 +329,7 @@ export function loadConfig(
       txCode: parseBool(env.ISSUER_TX_CODE, false),
       // default OFF while the Android wallet's handling of the policy is investigated (a restart must not undo the setting); "sigma" declares it
       reusePolicy: (env.ISSUER_CREDENTIAL_REUSE ?? '').toLowerCase() === 'sigma' ? 'sigma' : 'off',
+      offerTtlMinutes: ((n) => (Number.isFinite(n) && n >= 1 && n <= 1440 ? n : 60))(Number(env.ISSUER_OFFER_TTL_MINUTES ?? 60)),
       batchSize: ((n) => (Number.isInteger(n) && n >= 1 && n <= 10 ? n : 10))(Number(env.ISSUER_BATCH_SIZE ?? 10)),
       signingKeyJwk: env.ISSUER_SIGNING_KEY_JWK || undefined,
       certChainPem: env.ISSUER_CERT_CHAIN_PEM ? env.ISSUER_CERT_CHAIN_PEM.replace(/\\n/g, '\n') : undefined,

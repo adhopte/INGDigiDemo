@@ -13,7 +13,7 @@
       <dt><%= t('rental.driver.name') %></dt><dd><%= d.driver %></dd>
       <dt><%= t('claim.document_number') %></dt><dd class="mono"><%= d.licence %></dd>
       <dt><%= t('rental.confirm.total') %></dt><dd><strong><%= fmtMoney(d.total) %></strong></dd>
-      <dt><%= t('rental.confirm.paid_by') %></dt><dd><%= d.holder %> · <span class="mono"><%= d.ibanMasked %></span> (<%= d.bank %>)</dd>
+      <dt><%= t('rental.confirm.paid_by') %></dt><dd><span class="mono"><%= d.ibanMasked %></span> (<%= d.bank %>)</dd>
     </dl>
     <p class="note"><%= t('rental.confirm.note') %></p>
   </section>

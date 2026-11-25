@@ -9,7 +9,6 @@ import { RESPONSE_ENCRYPTION, RequestEncryption } from './encryption.js';
 import type { KeyMaterial } from './keys.js';
 
 export const PRE_AUTH_GRANT = 'urn:ietf:params:oauth:grant-type:pre-authorized_code';
-const OFFER_TTL_MS = 10 * 60 * 1000;
 const TOKEN_TTL_S = 300;
 const NONCE_TTL_MS = 5 * 60 * 1000;
 const MAX_TX_ATTEMPTS = 5;
@@ -126,7 +125,7 @@ export class LocalIssuer {
     const id = randomUUID();
     const code = randomBytes(24).toString('base64url');
     const txCode = this.cfg.issuer.txCode ? String(Math.floor(Math.random() * 10000)).padStart(4, '0') : undefined;
-    const expiresAt = this.now() + OFFER_TTL_MS;
+    const expiresAt = this.now() + this.cfg.issuer.offerTtlMinutes * 60_000;
     this.offers.set(id, { id, code, attestation, claims, format, txCode, expiresAt, attempts: 0, redeemed: false });
     this.codes.set(code, id);
     return { id, offerUri: `${this.issuerUrl}/offers/${id}`, txCode, expiresAt: new Date(expiresAt) };
@@ -410,7 +409,7 @@ export class LocalIssuer {
       // HAIP wallets require encrypted credential responses (else ResponseEncryptionRequiredByWalletButNotSupportedByIssuer) and, if responses
       // can be encrypted, also declared request encryption (else CredentialRequestEncryptionMustExistIfCredentialResponseEncryptionExists)
       ...(this.requestEncryption ? { credential_request_encryption: this.requestEncryption.metadata(), credential_response_encryption: RESPONSE_ENCRYPTION } : {}),
-      display: [{ name: `${this.cfg.brand.name} ${this.cfg.brand.product} – demo issuer`, locale: 'en' }],
+      display: [{ name: `${[this.cfg.brand.name, this.cfg.brand.product].filter(Boolean).join(' ')} – demo issuer`, locale: 'en' }],
       credential_configurations_supported: configs,
     };
   }

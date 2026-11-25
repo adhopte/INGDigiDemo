@@ -26,8 +26,8 @@ export async function createIssuerCertificate(cfg: AppConfig, keys: KeyMaterial)
   const publicKey = await crypto.subtle.importKey('jwk', { kty: 'EC', crv: 'P-256', x: keys.publicJwk.x!, y: keys.publicJwk.y! }, { name: 'ECDSA', namedCurve: 'P-256' }, true, ['verify']);
   const cert = await x509.X509CertificateGenerator.create({
     serialNumber: '01',
-    subject: `CN=${host}, O=${cfg.brand.name} ${cfg.brand.product} demo issuer (self-signed)`,
-    issuer: `CN=${host}, O=${cfg.brand.name} ${cfg.brand.product} demo issuer (self-signed)`,
+    subject: `CN=${host}, O=${[cfg.brand.name, cfg.brand.product].filter(Boolean).join(' ')} demo issuer (self-signed)`,
+    issuer: `CN=${host}, O=${[cfg.brand.name, cfg.brand.product].filter(Boolean).join(' ')} demo issuer (self-signed)`,
     notBefore: new Date(Date.now() - 60_000),
     notAfter: new Date(Date.now() + 2 * 365 * 24 * 3600 * 1000),
     signingAlgorithm: ALG,

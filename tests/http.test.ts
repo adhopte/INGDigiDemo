@@ -201,8 +201,9 @@ describe('phone-camera hand-off and QR scannability', () => {
     const loc = (await a.get('/bank/verify?p=pid&returnTo=/bank/kyc')).headers.location!;
     const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(loc)![1]!;
     const page = (await a.get(loc)).text;
-    expect(page).toContain('Scanning not working?');
-    expect((page.match(/data:image\/svg\+xml/g) ?? []).length).toBe(2); // main QR + small phone QR
+    expect(page).not.toContain('Scanning not working?');
+    expect((page.match(/data:image\/svg\+xml/g) ?? []).length).toBe(1); // one QR code only (400px)
+    expect(page).toContain('width="400"');
     const open = await request(app).get(`/bank/verify/open/${id}`); // no session cookie: a different device
     expect(open.status).toBe(200);
     expect(open.text).toContain('openid4vp://authorize?');
@@ -612,49 +613,61 @@ describe('Demo Drive (car rental): mobile driving licence', () => {
     await a.post('/rental/book').type('form').send({ car: 'city', days: '1' });
     expect((await a.get('/rental/confirmation')).headers.location).toBe('/rental/booking');
   });
+});
 
-  it('warns when the payment attestation names somebody else than the licence, and asks whether to proceed', async () => {
-    const { namesMatch } = await import('../src/rps/rental.js');
-    expect(namesMatch('Camille Demo', 'DEMO camille')).toBe(true);
-    expect(namesMatch('José Álvarez', 'Jose ALVAREZ')).toBe(true);
-    expect(namesMatch('Anna Müller', 'Anna Maria Müller')).toBe(true); // an extra given name is fine
-    expect(namesMatch('Camille Demo', 'Lukas Demo')).toBe(false);
-    expect(namesMatch('', 'Lukas Demo')).toBe(true); // nothing to compare
+describe('wording and validity (customer feedback)', () => {
+  it('the term SIGMA does not appear in what the customer sees', async () => {
     const { app } = await boot({ MOCK_MODE: 'true' });
-    const run = async (decision: 'proceed' | 'cancel') => {
-      const a = request.agent(app);
-      const present = async (rp: string, path: string, add?: { type: string; persona: string }) => {
-        const verifyPath = (await a.get((await a.get(path)).headers.location!)).headers.location!;
-        const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(verifyPath)![1]!;
-        if (add) await a.post(`/${rp}/verify/wallet/${id}/add`).type('form').send(add);
-        const done = await a.post(`/${rp}/verify/wallet/${id}/share`);
-        return (await a.get(done.headers.location!)).headers.location;
-      };
-      const receive = async (key: string) => {
-        const offer = await a.post(`/bank/attestation/${key}`);
-        await a.post('/wallet-sim/redeem').type('form').send({ offerId: /name="offerId" value="([^"]+)"/.exec(offer.text)![1]!, returnTo: '/wallet' });
-      };
-      await present('bank', '/bank/login/pid', { type: 'pid', persona: 'de' }); // the bank customer: Lukas Demo
-      await receive('account'); await a.post('/bank/signout');
-      await present('bank', '/bank/login/account'); await receive('payment');
-      await present('rental', '/rental/login', { type: 'mdl', persona: 'fr' }); // the driver: Camille Demo
-      const book = await a.post('/rental/book').type('form').send({ car: 'city', days: '2' });
-      const vp = (await a.get(book.headers.location!)).headers.location!;
-      const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(vp)![1]!;
-      const done = await a.post(`/rental/verify/wallet/${id}/share`);
-      await a.get(done.headers.location!);
-      const warn = await a.get('/rental/confirmation');
-      expect(warn.status).toBe(200);
-      expect(warn.text).toContain('Names do not match');
-      expect(warn.text).toContain('Camille Demo');
-      expect(warn.text).toContain('Lukas Demo');
-      expect(warn.text).not.toMatch(/DR-[0-9A-F]{6}/); // nothing confirmed yet
-      await a.post(`/rental/confirmation/${decision}`);
-      return a;
+    for (const lang of ['en', 'fr', 'de', 'es', 'nl', 'da', 'sv', 'mt']) {
+      for (const path of ['/', '/demo-issuer', '/bank/', '/rental/', '/wallet-check']) {
+        const html = (await request(app).get(`${path}?lang=${lang}`)).text.replace(/https?:\/\/\S+/g, '');
+        expect(html, `${lang} ${path}`).not.toMatch(/SIGMA/i);
+      }
+    }
+    const meta = (await request(app).get('/issuer/.well-known/openid-credential-issuer')).text;
+    expect(meta).not.toMatch(/SIGMA/i); // the wallet shows the issuer's display name
+  });
+
+  it('offers and presentation requests stay valid longer (60 / 30 minutes, configurable)', async () => {
+    const { svc, cfg } = await boot({ MOCK_MODE: 'true' });
+    expect(cfg.issuer.offerTtlMinutes).toBe(60);
+    expect(cfg.verifier.requestTtlMinutes).toBe(30);
+    const o = svc.local.createOffer('account', { given_name: 'A' });
+    expect(Math.round((o.expiresAt.getTime() - Date.now()) / 60_000)).toBe(60);
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'bank')!, 'pid', '/');
+    expect(Math.round((tx.expiresAt - Date.now()) / 60_000)).toBe(30);
+    const custom = await boot({ MOCK_MODE: 'true', ISSUER_OFFER_TTL_MINUTES: '120', VP_REQUEST_TTL_MINUTES: '45' });
+    expect(custom.cfg.issuer.offerTtlMinutes).toBe(120);
+    expect(custom.cfg.verifier.requestTtlMinutes).toBe(45);
+  });
+
+  it('Demo Drive: no name comparison and no account holder name, only the account reference', async () => {
+    const { app } = await boot({ MOCK_MODE: 'true' });
+    const a = request.agent(app);
+    const present = async (rp: string, path: string, add?: { type: string; persona: string }) => {
+      const verifyPath = (await a.get((await a.get(path)).headers.location!)).headers.location!;
+      const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(verifyPath)![1]!;
+      if (add) await a.post(`/${rp}/verify/wallet/${id}/add`).type('form').send(add);
+      const done = await a.post(`/${rp}/verify/wallet/${id}/share`);
+      return (await a.get(done.headers.location!)).headers.location;
     };
-    const yes = await run('proceed');
-    expect((await yes.get('/rental/confirmation')).text).toMatch(/DR-[0-9A-F]{6}/);
-    const no = await run('cancel');
-    expect((await no.get('/rental/confirmation')).headers.location).toBe('/rental/booking');
+    const receive = async (key: string) => {
+      const offer = await a.post(`/bank/attestation/${key}`);
+      await a.post('/wallet-sim/redeem').type('form').send({ offerId: /name="offerId" value="([^"]+)"/.exec(offer.text)![1]!, returnTo: '/wallet' });
+    };
+    await present('bank', '/bank/login/pid', { type: 'pid', persona: 'de' }); // bank customer Lukas Demo
+    await receive('account'); await a.post('/bank/signout');
+    await present('bank', '/bank/login/account'); await receive('payment');
+    await present('rental', '/rental/login', { type: 'mdl', persona: 'fr' }); // driver Camille Demo: another name, no warning
+    const book = await a.post('/rental/book').type('form').send({ car: 'city', days: '2' });
+    const vp = (await a.get(book.headers.location!)).headers.location!;
+    const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(vp)![1]!;
+    await a.get((await a.post(`/rental/verify/wallet/${id}/share`)).headers.location!);
+    const ok = await a.get('/rental/confirmation');
+    expect(ok.status).toBe(200);
+    expect(ok.text).toMatch(/DR-[0-9A-F]{6}/);
+    expect(ok.text).not.toContain('Names do not match');
+    expect(ok.text).not.toContain('Lukas'); // the payment account holder's name is not shown
+    expect(ok.text).toMatch(/XX00 •••• •••• \d{4}/); // only the account reference
   });
 });

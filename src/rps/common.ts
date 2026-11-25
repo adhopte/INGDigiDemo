@@ -151,7 +151,6 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
     res.render('verify', {
       title: res.locals.t('verify.title'),
       tx, link, shownLink: qrLink, byValue: svc.verifier.byValue, qr: await qrDataUrlOrUndefined(qrLink),
-      phoneQr: await qrDataUrlOrUndefined(`${cfg.publicBaseUrl}/${rp.id}/verify/open/${tx.id}`),
       expiresAt: new Date(tx.expiresAt),
       statusUrl: `/${rp.id}/verify/status/${id}`,
       finishUrl: `/${rp.id}/verify/finish/${id}`,

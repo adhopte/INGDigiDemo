@@ -23,8 +23,8 @@ export interface WalletCredential {
 
 export interface CartItem { id: string; qty: number }
 export interface Order { number: string; items: { id: string; qty: number; unit: number }[]; total: number; holder: string; ibanMasked: string; at: string }
-export interface RentalBooking { car: string; days: number; total: number; at: string; /** The customer confirmed to go ahead although the names differ. */ proceed?: boolean }
-export interface RentalDone extends RentalBooking { ref: string; pickup: string; back: string; holder: string; ibanMasked: string; bank: string; driver: string; licence: string }
+export interface RentalBooking { car: string; days: number; total: number; at: string }
+export interface RentalDone extends RentalBooking { ref: string; pickup: string; back: string; ibanMasked: string; bank: string; driver: string; licence: string }
 export interface Enrolment { studentNumber: string; programme: string; email: string; at: string }
 
 declare module 'express-session' {

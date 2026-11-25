@@ -21,7 +21,7 @@ export function extrasRouter(ctx: Ctx): Router {
 
   // Technical page: which credential does the wallet actually hold? One probe per credential type.
   const PROBES = [
-    { key: 'probe_pid_mdoc', label: 'PID as mdoc – family_name', detail: 'docType eu.europa.ec.eudi.pid.1, element family_name (the SIGMA issuer’s PID)' },
+    { key: 'probe_pid_mdoc', label: 'PID as mdoc – family_name', detail: 'docType eu.europa.ec.eudi.pid.1, element family_name (the IN Groupe issuer’s PID)' },
     { key: 'probe_pid_mdoc_given', label: 'PID as mdoc – given_name', detail: 'element given_name' },
     { key: 'probe_pid_mdoc_birth_date', label: 'PID as mdoc – birth_date', detail: 'element birth_date' },
     { key: 'probe_pid_mdoc_birthdate', label: 'PID as mdoc – birthdate (SD-JWT spelling)', detail: 'element birthdate (no underscore), in case the issuer’s records use the SD-JWT name' },
@@ -33,7 +33,7 @@ export function extrasRouter(ctx: Ctx): Router {
     { key: 'probe_payment_iban', label: 'Payment attestation – one claim only', detail: 'same vct, claim iban only' },
     { key: 'probe_payment_multivct', label: 'Payment attestation – several vct values', detail: 'vct_values [urn:eudi:pid:1, urn:eudi:demo:payment-attestation:1], claim iban' },
     { key: 'probe_account', label: 'Bank account attestation (local issuer)', detail: 'vct urn:eudi:demo:bank-account:1, claim account_number' },
-    { key: 'probe_bc_sd', label: 'Birth certificate as SD-JWT', detail: 'vct urn:eudi:birth_certificate:1 (the SIGMA issuer’s birth certificate)' },
+    { key: 'probe_bc_sd', label: 'Birth certificate as SD-JWT', detail: 'vct urn:eudi:birth_certificate:1 (the IN Groupe issuer’s birth certificate)' },
   ];
   // Which QR content does the wallet's own scanner accept? The same bank PID request, in four forms (scan each with the wallet).
   r.get('/qr-test', async (_req, res) => {
@@ -85,7 +85,7 @@ export function extrasRouter(ctx: Ctx): Router {
     res.redirect(portal.some((u) => u.id === id) ? `/demo-issuer/use-case/${encodeURIComponent(id)}` : '/demo-issuer');
   });
 
-  /** A REAL pre-authorised offer from the SIGMA issuer's offer API for a known sample identifier. */
+  /** A REAL pre-authorised offer from the IN Groupe issuer's offer API for a known sample identifier. */
   r.post('/demo-issuer/sigma-offer', async (req, res) => {
     const s = await svc.remote?.summary();
     const att = cfg.attestations[q(req.body?.type) ?? ''];
