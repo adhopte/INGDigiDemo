@@ -9,6 +9,7 @@ import { issuerRouters } from './issuer/local/routes.js';
 import { log } from './logger.js';
 import { adminRouter } from './routes/admin.js';
 import { extrasRouter } from './routes/extras.js';
+import { labRouter } from './routes/lab.js';
 import { rpRouterFor } from './rps/index.js';
 import type { Services } from './services.js';
 import { vpRouter } from './verifier/routes.js';
@@ -89,6 +90,7 @@ export function createApp(cfg: AppConfig, svc: Services) {
 
   app.get('/', (_req, res) => res.render('dashboard', { title: res.locals.t('dash.title') }));
   app.use(adminRouter(ctx));
+  app.use(labRouter(ctx)); // the issuance workspace (identity → credentials → offer) takes over /demo-issuer when the issuer's data API is known
   app.use(extrasRouter(ctx));
   for (const rp of cfg.rps) app.use(`/${rp.id}`, rpRouterFor(ctx, rp));
 

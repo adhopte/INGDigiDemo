@@ -118,6 +118,8 @@ export interface IssuerConfig {
   batchSize: number;
   /** How long a credential offer of the local issuer can be redeemed (minutes; ISSUER_OFFER_TTL_MINUTES, default 60). */
   offerTtlMinutes: number;
+  /** Base URL of the issuer's data workspace API (cases: identity + credentials → offer), e.g. https://issuer-mock.…/mock-sor. Derived from ISSUER_API_BASE_URL when unset; ISSUER_SOR_API_BASE=off disables it. */
+  sorApiBase: string | undefined;
   signingKeyJwk: string | undefined;
   external: ExternalIssuerConfig;
 }
@@ -329,6 +331,11 @@ export function loadConfig(
       txCode: parseBool(env.ISSUER_TX_CODE, false),
       // default OFF while the Android wallet's handling of the policy is investigated (a restart must not undo the setting); "sigma" declares it
       reusePolicy: (env.ISSUER_CREDENTIAL_REUSE ?? '').toLowerCase() === 'sigma' ? 'sigma' : 'off',
+      sorApiBase: ((raw) => {
+        if (mockMode || issuerMode !== 'external') return undefined;
+        if (raw !== undefined) return raw === '' || raw.toLowerCase() === 'off' ? undefined : raw.replace(/\/+$/, '');
+        try { const u = new URL(external.apiBaseUrl ?? ''); return u.hostname.startsWith('issuer.') ? `${u.protocol}//issuer-mock.${u.hostname.slice('issuer.'.length)}/mock-sor` : undefined; } catch { return undefined; }
+      })(env.ISSUER_SOR_API_BASE),
       offerTtlMinutes: ((n) => (Number.isFinite(n) && n >= 1 && n <= 1440 ? n : 60))(Number(env.ISSUER_OFFER_TTL_MINUTES ?? 60)),
       batchSize: ((n) => (Number.isInteger(n) && n >= 1 && n <= 10 ? n : 10))(Number(env.ISSUER_BATCH_SIZE ?? 10)),
       signingKeyJwk: env.ISSUER_SIGNING_KEY_JWK || undefined,
