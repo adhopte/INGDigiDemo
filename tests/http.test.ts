@@ -202,8 +202,8 @@ describe('phone-camera hand-off and QR scannability', () => {
     const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(loc)![1]!;
     const page = (await a.get(loc)).text;
     expect(page).not.toContain('Scanning not working?');
-    expect((page.match(/data:image\/svg\+xml/g) ?? []).length).toBe(1); // one QR code only (400px)
-    expect(page).toContain('width="400"');
+    expect((page.match(/data:image\/svg\+xml/g) ?? []).length).toBe(1); // one QR code only, large enough to scan
+    expect(page).toContain('width="720"');
     const open = await request(app).get(`/bank/verify/open/${id}`); // no session cookie: a different device
     expect(open.status).toBe(200);
     expect(open.text).toContain('openid4vp://authorize?');
