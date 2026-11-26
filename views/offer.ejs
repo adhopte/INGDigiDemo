@@ -14,7 +14,8 @@
       </div>
       <div class="handoff-desktop">
         <p><%= t('offer.desktop') %></p>
-        <img class="qr" src="<%= offer.qr %>" width="260" height="260" alt="<%= t('offer.qr_alt', { name: t('att.' + attestationKey + '.name') }) %>">
+        <img class="qr qr-wide" id="offer-qr" src="<%= offer.qr %>" width="360" height="360" alt="<%= t('offer.qr_alt', { name: t('att.' + attestationKey + '.name') }) %>">
+        <p><button type="button" class="btn btn-secondary btn-small" data-qr-zoom="offer-qr" data-close="<%= t('qr.close') %>" hidden><%= t('qr.enlarge') %></button></p>
       </div>
     </div>
     <% if (offer.txCode) { %>
@@ -47,4 +48,5 @@
   <p><a class="btn btn-secondary" href="<%= returnTo %>"><%= t('btn.back') %></a></p>
 </div>
 <script src="/js/copy.js?v=<%= v %>" defer></script>
+<script src="/js/qr-zoom.js?v=<%= v %>" defer></script>
 <%- include('partials/foot') %>

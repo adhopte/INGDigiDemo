@@ -706,5 +706,8 @@
   "jobs.apply.add_now": "Lägg till nu",
   "jobs.apply.cv_none": "Inget CV-dokument bifogat (valfritt).",
   "jobs.apply.account_note": "Skapa ditt konto med ditt PID för att söka.",
-  "jobs.done.education": "Utbildning (verifierad)"
+  "jobs.done.education": "Utbildning (verifierad)",
+  "qr.enlarge": "Förstora QR-koden",
+  "qr.close": "Stäng",
+  "lab.qr.enlarge": "Förstora QR-koden"
 }

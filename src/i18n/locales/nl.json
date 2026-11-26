@@ -706,5 +706,8 @@
   "jobs.apply.add_now": "Nu toevoegen",
   "jobs.apply.cv_none": "Geen cv-document bijgevoegd (optioneel).",
   "jobs.apply.account_note": "Maak uw account met uw PID om te solliciteren.",
-  "jobs.done.education": "Opleiding (geverifieerd)"
+  "jobs.done.education": "Opleiding (geverifieerd)",
+  "qr.enlarge": "QR-code vergroten",
+  "qr.close": "Sluiten",
+  "lab.qr.enlarge": "QR-code vergroten"
 }

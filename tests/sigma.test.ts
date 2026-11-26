@@ -76,7 +76,7 @@ describe('console: offers through the SIGMA offer API', () => {
     expect(res.text).toContain('246810'); // the code the wallet asks for
     expect(res.text).toContain('Pre-authorised code'); // shown like the WalletTester does
     expect(res.text).toContain('openid-credential-offer://');
-    expect(res.text).toContain('data:image/png');
+    expect(res.text).toMatch(/data:image\/(svg\+xml|png)/);
     // identifiers typed by hand are passed through (validated); unsafe input is refused
     const custom = await request(app).post('/demo-issuer/sigma-offer').type('form').send({ type: 'pid', identifier: 'user-pid-mdoc-001', customIdentifier: 'my-user_9', customCredentialIdentifier: 'cred.1' });
     expect(custom.status).toBe(200);

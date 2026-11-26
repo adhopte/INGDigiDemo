@@ -224,7 +224,7 @@ describe('external issuer adapter (SIGMA offer API)', () => {
     expect(JSON.parse(String(seen!.init.body)).identifier).toBe('user-bc-sd-jwt-002');
     expect(offer).toMatchObject({ provider: 'external', txCode: '111222', deeplink: OFFER });
     expect(offer.id).toBeUndefined();
-    expect(offer.qr.startsWith('data:image/png;base64,')).toBe(true);
+    expect(/^data:image\/(svg\+xml|png);base64,/.test(offer.qr)).toBe(true);
   });
 
   it('supports bearer / client_credentials when the API is later protected, and surfaces API errors', async () => {

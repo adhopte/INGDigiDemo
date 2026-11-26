@@ -272,6 +272,13 @@
     dlg.addEventListener('close', function () { dlg.remove(); });
     document.body.appendChild(dlg); dlg.showModal();
   }
+  function enlargeQr(src) {
+    var dlg = h('dialog', { class: 'qr-dialog', 'aria-label': tr('lab.qr_alt') });
+    dlg.appendChild(h('img', { class: 'qr-big', src: src, alt: tr('lab.qr_alt') }));
+    dlg.appendChild(h('button', { type: 'button', class: 'btn btn-secondary', onclick: function () { dlg.close(); } }, tr('lab.close')));
+    dlg.addEventListener('close', function () { dlg.remove(); });
+    document.body.appendChild(dlg); dlg.showModal();
+  }
   function regenerate() {
     if (state.busy || !state.caseRec) return;
     state.busy = true; state.error = ''; render();
@@ -289,7 +296,7 @@
             h('a', { class: 'btn btn-large lab-open', href: offer.uri }, tr('lab.open_wallet'), icon(ICONS.arrow)),
             h('p', null, h('button', { type: 'button', class: 'lab-link', onclick: function () { copy(offer.uri); } }, tr('lab.copy_link'))),
             rec.expiresAt ? h('p', { class: 'note' }, tr('lab.offer.expires', { time: new Date(rec.expiresAt).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' }) })) : null),
-          offer.qr_code ? h('div', { class: 'lab-qr' }, h('img', { class: 'qr qr-small', src: 'data:image/png;base64,' + offer.qr_code, width: '220', height: '220', alt: tr('lab.qr_alt') }), h('p', { class: 'note' }, tr('lab.offer.scan'))) : null)),
+          offer.qr_code ? h('div', { class: 'lab-qr' }, h('img', { class: 'qr lab-qr-img', src: 'data:image/png;base64,' + offer.qr_code, width: '340', height: '340', alt: tr('lab.qr_alt') }), h('p', { class: 'note' }, tr('lab.offer.scan')), h('button', { type: 'button', class: 'btn btn-secondary btn-small', onclick: function () { enlargeQr('data:image/png;base64,' + offer.qr_code); } }, tr('lab.qr.enlarge'))) : null)),
       h('details', { class: 'panel lab-person-sum' }, h('summary', null, state.identity.portrait ? h('img', { src: portraitSrc(state.identity.portrait), alt: '', width: '40', height: '50', class: 'lab-person-img' }) : null, h('span', null, h('strong', null, personName()), h('small', null, tr('lab.prepared', { n: String(rec.credentials.length) })))),
         h('ul', { class: 'plain' }, rec.credentials.map(function (c) { return h('li', null, nameOf(c.credentialConfigurationId)); }))),
       h('div', { class: 'lab-actions' },

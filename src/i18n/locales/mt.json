@@ -706,5 +706,8 @@
   "jobs.apply.add_now": "Żidha issa",
   "jobs.apply.cv_none": "Ebda dokument tas-CV mwaħħal (fakultattiv).",
   "jobs.apply.account_note": "Oħloq il-kont bil-PID tiegħek biex tapplika.",
-  "jobs.done.education": "Edukazzjoni (vverifikata)"
+  "jobs.done.education": "Edukazzjoni (vverifikata)",
+  "qr.enlarge": "Kabbar il-kodiċi QR",
+  "qr.close": "Għalaq",
+  "lab.qr.enlarge": "Kabbar il-kodiċi QR"
 }

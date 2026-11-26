@@ -706,5 +706,8 @@
   "jobs.apply.add_now": "Tilføj det nu",
   "jobs.apply.cv_none": "Intet CV-dokument vedhæftet (valgfrit).",
   "jobs.apply.account_note": "Opret din konto med dit PID for at søge.",
-  "jobs.done.education": "Uddannelse (verificeret)"
+  "jobs.done.education": "Uddannelse (verificeret)",
+  "qr.enlarge": "Forstør QR-kode",
+  "qr.close": "Luk",
+  "lab.qr.enlarge": "Forstør QR-kode"
 }

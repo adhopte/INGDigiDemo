@@ -706,5 +706,8 @@
   "jobs.apply.add_now": "Jetzt hinzufügen",
   "jobs.apply.cv_none": "Kein Lebenslaufdokument angehängt (optional).",
   "jobs.apply.account_note": "Erstellen Sie Ihr Konto mit Ihrem PID, um sich zu bewerben.",
-  "jobs.done.education": "Ausbildung (geprüft)"
+  "jobs.done.education": "Ausbildung (geprüft)",
+  "qr.enlarge": "QR-Code vergrößern",
+  "qr.close": "Schließen",
+  "lab.qr.enlarge": "QR-Code vergrößern"
 }

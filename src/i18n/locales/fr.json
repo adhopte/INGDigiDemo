@@ -706,5 +706,8 @@
   "jobs.apply.add_now": "L’ajouter maintenant",
   "jobs.apply.cv_none": "Aucun document de CV joint (facultatif).",
   "jobs.apply.account_note": "Créez votre compte avec votre PID pour postuler.",
-  "jobs.done.education": "Formation (vérifiée)"
+  "jobs.done.education": "Formation (vérifiée)",
+  "qr.enlarge": "Agrandir le QR code",
+  "qr.close": "Fermer",
+  "lab.qr.enlarge": "Agrandir le QR code"
 }

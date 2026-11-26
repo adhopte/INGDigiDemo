@@ -706,5 +706,8 @@
   "jobs.apply.add_now": "Add it now",
   "jobs.apply.cv_none": "No CV document attached (optional).",
   "jobs.apply.account_note": "Create your account with your PID to apply.",
-  "jobs.done.education": "Education (verified)"
+  "jobs.done.education": "Education (verified)",
+  "qr.enlarge": "Enlarge QR code",
+  "qr.close": "Close",
+  "lab.qr.enlarge": "Enlarge QR code"
 }
