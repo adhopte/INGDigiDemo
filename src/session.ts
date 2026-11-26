@@ -45,6 +45,9 @@ declare module 'express-session' {
     enrolment?: Enrolment;
     /** University exam registrations of this session. */
     examRegs?: string[];
+    /** Job portal: the CV the candidate attached (kept in the session only) and the applications sent. */
+    cv?: { name: string; type: string; size: number; data: string };
+    applications?: Array<{ jobId: string; ref: string; at: string }>;
     /** Car rental: the booking waiting for its payment, and the confirmed one. */
     rentalBooking?: RentalBooking;
     rentalDone?: RentalDone;

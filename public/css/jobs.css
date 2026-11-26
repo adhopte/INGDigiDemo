@@ -1,0 +1,13 @@
+/* Demo Jobs: teal accent on the shared design system */
+:root { --primary: #0f766e; --primary-dark: #0b524c; --link: #0b524c; --accent: #f59e0b; }
+.skin-jobs .btn-secondary { color: var(--primary-dark); }
+.skin-jobs .hero-card { background: #eff9f7; border-color: #cbe8e3; }
+.skin-jobs .search { display: flex; gap: .6rem; flex-wrap: wrap; align-items: flex-end; margin: 1rem 0 0; }
+.skin-jobs .search .field { margin: 0; flex: 1 1 16rem; } .skin-jobs .search input { max-width: none; }
+.skin-jobs .joblist { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: .8rem; }
+.skin-jobs .jobcard { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.3rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: var(--shadow); max-width: none; }
+.skin-jobs .jobcard h3 { margin: 0 0 .15rem; } .skin-jobs .jobcard p { margin: 0; color: var(--muted); }
+.skin-jobs .cvbox { border: 1px dashed var(--field-border); border-radius: 12px; padding: 1.1rem 1.3rem; background: var(--bg); }
+.skin-jobs .cvbox input[type="file"] { display: block; margin: .6rem 0; max-width: 100%; }
+.skin-jobs .verified { display: inline-flex; align-items: center; gap: .4rem; background: #ebf8ee; color: #0b4a1c; border: 1px solid #a6d8b2; border-radius: 99px; padding: .15rem .8rem; font-weight: 650; font-size: .8125rem; }
+.skin-jobs .meets-ok { color: #166534; font-weight: 650; } .skin-jobs .meets-no { color: #b45309; font-weight: 650; }

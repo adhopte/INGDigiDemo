@@ -1,0 +1,29 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <div class="alert alert-success" role="status"><strong><%= t('jobs.done.banner') %></strong></div>
+  <h1><%= t('jobs.done.title') %></h1>
+  <section class="panel" aria-labelledby="ap-h">
+    <h2 id="ap-h"><%= t('jobs.done.summary') %></h2>
+    <dl class="meta">
+      <dt><%= t('jobs.done.ref') %></dt><dd class="mono"><%= app.ref %></dd>
+      <dt><%= t('jobs.done.job') %></dt><dd><%= t('jobs.' + j.id + '.title') %> – <%= j.company %>, <%= j.city %></dd>
+      <dt><%= t('jobs.done.candidate') %></dt><dd><%= d.given_name || '' %> <%= d.family_name %></dd>
+      <dt><%= t('jobs.done.cv') %></dt><dd><%= cv.name %> (<%= Math.max(1, Math.round(cv.size / 1000)) %> KB) · <a href="/jobs/cv/download"><%= t('jobs.cv.download') %></a></dd>
+    </dl>
+  </section>
+  <section class="panel" aria-labelledby="dd-h">
+    <h2 id="dd-h"><%= t('jobs.done.diploma') %> <span class="verified"><span aria-hidden="true">✔ </span><%= t('jobs.done.verified') %></span></h2>
+    <dl class="meta">
+      <dt><%= t('claim.diploma_title') %></dt><dd><%= d.diploma_title %></dd>
+      <dt><%= t('claim.institution_name') %></dt><dd><%= d.institution_name %></dd>
+      <% if (d.degree_level) { %><dt><%= t('claim.degree_level') %></dt><dd><%= d.degree_level %></dd><% } %>
+      <% if (d.eqf_level) { %><dt><%= t('claim.eqf_level') %></dt><dd><%= d.eqf_level %></dd><% } %>
+      <% if (d.awarding_date) { %><dt><%= t('claim.awarding_date') %></dt><dd><%= fmtClaim('awarding_date', d.awarding_date) %></dd><% } %>
+      <dt><%= t('jobs.requires') %></dt><dd><%= t('jobs.level.' + j.eqf) %>
+        <% if (meets === true) { %> – <span class="meets-ok"><span aria-hidden="true">✔ </span><%= t('jobs.done.meets') %></span><% } else if (meets === false) { %> – <span class="meets-no"><%= t('jobs.done.below') %></span><% } %></dd>
+    </dl>
+    <p class="note"><%= t('jobs.done.note') %></p>
+  </section>
+  <p><a class="btn" href="/jobs/"><%= t('jobs.done.more') %></a> <a class="btn btn-secondary" href="/jobs/applications"><%= t('jobs.nav.apps') %></a></p>
+</div>
+<%- include('../partials/foot') %>

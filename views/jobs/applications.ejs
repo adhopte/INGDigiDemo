@@ -1,0 +1,13 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <h1><%= t('jobs.apps.title') %></h1>
+  <% if (!apps.length) { %><p class="note"><%= t('jobs.apps.none') %></p><% } else { %>
+  <table class="table">
+    <caption class="sr-only"><%= t('jobs.apps.title') %></caption>
+    <thead><tr><th scope="col"><%= t('jobs.done.job') %></th><th scope="col"><%= t('jobs.done.ref') %></th><th scope="col"><%= t('eshop.order.date') %></th></tr></thead>
+    <tbody><% apps.forEach(function (a) { %><tr><td><%= t('jobs.' + a.j.id + '.title') %> – <%= a.j.company %></td><td class="mono"><%= a.ref %></td><td><%= fmtDate(a.at) %></td></tr><% }) %></tbody>
+  </table>
+  <% } %>
+  <p><a class="btn btn-secondary" href="/jobs/"><%= t('jobs.nav.jobs') %></a></p>
+</div>
+<%- include('../partials/foot') %>

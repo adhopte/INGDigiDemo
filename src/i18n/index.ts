@@ -107,7 +107,7 @@ export function i18nMiddleware(isProduction: boolean) {
     };
     const t = res.locals.t as Translator;
     const region = res.locals.regionName as (c: string) => string;
-    const DATE_CLAIMS = new Set(['birth_date', 'valid_until', 'account_opened', 'issuance_date', 'issue_date', 'expiry_date', 'registration_date', 'valid_from']);
+    const DATE_CLAIMS = new Set(['birth_date', 'valid_until', 'account_opened', 'issuance_date', 'issue_date', 'expiry_date', 'registration_date', 'valid_from', 'date_of_birth', 'awarding_date']);
     const COUNTRY_CLAIMS = new Set(['issuing_country', 'nationality', 'birth_country']);
     /** Human-readable rendering of a verified claim value (dates, countries, addresses, lists). */
     const fmtClaim = (name: string, v: unknown): string => {

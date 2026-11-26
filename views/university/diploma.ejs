@@ -1,0 +1,30 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <h1><%= t('uni.diploma.title') %></h1>
+  <p class="lead"><%= t('uni.diploma.text') %></p>
+  <% if (!ok) { %><div class="alert alert-error" role="alert"><%= t('uni.exams.status_expired') %></div><% } %>
+  <% if (error) { %><div class="alert alert-error" role="alert"><%= t(error) %></div><% } %>
+  <section class="panel" aria-labelledby="dd-h">
+    <h2 id="dd-h"><%= t('uni.diploma.preview') %></h2>
+    <dl class="meta">
+      <dt><%= t('rental.driver.name') %></dt><dd><%= c.given_name || '' %> <%= c.family_name %></dd>
+      <dt><%= t('claim.diploma_title') %></dt><dd><%= t('uni.diploma.t.' + programme) %></dd>
+      <dt><%= t('claim.institution_name') %></dt><dd>Demo University</dd>
+      <dt><%= t('claim.degree_level') %></dt><dd><%= level.level %> (EQF <%= level.eqf %>)</dd>
+      <dt><%= t('claim.programme_id') %></dt><dd class="mono"><%= level.id %></dd>
+    </dl>
+  </section>
+  <% if (ok) { %>
+  <form method="post" action="/university/attestation/diploma" novalidate>
+    <div class="field">
+      <label for="dob"><%= t('uni.diploma.dob') %> <span aria-hidden="true">*</span></label>
+      <input id="dob" name="dob" type="date" value="<%= dob %>" required>
+      <p class="note"><%= t('uni.diploma.dob_hint') %></p>
+    </div>
+    <button class="btn btn-large" type="submit"><%= t('uni.diploma.btn') %></button>
+  </form>
+  <p class="note"><%= t('uni.diploma.next') %></p>
+  <% } %>
+  <p><a class="btn btn-secondary" href="/university/exams"><%= t('btn.back') %></a></p>
+</div>
+<%- include('../partials/foot') %>

@@ -1,0 +1,32 @@
+<%- include('../partials/head') %>
+<section class="hero"><div class="wrap hero-grid">
+  <div>
+    <h1><%= t('jobs.hero.title') %></h1>
+    <p class="lead"><%= t('jobs.hero.sub') %></p>
+    <form class="search" method="get" action="/jobs/" role="search">
+      <div class="field"><label for="q"><%= t('jobs.search.label') %></label><input id="q" name="q" type="text" value="<%= term %>" autocomplete="off"></div>
+      <button class="btn" type="submit"><%= t('jobs.search.btn') %></button>
+    </form>
+  </div>
+  <div class="hero-card" role="note">
+    <h2><%= t('jobs.why.title') %></h2>
+    <ul class="plain"><li><%= t('jobs.why.1') %></li><li><%= t('jobs.why.2') %></li><li><%= t('jobs.why.3') %></li></ul>
+  </div>
+</div></section>
+<div class="wrap">
+  <h2><%= t('jobs.list.title') %></h2>
+  <% if (!jobs.length) { %><p class="note"><%= t('jobs.list.none') %></p><% } %>
+  <ul class="joblist">
+    <% jobs.forEach(function (j) { %>
+    <li class="jobcard">
+      <div>
+        <h3><%= t('jobs.' + j.id + '.title') %></h3>
+        <p><%= j.company %> · <%= j.city %></p>
+        <p class="note"><%= t('jobs.requires') %>: <%= t('jobs.level.' + j.eqf) %></p>
+      </div>
+      <a class="btn btn-secondary" href="/jobs/job/<%= j.id %>"><%= t('jobs.view') %><span class="sr-only"> – <%= t('jobs.' + j.id + '.title') %></span></a>
+    </li>
+    <% }) %>
+  </ul>
+</div>
+<%- include('../partials/foot') %>

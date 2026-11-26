@@ -2,6 +2,7 @@ import { randomInt } from 'node:crypto';
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import type { RpConfig } from '../config.js';
 import { claimsOfType, q, str, type Ctx } from './context.js';
+import { LOCALES, translator } from '../i18n/index.js';
 import { renderOffer } from './offer.js';
 import { rpBase } from './common.js';
 
@@ -103,6 +104,38 @@ export function universityRouter(ctx: Ctx, rp: RpConfig): Router {
       academic_year: `${y}/${y + 1}`, student_email: e.email,
     };
     await renderOffer(ctx, req, res, rp, 'studentid', claims, `/${rp.id}/confirmation`);
+  });
+
+  // ---- the diploma attestation (DC4EU-DE higher education diploma), for students signed in with the Student ID
+  const DIPLOMA: Record<string, { level: string; eqf: number; id: string }> = { cs: { level: 'Master', eqf: 7, id: 'DEMO-MSC-CS' }, law: { level: 'Master', eqf: 7, id: 'DEMO-LLM-LAW' }, bio: { level: 'Master', eqf: 7, id: 'DEMO-MSC-BIO' }, art: { level: 'Bachelor', eqf: 6, id: 'DEMO-BA-ART' } };
+  /** The programme of the signed-in student: the Student ID names it in the language it was issued in, so match it in every language. */
+  const programmeOf = (req: Request): (typeof PROGRAMMES)[number] => {
+    const given = str(sid(req)?.study_programme);
+    const hit = given ? PROGRAMMES.find((k) => LOCALES.some((l) => translator(l.code)(`prog.${k}`) === given)) : undefined;
+    return hit ?? (PROGRAMMES as readonly string[]).find((k) => k === req.session.enrolment?.programme) as (typeof PROGRAMMES)[number] ?? 'cs';
+  };
+
+  router.get('/diploma', (req, res, next) => (sid(req) ? next() : res.redirect(`/${rp.id}/login`)), (req, res) => {
+    const c = sid(req)!;
+    const k = programmeOf(req);
+    res.render('university/diploma', { title: res.locals.t('uni.diploma.title'), c, ok: studentStanding(c).ok, programme: k, level: DIPLOMA[k]!, dob: str(pid(req)?.birth_date), error: undefined });
+  });
+
+  router.post('/attestation/diploma', (req, res, next) => (sid(req) ? next() : res.redirect(`/${rp.id}/login`)), async (req, res) => {
+    const c = sid(req)!;
+    const k = programmeOf(req);
+    const dob = (q(req.body?.dob) ?? '').trim();
+    if (!studentStanding(c).ok) return void res.status(403).render('error', { title: res.locals.t('error.title'), message: res.locals.t('uni.exams.not_eligible'), retryHref: `/${rp.id}/exams` });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || Number.isNaN(Date.parse(dob)) || dob > new Date().toISOString().slice(0, 10)) {
+      return void res.status(422).render('university/diploma', { title: res.locals.t('uni.diploma.title'), c, ok: true, programme: k, level: DIPLOMA[k]!, dob, error: 'admin.err.date' });
+    }
+    const d = DIPLOMA[k]!;
+    const claims = {
+      given_name: str(c.given_name), family_name: str(c.family_name), date_of_birth: dob,
+      diploma_title: res.locals.t(`uni.diploma.t.${k}`), institution_name: 'Demo University', awarding_date: new Date().toISOString().slice(0, 10),
+      degree_level: d.level, eqf_level: d.eqf, programme_id: d.id, issuing_authority: res.locals.t('uni.diploma.authority'), issuing_country: 'DE',
+    };
+    await renderOffer(ctx, req, res, rp, 'diploma', claims, `/${rp.id}/exams`);
   });
 
   // ---- returning students: sign in with the Student ID, then the examination page

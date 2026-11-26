@@ -3,7 +3,7 @@
 .skin-dashboard .hero h1 { max-width: 22ch; }
 .skin-dashboard .hero .lead { max-width: 60ch; }
 .skin-dashboard .btn-secondary { color: var(--primary-dark); }
-.card-bank { --card-accent: #00694e; } .card-eshop { --card-accent: #4338ca; } .card-university { --card-accent: #7a1f3d; } .card-electricity { --card-accent: #15803d; } .card-rental { --card-accent: #1d4ed8; }
+.card-bank { --card-accent: #00694e; } .card-eshop { --card-accent: #4338ca; } .card-university { --card-accent: #7a1f3d; } .card-electricity { --card-accent: #15803d; } .card-rental { --card-accent: #1d4ed8; } .card-jobs { --card-accent: #0f766e; }
 .skin-dashboard .panel h2 { margin-top: 0; }
 
 .brand-group { display: flex; align-items: center; gap: 1rem; }

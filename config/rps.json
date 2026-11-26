@@ -238,6 +238,29 @@
         "student_email",
         "mobility_partner_institution"
       ]
+    },
+    "diploma": {
+      "credentialConfigurationId": "demo_diploma",
+      "vct": "urn:dc4eu-de:hed:de:1",
+      "acceptedVct": [
+        "urn:dc4eu-de:hed:de:1"
+      ],
+      "formats": [
+        "dc+sd-jwt"
+      ],
+      "claims": [
+        "given_name",
+        "family_name",
+        "date_of_birth",
+        "diploma_title",
+        "institution_name",
+        "awarding_date",
+        "degree_level",
+        "eqf_level",
+        "programme_id",
+        "issuing_authority",
+        "issuing_country"
+      ]
     }
   },
   "rps": [
@@ -726,6 +749,41 @@
             "bic",
             "bank_name",
             "valid_until"
+          ]
+        }
+      },
+      "attestations": []
+    },
+    {
+      "id": "jobs",
+      "displayName": "Demo Jobs",
+      "themeColor": "#0f766e",
+      "presentations": {
+        "diploma": {
+          "types": [
+            "diploma"
+          ],
+          "claims": [
+            "given_name",
+            "family_name",
+            "diploma_title",
+            "institution_name",
+            "awarding_date",
+            "degree_level",
+            "eqf_level",
+            "programme_id"
+          ],
+          "minClaims": [
+            "family_name",
+            "diploma_title",
+            "institution_name",
+            "eqf_level"
+          ],
+          "compactClaims": [
+            "family_name",
+            "diploma_title",
+            "institution_name",
+            "eqf_level"
           ]
         }
       },

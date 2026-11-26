@@ -119,6 +119,23 @@ async function run(vpName, size) {
   await page.getByRole('button', { name: 'Approve and share' }).click();
   await page.waitForURL(/\/university\/exams$/); await step('uni-exams');
   await page.getByRole('button', { name: /^Register/ }).first().click(); await step('uni-exams-registered');
+  await page.getByRole('link', { name: 'Get my diploma' }).click(); await step('uni-diploma');
+  await page.getByLabel(/Date of birth/).fill('1992-04-17');
+  await page.getByRole('button', { name: 'Get diploma attestation' }).click(); await step('uni-offer-diploma');
+  await page.getByRole('button', { name: 'Receive in simulated wallet' }).click();
+
+  // ---- Demo Jobs: CV + diploma
+  await go('/jobs/'); await step('jobs-home');
+  await page.getByRole('link', { name: /View job/ }).first().click(); await step('jobs-job');
+  await page.getByRole('link', { name: 'Apply with EU Wallet' }).click(); await step('jobs-apply');
+  await page.setInputFiles('#cv-file', { name: 'cv.txt', mimeType: 'text/plain', buffer: Buffer.from('Curriculum vitae') });
+  await page.getByText(/CV attached/).first().waitFor();
+  await page.getByRole('link', { name: 'Continue: present my diploma' }).click();
+  await page.waitForURL(/\/jobs\/verify\/[A-Za-z0-9_-]{16}$/); await step('jobs-verify');
+  await page.getByRole('link', { name: 'Open the simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Approve and share' }).click();
+  await page.waitForURL(/\/jobs\/application\/j1$/); await step('jobs-application');
+  await go('/jobs/applications'); await step('jobs-applications');
 
   // ---- Electricity
   await go('/electricity/'); await step('el-home');
@@ -151,11 +168,11 @@ async function languages() {
   for (const lang of ['en', 'fr', 'es', 'nl', 'de', 'da', 'mt', 'sv']) {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, bypassCSP: true });
     const page = await ctx.newPage();
-    for (const path of ['/', '/bank/', '/eshop/', '/eshop/cart', '/university/', '/university/exams', '/electricity/', '/rental/', '/demo-issuer']) {
+    for (const path of ['/', '/bank/', '/eshop/', '/eshop/cart', '/university/', '/university/exams', '/electricity/', '/rental/', '/jobs/', '/demo-issuer']) {
       await page.goto(`${BASE}${path}?lang=${lang}`);
       const htmlLang = await page.getAttribute('html', 'lang');
       const text = (await page.locator('body').innerText()).replace(/https?:\/\/\S+/g, '').replace(/\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:io|com|org|net)\b/gi, '');
-      const leaked = text.match(/\b(?:bank|eshop|uni|el|rental|dash|verify|offer|mockw|claim|att|rp|shop|prog|nav|btn|form|footer|mock|issuer)\.[a-z_0-9]+(?:\.[a-z_0-9]+)*\b/g);
+      const leaked = text.match(/\b(?:bank|eshop|uni|el|rental|jobs|dash|verify|offer|mockw|claim|att|rp|shop|prog|nav|btn|form|footer|mock|issuer)\.[a-z_0-9]+(?:\.[a-z_0-9]+)*\b/g);
       if (htmlLang !== lang) { failures++; log(`  ✗ [${lang}${path}] html lang=${htmlLang}`); }
       if (leaked) { failures++; log(`  ✗ [${lang}${path}] untranslated keys: ${[...new Set(leaked)].join(', ')}`); }
       await axe(page, `${lang}:${path}`);

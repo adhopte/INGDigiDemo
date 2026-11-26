@@ -1,0 +1,30 @@
+<%- include('../partials/head') %>
+<div class="wrap narrow">
+  <h1><%= t('jobs.apply.title', { job: t('jobs.' + j.id + '.title') }) %></h1>
+  <p class="lead"><%= j.company %> · <%= j.city %></p>
+  <section class="panel" aria-labelledby="cv-h">
+    <h2 id="cv-h"><%= t('jobs.apply.step1') %></h2>
+    <div class="cvbox" id="cv-box" data-upload="/jobs/cv" data-max="<%= maxKb * 1000 %>"
+         data-msg-ok="<%= t('jobs.cv.ok') %>" data-msg-err="<%= t('jobs.cv.err') %>" data-msg-busy="<%= t('jobs.cv.uploading') %>" data-next="/jobs/apply/<%= j.id %>/present">
+      <label for="cv-file"><%= t('jobs.cv.label', { kb: maxKb }) %></label>
+      <input id="cv-file" type="file" accept=".pdf,.txt,.md,.doc,.docx,application/pdf,text/plain">
+      <p id="cv-status" role="status" aria-live="polite"><% if (cv) { %><%= t('jobs.cv.ok', { name: cv.name, size: Math.max(1, Math.round(cv.size / 1000)) + ' KB' }) %><% } %></p>
+      <p class="note"><%= t('jobs.cv.hint') %></p>
+      <% if (cv) { %>
+        <span class="actions"><a class="btn btn-secondary btn-small" href="/jobs/cv/download"><%= t('jobs.cv.download') %></a></span>
+      <% } %>
+    </div>
+    <% if (cv) { %>
+    <form method="post" action="/jobs/cv/remove"><input type="hidden" name="back" value="/jobs/apply/<%= j.id %>"><button class="btn btn-secondary btn-small" type="submit"><%= t('jobs.cv.remove') %></button></form>
+    <% } %>
+  </section>
+  <section class="panel" aria-labelledby="dp-h">
+    <h2 id="dp-h"><%= t('jobs.apply.step2') %></h2>
+    <p><%= t('jobs.apply.diploma_hint') %></p>
+    <p><a id="cv-continue" class="btn btn-large<%= cv ? '' : ' is-disabled' %>" href="/jobs/apply/<%= j.id %>/present"<%- cv ? '' : ' aria-disabled="true"' %>><%= t('jobs.apply.continue') %></a></p>
+    <p class="note" id="cv-need"<%= cv ? ' hidden' : '' %>><%= t('jobs.apply.need_cv') %></p>
+    <p class="note"><%= t('jobs.apply.no_diploma') %> <a href="/university/">Demo University</a></p>
+  </section>
+</div>
+<script src="/js/jobs-cv.js?v=<%= v %>" defer></script>
+<%- include('../partials/foot') %>

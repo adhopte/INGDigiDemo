@@ -754,3 +754,101 @@ describe('Demo University: Student ID attestation and the examination page', () 
     expect(md.claims.map((c: any) => c.path[0])).toEqual(expect.arrayContaining(['student_id', 'institution_name', 'enrollment_status', 'valid_until', 'academic_year']));
   });
 });
+
+describe('Diploma attestation and the job portal (Demo Jobs)', () => {
+  /** Enrol, get the Student ID and sign in with it (simulated wallet), as a returning student. */
+  async function studentSession() {
+    const { app } = await boot({ MOCK_MODE: 'true' });
+    const a = request.agent(app);
+    const present = async (rp: string, path: string, add?: { type: string; persona: string }) => {
+      const first = (await a.get(path)).headers.location!;
+      const verifyPath = path.includes('/verify?') ? first : (await a.get(first)).headers.location!;
+      const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(verifyPath)![1]!;
+      if (add) await a.post(`/${rp}/verify/wallet/${id}/add`).type('form').send(add);
+      return (await a.get((await a.post(`/${rp}/verify/wallet/${id}/share`)).headers.location!)).headers.location;
+    };
+    const redeem = async (offerHtml: string) => a.post('/wallet-sim/redeem').type('form').send({ offerId: /name="offerId" value="([^"]+)"/.exec(offerHtml)![1]!, returnTo: '/wallet' });
+    await present('university', '/university/verify?p=pid&returnTo=/university/documents', { type: 'pid', persona: 'fr' });
+    await present('university', '/university/verify?p=bc&returnTo=/university/documents', { type: 'birth_certificate', persona: 'fr' });
+    await a.post('/university/enrol').type('form').send({ programme: 'law', email: 'c@example.org', consent: 'yes' });
+    await redeem((await a.post('/university/attestation/studentid')).text);
+    await a.post('/university/signout');
+    expect(await present('university', '/university/login')).toBe('/university/exams');
+    return { a, present, redeem, app };
+  }
+
+  it('after the Student ID sign-in the student downloads a diploma attestation (DC4EU-DE higher education diploma)', async () => {
+    const { a, redeem } = await studentSession();
+    expect((await a.get('/university/exams')).text).toContain('Get my diploma');
+    const page = await a.get('/university/diploma');
+    expect(page.status).toBe(200);
+    expect(page.text).toContain('Master of Laws');
+    expect((await a.post('/university/attestation/diploma').type('form').send({ dob: 'x' })).status).toBe(422); // a date is needed
+    expect((await a.post('/university/attestation/diploma').type('form').send({ dob: '2999-01-01' })).status).toBe(422);
+    const offer = await a.post('/university/attestation/diploma').type('form').send({ dob: '1992-04-17' });
+    expect(offer.status).toBe(200);
+    await redeem(offer.text);
+    const held = heldCredentials((await a.get('/wallet')).text)['Higher Education Diploma']!;
+    expect(held['Diploma title']).toBe('Master of Laws');
+    expect(held['Institution']).toBe('Demo University');
+    expect(held['EQF level']).toBe('7');
+    expect(held['Degree level']).toBe('Master');
+    expect(held['Programme identifier']).toBe('DEMO-LLM-LAW');
+    const anon = request(a.app ?? (await boot({ MOCK_MODE: 'true' })).app);
+    expect((await anon.get('/university/diploma')).headers.location).toBe('/university/login'); // only after the Student ID sign-in
+  });
+
+  it('job portal: attach a CV, present the diploma, the application shows the verified diploma and whether it meets the level', async () => {
+    const { a, present, redeem } = await studentSession();
+    await redeem((await a.post('/university/attestation/diploma').type('form').send({ dob: '1992-04-17' })).text);
+    expect((await a.get('/jobs/')).text).toContain('Software Engineer');
+    expect((await a.get('/jobs/?q=paris')).text).toContain('Data Scientist');
+    expect((await a.get('/jobs/?q=paris')).text).not.toContain('Software Engineer');
+    expect((await a.get('/jobs/job/j2')).text).toContain('Apply with EU Wallet');
+    expect((await a.get('/jobs/job/zzz')).status).toBe(404);
+    // no CV: the diploma step is not reachable
+    expect((await a.get('/jobs/apply/j2/present')).headers.location).toBe('/jobs/apply/j2');
+    // the CV: wrong types and sizes are refused, a PDF is kept (session only) and can be downloaded again
+    const bad = await a.post('/jobs/cv').set('X-Filename', 'evil.exe').set('Content-Type', 'application/octet-stream').send(Buffer.from('MZ'));
+    expect(bad.status).toBe(422);
+    expect((await a.post('/jobs/cv').set('X-Filename', 'cv.pdf').set('Content-Type', 'application/octet-stream').send(Buffer.from('not a pdf'))).status).toBe(422);
+    const pdf = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\n%%EOF');
+    const up = await a.post('/jobs/cv').set('X-Filename', encodeURIComponent('Camille CV.pdf')).set('Content-Type', 'application/octet-stream').send(pdf);
+    expect(up.status).toBe(200);
+    expect(up.body).toMatchObject({ name: 'Camille CV.pdf', size: pdf.length });
+    expect((await a.get('/jobs/apply/j2')).text).toContain('Camille CV.pdf');
+    const dl = await a.get('/jobs/cv/download').buffer(true).parse((res, cb) => { const c: Buffer[] = []; res.on('data', (d: Buffer) => c.push(d)); res.on('end', () => cb(null, Buffer.concat(c))); });
+    expect(dl.headers['content-disposition']).toContain('attachment');
+    expect(Buffer.from(dl.body as Buffer).equals(pdf)).toBe(true);
+    // present the diploma, then the application
+    expect(await present('jobs', '/jobs/apply/j2/present')).toBe('/jobs/application/j2');
+    const done = await a.get('/jobs/application/j2');
+    expect(done.status).toBe(200);
+    expect(done.text).toMatch(/JB-[0-9A-F]{6}/);
+    expect(done.text).toContain('Master of Laws');
+    expect(done.text).toContain('Verified');
+    expect(done.text).toContain('Meets the requirement'); // EQF 7 for a job asking Master or higher
+    expect(done.text).toContain('Camille CV.pdf');
+    expect((await a.get('/jobs/applications')).text).toContain('Data Scientist');
+    // without a diploma presentation nothing is "applied"
+    expect((await request((await boot({ MOCK_MODE: 'true' })).app).get('/jobs/application/j2')).headers.location).toBe('/jobs/');
+    await a.post('/jobs/cv/remove').type('form').send({});
+    expect((await a.get('/jobs/cv/download')).status).toBe(404);
+  });
+
+  it('the level check, and the requested claims stay QR-sized', async () => {
+    const { meetsLevel } = await import('../src/rps/jobs.js');
+    expect(meetsLevel({ eqf_level: 7 }, 7)).toBe(true);
+    expect(meetsLevel({ eqf_level: '6' }, 7)).toBe(false);
+    expect(meetsLevel({ degree_level: 'Master' }, 7)).toBe(true);
+    expect(meetsLevel({ degree_level: 'Bachelor' }, 7)).toBe(false);
+    expect(meetsLevel({}, 6)).toBeUndefined();
+    const { svc, cfg } = await boot({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'jobs')!, 'diploma', '/jobs/application/j1');
+    const link = svc.verifier.walletLink(tx);
+    expect(JSON.parse(new URL(link).searchParams.get('dcql_query')!).credentials[0].meta.vct_values).toEqual(['urn:dc4eu-de:hed:de:1']);
+    expect(link.length).toBeLessThan(1700);
+    const md = (svc.local.metadata() as any).credential_configurations_supported.demo_diploma;
+    expect(md).toMatchObject({ format: 'dc+sd-jwt', vct: 'urn:dc4eu-de:hed:de:1' });
+  });
+});

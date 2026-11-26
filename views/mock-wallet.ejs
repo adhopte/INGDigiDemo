@@ -11,6 +11,9 @@
       <p class="ok-text"><span aria-hidden="true">✔ </span><%= t('mockw.held') %></p>
       <p><%= t('mockw.will_share') %></p>
       <%- include('partials/claims', { rows: it.claims }) %>
+    <% } else if (it.type === 'diploma') { %>
+      <p class="alert alert-warn" role="note"><%= t('mockw.no_diploma') %></p>
+      <p><a class="btn btn-secondary" href="/university/diploma"><%= t('mockw.go_diploma') %></a></p>
     <% } else if (it.type === 'studentid') { %>
       <p class="alert alert-warn" role="note"><%= t('mockw.no_studentid') %></p>
       <p><a class="btn btn-secondary" href="/university/"><%= t('mockw.go_university') %></a></p>

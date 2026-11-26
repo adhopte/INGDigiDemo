@@ -21,6 +21,11 @@
       <% } else { %><p class="alert alert-error" role="alert"><%= standing.active ? t('uni.exams.status_expired') : t('uni.exams.status_inactive') %></p><% } %>
     </section>
   </div>
+  <section class="panel" aria-labelledby="dp-h">
+    <h2 id="dp-h"><%= t('uni.diploma.title') %></h2>
+    <p><%= t('uni.diploma.text') %></p>
+    <p><a class="btn" href="/university/diploma"><%= t('uni.diploma.get') %></a></p>
+  </section>
   <section class="panel" aria-labelledby="ex-h">
     <h2 id="ex-h"><%= t('uni.exams.list') %></h2>
     <table class="table">

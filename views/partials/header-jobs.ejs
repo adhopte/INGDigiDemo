@@ -1,0 +1,16 @@
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/jobs/"><img class="brand-logo" src="/img/rp-jobs.svg" alt="" width="42" height="42"><span class="brand-name">Demo Jobs</span></a>
+    <nav aria-label="<%= t('nav.main') %>">
+      <ul class="nav-list">
+        <li><a href="/jobs/"><%= t('jobs.nav.jobs') %></a></li>
+        <li><a href="/jobs/applications"><%= t('jobs.nav.apps') %></a></li>
+        <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
+          <li><form method="post" action="/jobs/signout"><button class="link-btn" type="submit"><%= t('btn.signout') %></button></form></li>
+        <% } %>
+        <li><a href="/"><%= t('nav.all_demos') %></a></li>
+      </ul>
+    </nav>
+    <%- include('lang') %>
+  </div>
+</header>
