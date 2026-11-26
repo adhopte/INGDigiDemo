@@ -794,46 +794,60 @@ describe('Diploma attestation and the job portal (Demo Jobs)', () => {
     expect(held['EQF level']).toBe('7');
     expect(held['Degree level']).toBe('Master');
     expect(held['Programme identifier']).toBe('DEMO-LLM-LAW');
-    const anon = request(a.app ?? (await boot({ MOCK_MODE: 'true' })).app);
-    expect((await anon.get('/university/diploma')).headers.location).toBe('/university/login'); // only after the Student ID sign-in
+    expect((await request((await boot({ MOCK_MODE: 'true' })).app).get('/university/diploma')).headers.location).toBe('/university/login'); // only after the Student ID sign-in
   });
 
-  it('job portal: attach a CV, present the diploma, the application shows the verified diploma and whether it meets the level', async () => {
+  it('job portal: the account is created with the PID; the diploma, once verified, is added to the CV as an attribute; the application shows it', async () => {
     const { a, present, redeem } = await studentSession();
     await redeem((await a.post('/university/attestation/diploma').type('form').send({ dob: '1992-04-17' })).text);
-    expect((await a.get('/jobs/')).text).toContain('Software Engineer');
+    expect((await a.get('/jobs/')).text).toContain('Create account with your PID');
     expect((await a.get('/jobs/?q=paris')).text).toContain('Data Scientist');
-    expect((await a.get('/jobs/?q=paris')).text).not.toContain('Software Engineer');
     expect((await a.get('/jobs/job/j2')).text).toContain('Apply with EU Wallet');
     expect((await a.get('/jobs/job/zzz')).status).toBe(404);
-    // no CV: the diploma step is not reachable
-    expect((await a.get('/jobs/apply/j2/present')).headers.location).toBe('/jobs/apply/j2');
-    // the CV: wrong types and sizes are refused, a PDF is kept (session only) and can be downloaded again
-    const bad = await a.post('/jobs/cv').set('X-Filename', 'evil.exe').set('Content-Type', 'application/octet-stream').send(Buffer.from('MZ'));
-    expect(bad.status).toBe(422);
+    // nothing without the account: everything goes to the PID sign-up and comes back
+    expect((await a.get('/jobs/cv')).headers.location).toBe('/jobs/signup?next=%2Fjobs%2Fcv');
+    expect((await a.get('/jobs/apply/j2')).headers.location).toBe('/jobs/signup?next=%2Fjobs%2Fapply%2Fj2');
+    expect((await a.get('/jobs/signup?next=//evil.test')).headers.location).toBe('/jobs/verify?p=pid&returnTo=%2Fjobs%2Fcv'); // only local paths
+    expect(await present('jobs', '/jobs/signup?next=/jobs/apply/j2')).toBe('/jobs/apply/j2');
+    // no verified diploma yet
+    const review = await a.get('/jobs/apply/j2');
+    expect(review.status).toBe(200);
+    expect(review.text).toContain('No verified diploma on your CV yet.');
+    expect(review.text).toContain('Verified with your PID');
+    // the CV document: wrong types and sizes are refused, a PDF is kept (session only) and can be downloaded again
+    expect((await a.post('/jobs/cv').set('X-Filename', 'evil.exe').set('Content-Type', 'application/octet-stream').send(Buffer.from('MZ'))).status).toBe(422);
     expect((await a.post('/jobs/cv').set('X-Filename', 'cv.pdf').set('Content-Type', 'application/octet-stream').send(Buffer.from('not a pdf'))).status).toBe(422);
     const pdf = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\n%%EOF');
     const up = await a.post('/jobs/cv').set('X-Filename', encodeURIComponent('Camille CV.pdf')).set('Content-Type', 'application/octet-stream').send(pdf);
-    expect(up.status).toBe(200);
     expect(up.body).toMatchObject({ name: 'Camille CV.pdf', size: pdf.length });
-    expect((await a.get('/jobs/apply/j2')).text).toContain('Camille CV.pdf');
     const dl = await a.get('/jobs/cv/download').buffer(true).parse((res, cb) => { const c: Buffer[] = []; res.on('data', (d: Buffer) => c.push(d)); res.on('end', () => cb(null, Buffer.concat(c))); });
     expect(dl.headers['content-disposition']).toContain('attachment');
     expect(Buffer.from(dl.body as Buffer).equals(pdf)).toBe(true);
-    // present the diploma, then the application
-    expect(await present('jobs', '/jobs/apply/j2/present')).toBe('/jobs/application/j2');
+    // the diploma: presented through the wallet, then added to the CV as a verified attribute
+    expect((await a.get('/jobs/cv')).text).not.toContain('Master of Laws');
+    expect(await present('jobs', '/jobs/cv/diploma')).toBe('/jobs/cv/diploma/added');
+    expect((await a.get('/jobs/cv/diploma/added')).headers.location).toBe('/jobs/cv');
+    const cv = await a.get('/jobs/cv');
+    expect(cv.text).toContain('Master of Laws');
+    expect(cv.text).toContain('Verified by your diploma attestation');
+    expect(cv.text).toContain('Diploma verified and added to your CV.');
+    await a.get('/jobs/cv/diploma/added'); // presenting it again does not duplicate the entry
+    expect(((await a.get('/jobs/cv')).text.match(/Verified by your diploma attestation/g) ?? []).length).toBe(1);
+    // apply: the review shows the verified education and the requirement check; then send
+    const ready = await a.get('/jobs/apply/j2');
+    expect(ready.text).toContain('Master of Laws');
+    expect(ready.text).toContain('Meets the requirement'); // EQF 7 for a job asking Master or higher
+    expect((await a.post('/jobs/apply/j2')).headers.location).toBe('/jobs/application/j2');
     const done = await a.get('/jobs/application/j2');
-    expect(done.status).toBe(200);
     expect(done.text).toMatch(/JB-[0-9A-F]{6}/);
-    expect(done.text).toContain('Master of Laws');
-    expect(done.text).toContain('Verified');
-    expect(done.text).toContain('Meets the requirement'); // EQF 7 for a job asking Master or higher
+    expect(done.text).toContain('Education (verified)');
     expect(done.text).toContain('Camille CV.pdf');
     expect((await a.get('/jobs/applications')).text).toContain('Data Scientist');
-    // without a diploma presentation nothing is "applied"
-    expect((await request((await boot({ MOCK_MODE: 'true' })).app).get('/jobs/application/j2')).headers.location).toBe('/jobs/');
-    await a.post('/jobs/cv/remove').type('form').send({});
-    expect((await a.get('/jobs/cv/download')).status).toBe(404);
+    expect((await a.get('/jobs/application/j9')).headers.location).toBe('/jobs/');
+    // the education entry can be removed again; without it the requirement is not met
+    await a.post('/jobs/cv/education/remove').type('form').send({ i: '0' });
+    expect((await a.get('/jobs/cv')).text).not.toContain('Master of Laws');
+    expect((await request((await boot({ MOCK_MODE: 'true' })).app).get('/jobs/application/j2')).headers.location).toContain('/jobs/signup');
   });
 
   it('the level check, and the requested claims stay QR-sized', async () => {
@@ -844,7 +858,9 @@ describe('Diploma attestation and the job portal (Demo Jobs)', () => {
     expect(meetsLevel({ degree_level: 'Bachelor' }, 7)).toBe(false);
     expect(meetsLevel({}, 6)).toBeUndefined();
     const { svc, cfg } = await boot({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' });
-    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'jobs')!, 'diploma', '/jobs/application/j1');
+    const pidTx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'jobs')!, 'pid', '/jobs/cv');
+    expect(JSON.parse(new URL(svc.verifier.walletLink(pidTx)).searchParams.get('dcql_query')!).credentials.map((c: any) => c.format)).toEqual(['mso_mdoc']); // the account: the PID (mdoc)
+    const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'jobs')!, 'diploma', '/jobs/cv/diploma/added');
     const link = svc.verifier.walletLink(tx);
     expect(JSON.parse(new URL(link).searchParams.get('dcql_query')!).credentials[0].meta.vct_values).toEqual(['urn:dc4eu-de:hed:de:1']);
     expect(link.length).toBeLessThan(1700);

@@ -9,5 +9,6 @@
     <dl class="meta"><dt><%= t('jobs.requires') %></dt><dd><%= t('jobs.level.' + j.eqf) %></dd></dl>
   </section>
   <p><a class="btn btn-large" href="/jobs/apply/<%= j.id %>"><%= t('jobs.apply.btn') %></a></p>
+  <% if (!loggedIn) { %><p class="note"><%= t('jobs.apply.account_note') %></p><% } %>
 </div>
 <%- include('../partials/foot') %>

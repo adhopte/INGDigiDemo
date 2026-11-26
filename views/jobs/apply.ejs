@@ -1,30 +1,24 @@
 <%- include('../partials/head') %>
 <div class="wrap narrow">
   <h1><%= t('jobs.apply.title', { job: t('jobs.' + j.id + '.title') }) %></h1>
-  <p class="lead"><%= j.company %> · <%= j.city %></p>
-  <section class="panel" aria-labelledby="cv-h">
-    <h2 id="cv-h"><%= t('jobs.apply.step1') %></h2>
-    <div class="cvbox" id="cv-box" data-upload="/jobs/cv" data-max="<%= maxKb * 1000 %>"
-         data-msg-ok="<%= t('jobs.cv.ok') %>" data-msg-err="<%= t('jobs.cv.err') %>" data-msg-busy="<%= t('jobs.cv.uploading') %>" data-next="/jobs/apply/<%= j.id %>/present">
-      <label for="cv-file"><%= t('jobs.cv.label', { kb: maxKb }) %></label>
-      <input id="cv-file" type="file" accept=".pdf,.txt,.md,.doc,.docx,application/pdf,text/plain">
-      <p id="cv-status" role="status" aria-live="polite"><% if (cv) { %><%= t('jobs.cv.ok', { name: cv.name, size: Math.max(1, Math.round(cv.size / 1000)) + ' KB' }) %><% } %></p>
-      <p class="note"><%= t('jobs.cv.hint') %></p>
-      <% if (cv) { %>
-        <span class="actions"><a class="btn btn-secondary btn-small" href="/jobs/cv/download"><%= t('jobs.cv.download') %></a></span>
-      <% } %>
-    </div>
-    <% if (cv) { %>
-    <form method="post" action="/jobs/cv/remove"><input type="hidden" name="back" value="/jobs/apply/<%= j.id %>"><button class="btn btn-secondary btn-small" type="submit"><%= t('jobs.cv.remove') %></button></form>
-    <% } %>
+  <p class="lead"><%= j.company %> · <%= j.city %> · <%= t('jobs.requires') %>: <%= t('jobs.level.' + j.eqf) %></p>
+  <section class="panel" aria-labelledby="rv-h">
+    <h2 id="rv-h"><%= t('jobs.apply.review') %></h2>
+    <dl class="meta">
+      <dt><%= t('jobs.done.candidate') %></dt><dd><%= p.given_name %> <%= p.family_name %> <span class="verified"><span aria-hidden="true">✔ </span><%= t('jobs.cv.pid_verified') %></span></dd>
+      <dt><%= t('jobs.done.cv') %></dt><dd><% if (cv) { %><%= cv.name %> (<%= Math.max(1, Math.round(cv.size / 1000)) %> KB)<% } else { %><span class="note"><%= t('jobs.apply.cv_none') %></span><% } %></dd>
+      <dt><%= t('jobs.done.education') %></dt>
+      <dd>
+        <% if (!edu.length) { %><span class="meets-no"><%= t('jobs.apply.warn_diploma') %></span> <a href="/jobs/cv/diploma"><%= t('jobs.apply.add_now') %></a>
+        <% } else { %>
+          <ul class="plain"><% edu.forEach(function (e) { %><li><%= e.title %>, <%= e.institution %> <span class="verified"><span aria-hidden="true">✔ </span><%= t('jobs.done.verified') %></span></li><% }) %></ul>
+          <% if (meets === true) { %><span class="meets-ok"><span aria-hidden="true">✔ </span><%= t('jobs.done.meets') %></span><% } else if (meets === false) { %><span class="meets-no"><%= t('jobs.done.below') %></span><% } %>
+        <% } %>
+      </dd>
+    </dl>
+    <p class="note"><a href="/jobs/cv"><%= t('jobs.nav.cv') %></a></p>
   </section>
-  <section class="panel" aria-labelledby="dp-h">
-    <h2 id="dp-h"><%= t('jobs.apply.step2') %></h2>
-    <p><%= t('jobs.apply.diploma_hint') %></p>
-    <p><a id="cv-continue" class="btn btn-large<%= cv ? '' : ' is-disabled' %>" href="/jobs/apply/<%= j.id %>/present"<%- cv ? '' : ' aria-disabled="true"' %>><%= t('jobs.apply.continue') %></a></p>
-    <p class="note" id="cv-need"<%= cv ? ' hidden' : '' %>><%= t('jobs.apply.need_cv') %></p>
-    <p class="note"><%= t('jobs.apply.no_diploma') %> <a href="/university/">Demo University</a></p>
-  </section>
+  <form method="post" action="/jobs/apply/<%= j.id %>"><button class="btn btn-large" type="submit"><%= t('jobs.apply.send') %></button></form>
+  <p class="note"><%= t('jobs.done.note') %></p>
 </div>
-<script src="/js/jobs-cv.js?v=<%= v %>" defer></script>
 <%- include('../partials/foot') %>

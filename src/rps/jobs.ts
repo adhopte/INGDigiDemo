@@ -30,9 +30,19 @@ export function jobsRouter(ctx: Ctx, rp: RpConfig): Router {
   const router = Router();
   router.use(rpBase(ctx, rp, 'jobs'));
 
-  const diploma = (req: Request) => claimsOfType(req.session, rp.id, 'diploma');
+  /** The account: created and signed in with the PID. */
+  const pid = (req: Request) => claimsOfType(req.session, rp.id, 'pid');
   const job = (id: unknown) => JOBS.find((j) => j.id === id);
-  router.use((req, res, next) => { res.locals.loggedIn = !!diploma(req); res.locals.hasCv = !!req.session.cv; next(); });
+  router.use((req, res, next) => { res.locals.loggedIn = !!pid(req); next(); });
+  const guard = (req: Request, res: Response, next: NextFunction) => (pid(req) ? next() : res.redirect(`/${rp.id}/signup?next=${encodeURIComponent(req.originalUrl.startsWith(`/${rp.id}/`) ? req.originalUrl : `/${rp.id}/cv`)}`));
+  const education = (req: Request) => req.session.cvEducation ?? [];
+  /** The best level among the verified diplomas on the CV (EQF), for the requirement check. */
+  const meets = (req: Request, minEqf: number): boolean | undefined => {
+    const list = education(req);
+    if (!list.length) return undefined;
+    return list.some((e) => meetsLevel({ eqf_level: e.eqf, degree_level: e.level }, minEqf) === true);
+  };
+  const cvInfo = (req: Request) => (req.session.cv ? { name: req.session.cv.name, size: req.session.cv.size } : undefined);
 
   router.get('/', (req, res) => {
     const term = (q(req.query.q) ?? '').trim().toLowerCase().slice(0, 60);
@@ -47,8 +57,19 @@ export function jobsRouter(ctx: Ctx, rp: RpConfig): Router {
     res.render('jobs/job', { title: res.locals.t(`jobs.${j.id}.title`), j });
   });
 
-  // ---- step 1: the CV (kept in the session only; sent as the raw file body by the page's script)
-  router.post('/cv', express.raw({ type: () => true, limit: MAX_CV }), (req: Request, res: Response) => {
+  // ---- account creation / sign-in with the PID
+  router.get('/signup', (req, res) => {
+    const next = q(req.query.next);
+    const to = next && next.startsWith(`/${rp.id}/`) && !next.includes('//') && !/[\\\r\n]/.test(next) ? next : `/${rp.id}/cv`;
+    res.redirect(`/${rp.id}/verify?p=pid&returnTo=${encodeURIComponent(to)}`);
+  });
+
+  // ---- my CV: the profile (PID), the CV document, and the verified education
+  router.get('/cv', guard, (req, res) => {
+    res.render('jobs/cv', { title: res.locals.t('jobs.cv.title'), p: pid(req)!, cv: cvInfo(req), edu: education(req), maxKb: Math.round(MAX_CV / 1000) });
+  });
+
+  router.post('/cv', guard, express.raw({ type: () => true, limit: MAX_CV }), (req: Request, res: Response) => {
     const name = decodeURIComponent(String(req.get('x-filename') ?? '')).replace(/[^\p{L}\p{N}._ -]/gu, '').slice(0, 80);
     const ext = name.split('.').pop()?.toLowerCase() ?? '';
     const body = req.body as Buffer;
@@ -58,42 +79,51 @@ export function jobsRouter(ctx: Ctx, rp: RpConfig): Router {
     req.session.cv = { name, type: CV_TYPES[ext]!, size: body.length, data: body.toString('base64') };
     res.json({ name, size: body.length });
   });
-  router.post('/cv/remove', (req, res) => { delete req.session.cv; res.redirect(q(req.body?.back)?.startsWith(`/${rp.id}/`) ? q(req.body?.back)! : `/${rp.id}/`); });
-  router.get('/cv/download', (req, res) => {
+  router.post('/cv/remove', guard, (req, res) => { delete req.session.cv; res.redirect(`/${rp.id}/cv`); });
+  router.get('/cv/download', guard, (req, res) => {
     const cv = req.session.cv;
     if (!cv) return void res.sendStatus(404);
     res.set({ 'Content-Type': cv.type, 'Content-Disposition': `attachment; filename="${cv.name.replace(/["\\]/g, '_')}"`, 'Cache-Control': 'no-store' }).send(Buffer.from(cv.data, 'base64'));
   });
 
-  router.get('/apply/:id', (req, res) => {
-    const j = job(req.params.id);
-    if (!j) return void res.redirect(`/${rp.id}/`);
-    res.render('jobs/apply', { title: res.locals.t('jobs.apply.title', { job: res.locals.t(`jobs.${j.id}.title`) }), j, cv: req.session.cv ? { name: req.session.cv.name, size: req.session.cv.size } : undefined, maxKb: Math.round(MAX_CV / 1000) });
+  // the diploma attestation, presented through the wallet; once verified it becomes a verified attribute (education entry) of the CV
+  router.get('/cv/diploma', guard, (_req, res) => res.redirect(`/${rp.id}/verify?p=diploma&returnTo=${encodeURIComponent(`/${rp.id}/cv/diploma/added`)}`));
+  router.get('/cv/diploma/added', guard, (req, res) => {
+    const d = claimsOfType(req.session, rp.id, 'diploma');
+    if (!d) return void res.redirect(`/${rp.id}/cv`);
+    const entry = { title: str(d.diploma_title), institution: str(d.institution_name), level: str(d.degree_level), eqf: str(d.eqf_level), awarded: str(d.awarding_date), programme: str(d.programme_id), at: new Date().toISOString() };
+    const list = education(req);
+    if (!list.some((e) => e.title === entry.title && e.institution === entry.institution && e.awarded === entry.awarded)) req.session.cvEducation = [...list, entry].slice(-10);
+    req.session.flash = 'jobs.cv.diploma_added';
+    res.redirect(`/${rp.id}/cv`);
+  });
+  router.post('/cv/education/remove', guard, (req, res) => {
+    const i = Number(q(req.body?.i));
+    req.session.cvEducation = education(req).filter((_, k) => k !== i);
+    res.redirect(`/${rp.id}/cv`);
   });
 
-  // ---- step 2: the diploma attestation, presented through the wallet
-  router.get('/apply/:id/present', (req, res) => {
+  // ---- apply with the CV (profile + verified education)
+  router.get('/apply/:id', guard, (req, res) => {
     const j = job(req.params.id);
     if (!j) return void res.redirect(`/${rp.id}/`);
-    if (!req.session.cv) return void res.redirect(`/${rp.id}/apply/${j.id}`);
-    res.redirect(`/${rp.id}/verify?p=diploma&returnTo=${encodeURIComponent(`/${rp.id}/application/${j.id}`)}`);
+    res.render('jobs/apply', { title: res.locals.t('jobs.apply.title', { job: res.locals.t(`jobs.${j.id}.title`) }), j, p: pid(req)!, cv: cvInfo(req), edu: education(req), meets: meets(req, j.eqf) });
+  });
+  router.post('/apply/:id', guard, (req, res) => {
+    const j = job(req.params.id);
+    if (!j) return void res.redirect(`/${rp.id}/`);
+    if (!(req.session.applications ?? []).some((a) => a.jobId === j.id)) req.session.applications = [...(req.session.applications ?? []), { jobId: j.id, ref: `JB-${randomBytes(3).toString('hex').toUpperCase()}`, at: new Date().toISOString() }].slice(-20);
+    res.redirect(`/${rp.id}/application/${j.id}`);
   });
 
-  const guard = (req: Request, res: Response, next: NextFunction) => (diploma(req) ? next() : res.redirect(`/${rp.id}/`));
   router.get('/application/:id', guard, (req, res) => {
     const j = job(req.params.id);
-    if (!j) return void res.redirect(`/${rp.id}/`);
-    if (!req.session.cv) return void res.redirect(`/${rp.id}/apply/${j.id}`);
-    const d = diploma(req)!;
-    let app = (req.session.applications ?? []).find((a) => a.jobId === j.id);
-    if (!app) {
-      app = { jobId: j.id, ref: `JB-${randomBytes(3).toString('hex').toUpperCase()}`, at: new Date().toISOString() };
-      req.session.applications = [...(req.session.applications ?? []), app].slice(-20);
-    }
-    res.render('jobs/application', { title: res.locals.t('jobs.done.title'), j, d, app, meets: meetsLevel(d, j.eqf), cv: { name: req.session.cv.name, size: req.session.cv.size } });
+    const app = (req.session.applications ?? []).find((a) => a.jobId === req.params.id);
+    if (!j || !app) return void res.redirect(`/${rp.id}/`);
+    res.render('jobs/application', { title: res.locals.t('jobs.done.title'), j, p: pid(req)!, app, edu: education(req), meets: meets(req, j.eqf), cv: cvInfo(req) });
   });
 
-  router.get('/applications', (req, res) => {
+  router.get('/applications', guard, (req, res) => {
     const apps = (req.session.applications ?? []).map((a) => ({ ...a, j: job(a.jobId) })).filter((a) => a.j);
     res.render('jobs/applications', { title: res.locals.t('jobs.apps.title'), apps });
   });

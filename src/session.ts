@@ -47,6 +47,8 @@ declare module 'express-session' {
     examRegs?: string[];
     /** Job portal: the CV the candidate attached (kept in the session only) and the applications sent. */
     cv?: { name: string; type: string; size: number; data: string };
+    /** Job portal: verified education entries added to the CV from diploma attestations. */
+    cvEducation?: Array<{ title: string; institution: string; level: string; eqf: string; awarded: string; programme: string; at: string }>;
     applications?: Array<{ jobId: string; ref: string; at: string }>;
     /** Car rental: the booking waiting for its payment, and the confirmed one. */
     rentalBooking?: RentalBooking;

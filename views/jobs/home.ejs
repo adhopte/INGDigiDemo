@@ -3,6 +3,7 @@
   <div>
     <h1><%= t('jobs.hero.title') %></h1>
     <p class="lead"><%= t('jobs.hero.sub') %></p>
+    <% if (!loggedIn) { %><p><a class="btn btn-large" href="/jobs/signup"><%= t('jobs.hero.cta') %></a></p><% } else { %><p><a class="btn btn-large" href="/jobs/cv"><%= t('jobs.nav.cv') %></a></p><% } %>
     <form class="search" method="get" action="/jobs/" role="search">
       <div class="field"><label for="q"><%= t('jobs.search.label') %></label><input id="q" name="q" type="text" value="<%= term %>" autocomplete="off"></div>
       <button class="btn" type="submit"><%= t('jobs.search.btn') %></button>

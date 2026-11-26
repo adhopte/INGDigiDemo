@@ -16,8 +16,7 @@
       .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
       .then(function (r) {
         status.textContent = msg('ok', { name: r.name, size: Math.max(1, Math.round(r.size / 1000)) + ' KB' });
-        if (next) { next.classList.remove('is-disabled'); next.removeAttribute('aria-disabled'); }
-        if (need) need.hidden = true;
+        window.location.reload();
       })
       .catch(function () { status.textContent = msg('err'); });
   });

@@ -785,6 +785,27 @@
             "institution_name",
             "eqf_level"
           ]
+        },
+        "pid": {
+          "types": [
+            "pid"
+          ],
+          "claims": [
+            "given_name",
+            "family_name",
+            "birth_date",
+            "nationality"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name",
+            "birth_date"
+          ],
+          "compactClaims": [
+            "given_name",
+            "family_name",
+            "birth_date"
+          ]
         }
       },
       "attestations": []

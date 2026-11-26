@@ -4,9 +4,12 @@
     <nav aria-label="<%= t('nav.main') %>">
       <ul class="nav-list">
         <li><a href="/jobs/"><%= t('jobs.nav.jobs') %></a></li>
-        <li><a href="/jobs/applications"><%= t('jobs.nav.apps') %></a></li>
         <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
+          <li><a href="/jobs/cv"><%= t('jobs.nav.cv') %></a></li>
+          <li><a href="/jobs/applications"><%= t('jobs.nav.apps') %></a></li>
           <li><form method="post" action="/jobs/signout"><button class="link-btn" type="submit"><%= t('btn.signout') %></button></form></li>
+        <% } else { %>
+          <li><a class="btn btn-small" href="/jobs/signup"><%= t('jobs.hero.signin') %></a></li>
         <% } %>
         <li><a href="/"><%= t('nav.all_demos') %></a></li>
       </ul>

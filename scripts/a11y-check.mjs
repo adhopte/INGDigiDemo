@@ -124,16 +124,24 @@ async function run(vpName, size) {
   await page.getByRole('button', { name: 'Get diploma attestation' }).click(); await step('uni-offer-diploma');
   await page.getByRole('button', { name: 'Receive in simulated wallet' }).click();
 
-  // ---- Demo Jobs: CV + diploma
+  // ---- Demo Jobs: account with the PID, CV document, the diploma added to the CV, application
   await go('/jobs/'); await step('jobs-home');
   await page.getByRole('link', { name: /View job/ }).first().click(); await step('jobs-job');
-  await page.getByRole('link', { name: 'Apply with EU Wallet' }).click(); await step('jobs-apply');
-  await page.setInputFiles('#cv-file', { name: 'cv.txt', mimeType: 'text/plain', buffer: Buffer.from('Curriculum vitae') });
-  await page.getByText(/CV attached/).first().waitFor();
-  await page.getByRole('link', { name: 'Continue: present my diploma' }).click();
-  await page.waitForURL(/\/jobs\/verify\/[A-Za-z0-9_-]{16}$/); await step('jobs-verify');
+  await page.getByRole('link', { name: 'Apply with EU Wallet' }).click();
+  await page.waitForURL(/\/jobs\/verify\/[A-Za-z0-9_-]{16}$/); await step('jobs-verify-pid');
   await page.getByRole('link', { name: 'Open the simulated wallet' }).click();
   await page.getByRole('button', { name: 'Approve and share' }).click();
+  await page.waitForURL(/\/jobs\/apply\/j1$/); await step('jobs-apply-nodiploma');
+  await go('/jobs/cv'); await step('jobs-cv');
+  await page.setInputFiles('#cv-file', { name: 'cv.txt', mimeType: 'text/plain', buffer: Buffer.from('Curriculum vitae') });
+  await page.getByRole('link', { name: 'Download CV' }).first().waitFor();
+  await page.getByRole('link', { name: 'Add a verified diploma' }).click();
+  await page.waitForURL(/\/jobs\/verify\/[A-Za-z0-9_-]{16}$/); await step('jobs-verify-diploma');
+  await page.getByRole('link', { name: 'Open the simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Approve and share' }).click();
+  await page.waitForURL(/\/jobs\/cv$/); await step('jobs-cv-verified');
+  await go('/jobs/apply/j1'); await step('jobs-apply');
+  await page.getByRole('button', { name: 'Send application' }).click();
   await page.waitForURL(/\/jobs\/application\/j1$/); await step('jobs-application');
   await go('/jobs/applications'); await step('jobs-applications');
 
