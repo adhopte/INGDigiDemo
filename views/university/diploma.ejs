@@ -17,8 +17,8 @@
   <% if (ok) { %>
   <form method="post" action="/university/attestation/diploma" novalidate>
     <div class="field">
-      <label for="dob"><%= t('uni.diploma.dob') %> <span aria-hidden="true">*</span></label>
-      <input id="dob" name="dob" type="date" value="<%= dob %>" required>
+      <label for="dob"><%= t('uni.diploma.dob') %></label>
+      <input id="dob" name="dob" type="date" value="<%= dob %>">
       <p class="note"><%= t('uni.diploma.dob_hint') %></p>
     </div>
     <button class="btn btn-large" type="submit"><%= t('uni.diploma.btn') %></button>

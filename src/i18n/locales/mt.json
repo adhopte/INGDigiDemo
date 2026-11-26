@@ -614,7 +614,7 @@
   "uni.diploma.preview": "Id-diploma tiegħek",
   "uni.diploma.get": "Ikseb id-diploma tiegħi",
   "uni.diploma.dob": "Data tat-twelid (turi fuq id-diploma)",
-  "uni.diploma.dob_hint": "Meħtieġa għax il-karta tal-istudent ma fihiex.",
+  "uni.diploma.dob_hint": "Fakultattiv. Il-karta tal-istudent ma fihiex; ħalliha vojta biex toħroġ id-diploma mingħajrha.",
   "uni.diploma.btn": "Ikseb l-attestazzjoni tad-diploma",
   "uni.diploma.next": "Imbagħad: uriha, mas-CV tiegħek, lil portal tax-xogħol bħal Demo Jobs.",
   "uni.diploma.authority": "Demo University – Uffiċċju tar-Reġistratur",

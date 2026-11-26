@@ -614,7 +614,7 @@
   "uni.diploma.preview": "Su diploma",
   "uni.diploma.get": "Obtener mi diploma",
   "uni.diploma.dob": "Fecha de nacimiento (figura en el diploma)",
-  "uni.diploma.dob_hint": "Necesaria porque el carné de estudiante no la contiene.",
+  "uni.diploma.dob_hint": "Opcional. El carné de estudiante no la contiene; déjela vacía para emitir el diploma sin ella.",
   "uni.diploma.btn": "Obtener atestación de diploma",
   "uni.diploma.next": "Después: preséntela, con su CV, a un portal de empleo como Demo Jobs.",
   "uni.diploma.authority": "Demo University – Secretaría académica",

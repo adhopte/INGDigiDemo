@@ -124,14 +124,12 @@ export function universityRouter(ctx: Ctx, rp: RpConfig): Router {
   router.post('/attestation/diploma', (req, res, next) => (sid(req) ? next() : res.redirect(`/${rp.id}/login`)), async (req, res) => {
     const c = sid(req)!;
     const k = programmeOf(req);
-    const dob = (q(req.body?.dob) ?? '').trim();
+    const dob = (q(req.body?.dob) ?? '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 40);
     if (!studentStanding(c).ok) return void res.status(403).render('error', { title: res.locals.t('error.title'), message: res.locals.t('uni.exams.not_eligible'), retryHref: `/${rp.id}/exams` });
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || Number.isNaN(Date.parse(dob)) || dob > new Date().toISOString().slice(0, 10)) {
-      return void res.status(422).render('university/diploma', { title: res.locals.t('uni.diploma.title'), c, ok: true, programme: k, level: DIPLOMA[k]!, dob, error: 'admin.err.date' });
-    }
     const d = DIPLOMA[k]!;
     const claims = {
-      given_name: str(c.given_name), family_name: str(c.family_name), date_of_birth: dob,
+      given_name: str(c.given_name), family_name: str(c.family_name), ...(dob ? { date_of_birth: dob } : {}), // no validation: whatever is entered is issued, nothing if left empty
+     
       diploma_title: res.locals.t(`uni.diploma.t.${k}`), institution_name: 'Demo University', awarding_date: new Date().toISOString().slice(0, 10),
       degree_level: d.level, eqf_level: d.eqf, programme_id: d.id, issuing_authority: res.locals.t('uni.diploma.authority'), issuing_country: 'DE',
     };

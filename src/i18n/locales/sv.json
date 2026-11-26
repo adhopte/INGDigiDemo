@@ -614,7 +614,7 @@
   "uni.diploma.preview": "Din examen",
   "uni.diploma.get": "Hämta min examen",
   "uni.diploma.dob": "Födelsedatum (står på examensbeviset)",
-  "uni.diploma.dob_hint": "Behövs eftersom studentkortet inte innehåller det.",
+  "uni.diploma.dob_hint": "Valfritt. Studentkortet innehåller det inte; lämna tomt för att utfärda examen utan det.",
   "uni.diploma.btn": "Hämta examensintyg",
   "uni.diploma.next": "Nästa: visa det tillsammans med ditt CV på en jobbportal som Demo Jobs.",
   "uni.diploma.authority": "Demo University – Studentcentrum",

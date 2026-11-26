@@ -614,7 +614,7 @@
   "uni.diploma.preview": "Votre diplôme",
   "uni.diploma.get": "Obtenir mon diplôme",
   "uni.diploma.dob": "Date de naissance (indiquée sur le diplôme)",
-  "uni.diploma.dob_hint": "Nécessaire car la carte d’étudiant ne la contient pas.",
+  "uni.diploma.dob_hint": "Facultatif. La carte d’étudiant ne la contient pas ; laissez vide pour délivrer le diplôme sans elle.",
   "uni.diploma.btn": "Obtenir l’attestation de diplôme",
   "uni.diploma.next": "Ensuite : présentez-la, avec votre CV, à un portail d’emploi comme Demo Jobs.",
   "uni.diploma.authority": "Demo University – Service de la scolarité",

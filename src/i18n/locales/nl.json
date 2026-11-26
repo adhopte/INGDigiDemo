@@ -614,7 +614,7 @@
   "uni.diploma.preview": "Uw diploma",
   "uni.diploma.get": "Mijn diploma ophalen",
   "uni.diploma.dob": "Geboortedatum (vermeld op het diploma)",
-  "uni.diploma.dob_hint": "Nodig omdat de studentenkaart die niet bevat.",
+  "uni.diploma.dob_hint": "Optioneel. De studentenkaart bevat ze niet; laat leeg om het diploma zonder uit te geven.",
   "uni.diploma.btn": "Diplomaattestatie ophalen",
   "uni.diploma.next": "Daarna: toon het, met uw cv, aan een vacaturesite zoals Demo Jobs.",
   "uni.diploma.authority": "Demo University – Studentenadministratie",

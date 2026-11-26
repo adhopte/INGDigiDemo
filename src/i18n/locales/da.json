@@ -614,7 +614,7 @@
   "uni.diploma.preview": "Dit eksamensbevis",
   "uni.diploma.get": "Hent mit eksamensbevis",
   "uni.diploma.dob": "Fødselsdato (står på beviset)",
-  "uni.diploma.dob_hint": "Nødvendig, fordi studiekortet ikke indeholder den.",
+  "uni.diploma.dob_hint": "Valgfri. Studiekortet indeholder den ikke; lad feltet stå tomt for at udstede beviset uden den.",
   "uni.diploma.btn": "Hent eksamensbevis",
   "uni.diploma.next": "Næste: vis det sammen med dit CV på et jobportal som Demo Jobs.",
   "uni.diploma.authority": "Demo University – Studieadministrationen",

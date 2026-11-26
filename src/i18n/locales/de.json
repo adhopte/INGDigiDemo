@@ -614,7 +614,7 @@
   "uni.diploma.preview": "Ihr Abschluss",
   "uni.diploma.get": "Meinen Abschluss abrufen",
   "uni.diploma.dob": "Geburtsdatum (steht auf dem Zeugnis)",
-  "uni.diploma.dob_hint": "Erforderlich, da der Studierendenausweis es nicht enthält.",
+  "uni.diploma.dob_hint": "Optional. Der Studierendenausweis enthält sie nicht; leer lassen, um den Abschluss ohne sie auszustellen.",
   "uni.diploma.btn": "Abschlussnachweis abrufen",
   "uni.diploma.next": "Als Nächstes: mit Ihrem Lebenslauf bei einem Jobportal wie Demo Jobs vorlegen.",
   "uni.diploma.authority": "Demo University – Prüfungsamt",

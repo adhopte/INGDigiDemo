@@ -783,8 +783,9 @@ describe('Diploma attestation and the job portal (Demo Jobs)', () => {
     const page = await a.get('/university/diploma');
     expect(page.status).toBe(200);
     expect(page.text).toContain('Master of Laws');
-    expect((await a.post('/university/attestation/diploma').type('form').send({ dob: 'x' })).status).toBe(422); // a date is needed
-    expect((await a.post('/university/attestation/diploma').type('form').send({ dob: '2999-01-01' })).status).toBe(422);
+    // no date-of-birth validation: an empty or odd value is simply issued (or left out)
+    expect((await a.post('/university/attestation/diploma').type('form').send({ dob: '' })).status).toBe(200);
+    expect((await a.post('/university/attestation/diploma').type('form').send({ dob: 'not a date' })).status).toBe(200);
     const offer = await a.post('/university/attestation/diploma').type('form').send({ dob: '1992-04-17' });
     expect(offer.status).toBe(200);
     await redeem(offer.text);

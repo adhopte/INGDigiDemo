@@ -614,7 +614,7 @@
   "uni.diploma.preview": "Your diploma",
   "uni.diploma.get": "Get my diploma",
   "uni.diploma.dob": "Date of birth (shown on the diploma)",
-  "uni.diploma.dob_hint": "Needed because the Student ID does not contain it.",
+  "uni.diploma.dob_hint": "Optional. The Student ID does not contain it; leave empty to issue the diploma without it.",
   "uni.diploma.btn": "Get diploma attestation",
   "uni.diploma.next": "Next: present it, with your CV, to a job portal such as Demo Jobs.",
   "uni.diploma.authority": "Demo University – Registrar’s Office",
