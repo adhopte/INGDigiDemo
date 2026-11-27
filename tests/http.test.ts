@@ -869,3 +869,79 @@ describe('Diploma attestation and the job portal (Demo Jobs)', () => {
     expect(md).toMatchObject({ format: 'dc+sd-jwt', vct: 'urn:dc4eu-de:hed:de:1' });
   });
 });
+
+describe('Demo Health (PID → Health ID → EHIC) and Demo Insure (EHIC login)', () => {
+  it('PID sign-in gives the Health ID; the Health ID sign-in gives the EHIC; the EHIC signs in at the insurer', async () => {
+    const { app } = await boot({ MOCK_MODE: 'true' });
+    const a = request.agent(app);
+    const present = async (rp: string, path: string, add?: { type: string; persona: string }) => {
+      const verifyPath = (await a.get((await a.get(path)).headers.location!)).headers.location!;
+      const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec(verifyPath)![1]!;
+      if (add) await a.post(`/${rp}/verify/wallet/${id}/add`).type('form').send(add);
+      return (await a.get((await a.post(`/${rp}/verify/wallet/${id}/share`)).headers.location!)).headers.location;
+    };
+    const redeem = async (html: string) => a.post('/wallet-sim/redeem').type('form').send({ offerId: /name="offerId" value="([^"]+)"/.exec(html)![1]!, returnTo: '/wallet' });
+    expect((await a.get('/health/portal')).headers.location).toBe('/health/login');
+    expect((await a.get('/health/login')).text).toContain('href="/health/login/hiid"');
+    // 1. new member: the PID
+    expect(await present('health', '/health/login/pid', { type: 'pid', persona: 'fr' })).toBe('/health/portal');
+    const viaPid = (await a.get('/health/portal')).text;
+    expect(viaPid).toContain('Signed in with your PID.');
+    expect(viaPid).toContain('action="/health/attestation/hiid"');
+    expect(viaPid).not.toContain('action="/health/attestation/ehic"'); // the EHIC needs the Health ID sign-in
+    expect((await a.post('/health/attestation/ehic')).status).toBe(403);
+    const hiidOffer = await a.post('/health/attestation/hiid');
+    expect(hiidOffer.status).toBe(200);
+    await redeem(hiidOffer.text);
+    const hiid = heldCredentials((await a.get('/wallet')).text)['Health ID']!;
+    expect(hiid['Health insurance ID']).toMatch(/^HI\d{12}$/);
+    expect(hiid['Registered family name']).toBe('Demo');
+    expect(hiid['Registered given name']).toBe('Camille');
+    // 2. returning member: the Health ID
+    await a.post('/health/signout');
+    expect(await present('health', '/health/login/hiid')).toBe('/health/portal');
+    const viaHiid = (await a.get('/health/portal')).text;
+    expect(viaHiid).toContain('Signed in with your Health ID.');
+    expect(viaHiid).toContain('action="/health/attestation/ehic"');
+    expect(viaHiid).not.toContain('action="/health/attestation/hiid"');
+    expect((await a.post('/health/attestation/hiid')).status).toBe(403);
+    const ehicOffer = await a.post('/health/attestation/ehic');
+    expect(ehicOffer.status).toBe(200);
+    await redeem(ehicOffer.text);
+    const ehic = heldCredentials((await a.get('/wallet')).text)['European Health Insurance Card (EHIC)']!;
+    expect(ehic['Personal administrative number']).toBe(hiid['Health insurance ID']); // derived from the Health ID
+    expect(ehic['Issuing country']).toBe('France');
+    // 3. the insurer: EHIC login
+    expect((await a.get('/insurance/account')).headers.location).toBe('/insurance/login');
+    expect(await present('insurance', '/insurance/login')).toBe('/insurance/account');
+    const acc = await a.get('/insurance/account');
+    expect(acc.status).toBe(200);
+    expect(acc.text).toContain('Signed in with your EHIC.');
+    expect(acc.text).toContain('Your cover is valid.');
+    expect(acc.text).toContain('Camille Demo'); // the member's name travels in the card's subject
+    expect(acc.text).toMatch(/HI••••••\d{3}/); // member number masked
+  });
+
+  it('cover standing, and the requests stay QR-sized with both formats declared by the local issuer', async () => {
+    const { coverStanding } = await import('../src/rps/insurance.js');
+    const now = new Date('2026-11-27T00:00:00Z');
+    expect(coverStanding({ starting_date: '2026-01-01', ending_date: '2028-01-01' }, now)).toEqual({ valid: true, started: true, ended: false });
+    expect(coverStanding({ ending_date: '2026-11-26' }, now).valid).toBe(false);
+    expect(coverStanding({ ending_date: '2026-11-27' }, now).valid).toBe(true);
+    expect(coverStanding({ starting_date: '2026-12-01', ending_date: '2028-01-01' }, now)).toMatchObject({ valid: false, started: false });
+    const { svc, cfg } = await boot({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    for (const [rp, pres, doc] of [['health', 'hiid', 'eu.europa.ec.eudi.hiid.1'], ['insurance', 'ehic', 'eu.europa.ec.eudi.ehic.1'], ['health', 'pid', 'eu.europa.ec.eudi.pid.1']] as const) {
+      const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, pres, '/');
+      const link = svc.verifier.walletLink(tx);
+      const q = JSON.parse(new URL(link).searchParams.get('dcql_query')!);
+      expect(q.credentials[0]).toMatchObject({ format: 'mso_mdoc', meta: { doctype_value: doc } }); // by value: the mdoc (the EUDI reference issuer format)
+      expect(link.length, `${rp}/${pres}`).toBeLessThan(1700);
+    }
+    const md = (svc.local.metadata() as any).credential_configurations_supported;
+    expect(md.demo_ehic).toMatchObject({ format: 'dc+sd-jwt', vct: 'urn:eudi:ehic:1' });
+    expect(md.demo_ehic_mdoc).toMatchObject({ format: 'mso_mdoc', doctype: 'eu.europa.ec.eudi.ehic.1' });
+    expect(md.demo_ehic_mdoc.claims.map((c: any) => c.path[1])).toEqual(expect.arrayContaining(['social_security_pin', 'competent_institution', 'credential_holder', 'subject']));
+    expect(md.demo_hiid).toMatchObject({ format: 'dc+sd-jwt', vct: 'urn:eu.europa.ec.eudi:hiid:1' });
+    expect(md.demo_hiid_mdoc).toMatchObject({ format: 'mso_mdoc', doctype: 'eu.europa.ec.eudi.hiid.1' });
+  });
+});

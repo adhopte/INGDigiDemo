@@ -1,0 +1,18 @@
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/insurance/"><img class="brand-logo" src="/img/rp-insurance.svg" alt="" width="42" height="42"><span class="brand-name">Demo Insure</span></a>
+    <nav aria-label="<%= t('nav.main') %>">
+      <ul class="nav-list">
+        <li><a href="/insurance/"><%= t('nav.home') %></a></li>
+        <% if (typeof loggedIn !== 'undefined' && loggedIn) { %>
+          <li><a href="/insurance/account"><%= t('ins.nav.account') %></a></li>
+          <li><form method="post" action="/insurance/signout"><button class="link-btn" type="submit"><%= t('btn.signout') %></button></form></li>
+        <% } else { %>
+          <li><a class="btn btn-small" href="/insurance/login"><%= t('ins.nav.login') %></a></li>
+        <% } %>
+        <li><a href="/"><%= t('nav.all_demos') %></a></li>
+      </ul>
+    </nav>
+    <%- include('lang') %>
+  </div>
+</header>

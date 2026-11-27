@@ -88,3 +88,38 @@ describe('local issuer: the driving licence as an ISO mdoc (proximity-capable)',
     expect(tx.result!.byType.mdl).toMatchObject({ given_name: 'Camille', family_name: 'Demo', document_number: 'DL12345678', expiry_date: '2032-03-01', issue_date: '2022-03-01' });
   });
 });
+
+describe('local issuer: an offer of both formats (EHIC, Health ID)', () => {
+  it('lists the SD-JWT and the mdoc configuration, issues each in its own request with the same token, and uses the claims of each format', async () => {
+    const { ehicFromHiid } = await import('../src/rps/health-data.js');
+    const svc = await createServices(testConfig({ MOCK_MODE: 'false' }));
+    const { sd, mdoc } = ehicFromHiid({ health_insurance_id: 'HI123456789012', matching_registered_family_name: 'Demo', matching_registered_given_name: 'Camille', matching_birth_date: '1992-04-17', affiliation_country: 'FR' });
+    const o = svc.local.createOffer('ehic', sd, 'both', mdoc);
+    expect((svc.local.offerObject(o.id) as any).credential_configuration_ids).toEqual(['demo_ehic', 'demo_ehic_mdoc']);
+    const code = (svc.local.offerObject(o.id) as any).grants[PRE_AUTH_GRANT]['pre-authorized_code'];
+    const token = await svc.local.exchangePreAuthorizedCode({ grant_type: PRE_AUTH_GRANT, 'pre-authorized_code': code, ...(o.txCode ? { tx_code: o.txCode } : {}) });
+    const request = async (configId: string) => {
+      const kp = await generateKeyPair('ES256', { extractable: true });
+      const nonce = svc.local.newNonce();
+      const proof = await new SignJWT({ nonce }).setProtectedHeader({ alg: 'ES256', typ: 'openid4vci-proof+jwt', jwk: await exportJWK(kp.publicKey) }).setAudience(svc.local.issuerUrl).setIssuedAt().sign(kp.privateKey);
+      return svc.local.issueCredential(token.access_token, { credential_configuration_id: configId, proofs: { jwt: [proof] } });
+    };
+    const sdJwt = (await request('demo_ehic')).credentials[0]!.credential;
+    const sdClaims = JSON.parse(Buffer.from(sdJwt.split('~')[1]!, 'base64url').toString()); // first disclosure: [salt, name, value]
+    expect(sdJwt.split('.').length).toBeGreaterThan(2);
+    expect(sdClaims[1]).toBeTruthy();
+    const disclosed = Object.fromEntries(sdJwt.split('~').slice(1, -1).map((d) => { const a = JSON.parse(Buffer.from(d, 'base64url').toString()); return [a[1], a[2]]; }));
+    expect(disclosed).toMatchObject({ personal_administrative_number: 'HI123456789012', issuing_authority: { id: 'DE-DEMO-HF-01', name: 'Demo Health Fund' }, subject: { family_name: 'Demo', given_name: 'Camille' } });
+    expect(disclosed.social_security_pin).toBeUndefined(); // the mdoc names stay out of the SD-JWT
+    const mdocB64 = (await request('demo_ehic_mdoc')).credentials[0]!.credential;
+    const is = decode(Buffer.from(mdocB64, 'base64url')) as Map<string, any>;
+    const items = Object.fromEntries((is.get('nameSpaces') as Map<string, Tag[]>).get('eu.europa.ec.eudi.ehic.1')!.map((t) => { const m = decode(t.value) as Map<string, any>; return [m.get('elementIdentifier'), m.get('elementValue')]; }));
+    expect(Object.keys(items)).toEqual(expect.arrayContaining(['social_security_pin', 'competent_institution', 'document_id', 'credential_holder', 'subject', 'starting_date', 'ending_date']));
+    expect(items.social_security_pin).toBe('HI123456789012');
+    expect(items.starting_date).toBeInstanceOf(Tag);
+    expect(items.subject).toBeInstanceOf(Map);
+    expect((items.subject as Map<string, unknown>).get('birth_date')).toBeInstanceOf(Tag);
+    await expect(request('demo_ehic')).rejects.toThrow(); // both were issued: the token is used up
+    expect(() => svc.local.createOffer('pid', {}, 'both')).toThrow();
+  });
+});

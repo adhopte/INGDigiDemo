@@ -4,6 +4,8 @@ import { bankRouter } from './bank.js';
 import type { Ctx } from './context.js';
 import { electricityRouter } from './electricity.js';
 import { eshopRouter } from './eshop.js';
+import { healthRouter } from './health.js';
+import { insuranceRouter } from './insurance.js';
 import { jobsRouter } from './jobs.js';
 import { rentalRouter } from './rental.js';
 import { universityRouter } from './university.js';
@@ -15,6 +17,8 @@ const factories: Record<string, (ctx: Ctx, rp: RpConfig) => Router> = {
   electricity: electricityRouter,
   rental: rentalRouter,
   jobs: jobsRouter,
+  health: healthRouter,
+  insurance: insuranceRouter,
 };
 
 export function rpRouterFor(ctx: Ctx, rp: RpConfig): Router {

@@ -30,9 +30,9 @@ export interface IssuerProvider {
 
 /** Selects the local demo issuer or the external Issuer purely from configuration (ISSUER_MODE). */
 export function createIssuerProvider(cfg: AppConfig, local: LocalIssuer | undefined, fetchImpl: typeof fetch = fetch, remote?: RemoteIssuerMetadata): IssuerProvider {
-  const localOffer = async (key: string, claims: Claims, fallback: boolean, format: 'sd-jwt' | 'mdoc' = 'sd-jwt'): Promise<IssuedOffer> => {
+  const localOffer = async (key: string, claims: Claims, fallback: boolean, format: 'sd-jwt' | 'mdoc' | 'both' = 'sd-jwt', mdocClaims?: Claims): Promise<IssuedOffer> => {
     if (!local) throw new Error('Local issuer not initialised');
-    const o = local.createOffer(key, claims, format);
+    const o = local.createOffer(key, claims, format, mdocClaims);
     // By value (like the SIGMA issuer's offers): wallets that do not resolve credential_offer_uri still accept it.
     const obj = local.offerObject(o.id);
     const deeplink = obj ? deeplinkForOfferObject(obj) : deeplinkForOfferUri(o.offerUri);
@@ -50,12 +50,12 @@ export function createIssuerProvider(cfg: AppConfig, local: LocalIssuer | undefi
         const rc = remote ? await remote.configFor(att) : undefined;
         const configId = rc?.id ?? att.externalConfigurationId;
         const offeredRemotely = remote?.url ? !!rc || (!(await remote.summary())?.reachable && !!att.externalConfigurationId) : !!att.externalConfigurationId;
-        if (!offeredRemotely && cfg.issuer.fallbackLocal && local) return localOffer(key, claims, true);
+        if (!offeredRemotely && cfg.issuer.fallbackLocal && local) return localOffer(key, claims, true, options?.format, options?.mdocClaims);
         const o = await createExternalOffer(cfg, { ...att, externalConfigurationId: configId ?? att.externalConfigurationId }, options, fetchImpl);
         log.info('offer created', { provider: 'external', attestation: key, configuration: configId });
         return { id: undefined, deeplink: o.deeplink, qr: await offerQr(o.deeplink), txCode: o.txCode, ...(o.authorizationCode ? { authorizationCode: o.authorizationCode } : {}), expiresAt: o.expiresAt, provider: 'external' };
       },
     };
   }
-  return { mode: 'local', createOffer: (key, claims, options) => localOffer(key, claims, false, options?.format) };
+  return { mode: 'local', createOffer: (key, claims, options) => localOffer(key, claims, false, options?.format, options?.mdocClaims) };
 }

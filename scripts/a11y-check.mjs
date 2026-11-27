@@ -165,6 +165,29 @@ async function run(vpName, size) {
   await page.getByRole('button', { name: 'Approve and share' }).click();
   await page.waitForURL(/\/rental\/confirmation$/); await step('rental-confirmation');
 
+  // ---- Demo Health (PID -> Health ID -> EHIC) and Demo Insure (EHIC)
+  await go('/health/'); await step('health-home');
+  await page.getByRole('link', { name: /Sign in with EU Wallet/ }).first().click(); await step('health-login');
+  await page.getByRole('link', { name: 'Sign in with my PID' }).click();
+  await page.getByRole('link', { name: 'Open the simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Approve and share' }).click();
+  await page.waitForURL(/\/health\/portal$/); await step('health-portal-pid');
+  await page.getByRole('button', { name: 'Get Health ID attestation' }).click(); await step('health-offer-hiid');
+  await page.getByRole('button', { name: 'Receive in simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Sign out' }).click().catch(() => {});
+  await go('/health/login');
+  await page.getByRole('link', { name: 'Sign in with my Health ID' }).click();
+  await page.getByRole('link', { name: 'Open the simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Approve and share' }).click();
+  await page.waitForURL(/\/health\/portal$/); await step('health-portal-hiid');
+  await page.getByRole('button', { name: 'Get EHIC attestation' }).click(); await step('health-offer-ehic');
+  await page.getByRole('button', { name: 'Receive in simulated wallet' }).click();
+  await go('/insurance/'); await step('ins-home');
+  await page.getByRole('link', { name: /Sign in with EHIC/ }).first().click();
+  await page.getByRole('link', { name: 'Open the simulated wallet' }).click();
+  await page.getByRole('button', { name: 'Approve and share' }).click();
+  await page.waitForURL(/\/insurance\/account$/); await step('ins-account');
+
   await go('/wallet'); await step('wallet');
   await browser.close();
 }
@@ -176,11 +199,11 @@ async function languages() {
   for (const lang of ['en', 'fr', 'es', 'nl', 'de', 'da', 'mt', 'sv']) {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, bypassCSP: true });
     const page = await ctx.newPage();
-    for (const path of ['/', '/bank/', '/eshop/', '/eshop/cart', '/university/', '/university/exams', '/electricity/', '/rental/', '/jobs/', '/demo-issuer']) {
+    for (const path of ['/', '/bank/', '/eshop/', '/eshop/cart', '/university/', '/university/exams', '/electricity/', '/rental/', '/jobs/', '/health/', '/insurance/', '/demo-issuer']) {
       await page.goto(`${BASE}${path}?lang=${lang}`);
       const htmlLang = await page.getAttribute('html', 'lang');
       const text = (await page.locator('body').innerText()).replace(/https?:\/\/\S+/g, '').replace(/\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:io|com|org|net)\b/gi, '');
-      const leaked = text.match(/\b(?:bank|eshop|uni|el|rental|jobs|dash|verify|offer|mockw|claim|att|rp|shop|prog|nav|btn|form|footer|mock|issuer)\.[a-z_0-9]+(?:\.[a-z_0-9]+)*\b/g);
+      const leaked = text.match(/\b(?:bank|eshop|uni|el|rental|jobs|health|ins|dash|verify|offer|mockw|claim|att|rp|shop|prog|nav|btn|form|footer|mock|issuer)\.[a-z_0-9]+(?:\.[a-z_0-9]+)*\b/g);
       if (htmlLang !== lang) { failures++; log(`  ✗ [${lang}${path}] html lang=${htmlLang}`); }
       if (leaked) { failures++; log(`  ✗ [${lang}${path}] untranslated keys: ${[...new Set(leaked)].join(', ')}`); }
       await axe(page, `${lang}:${path}`);

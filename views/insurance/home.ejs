@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<section class="hero"><div class="wrap hero-grid">
+  <div>
+    <h1><%= t('ins.hero.title') %></h1>
+    <p class="lead"><%= t('ins.hero.sub') %></p>
+    <% if (loggedIn) { %><p><a class="btn btn-large" href="/insurance/account"><%= t('ins.hero.goto') %></a></p>
+    <% } else { %><p><a class="btn btn-large" href="/insurance/login"><%= t('ins.hero.cta') %></a></p><p class="note"><%= t('ins.hero.note') %></p><% } %>
+  </div>
+  <div class="hero-card" role="note">
+    <h2><%= t('ins.why.title') %></h2>
+    <ul class="plain"><li><%= t('ins.why.1') %></li><li><%= t('ins.why.2') %></li><li><%= t('ins.why.3') %></li></ul>
+  </div>
+</div></section>
+<%- include('../partials/foot') %>

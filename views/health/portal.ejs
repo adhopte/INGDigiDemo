@@ -1,0 +1,39 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <h1><%= t('health.portal.hello', { name: m.given || m.family }) %></h1>
+  <p class="alert alert-success" role="status"><%= m.via === 'hiid' ? t('health.portal.via_hiid') : t('health.portal.via_pid') %></p>
+  <section class="panel" aria-labelledby="pf-h">
+    <h2 id="pf-h"><%= t('health.portal.profile') %></h2>
+    <dl class="meta">
+      <dt><%= t('rental.driver.name') %></dt><dd><%= m.given %> <%= m.family %></dd>
+      <% if (m.born) { %><dt><%= t('claim.birth_date') %></dt><dd><%= fmtClaim('birth_date', m.born) %></dd><% } %>
+      <% if (m.id) { %><dt><%= t('claim.health_insurance_id') %></dt><dd class="mono"><%= m.id %></dd><% } %>
+      <% if (m.country) { %><dt><%= t('claim.affiliation_country') %></dt><dd><%= fmtClaim('nationality', m.country) %></dd><% } %>
+      <% if (m.until) { %><dt><%= t('claim.expiry_date') %></dt><dd><%= fmtClaim('expiry_date', m.until) %></dd><% } %>
+    </dl>
+  </section>
+  <section class="panel" aria-labelledby="at-h">
+    <h2 id="at-h"><%= t('health.att.title') %></h2>
+    <div class="att-grid">
+      <% if (m.via === 'pid') { %>
+      <form method="post" action="/health/attestation/hiid" class="att-card">
+        <h3><%= t('att.hiid.name') %></h3>
+        <p><%= t('health.att.hiid.desc') %></p>
+        <button class="btn" type="submit"><%= t('health.att.hiid.btn') %></button>
+      </form>
+      <div class="att-card locked">
+        <h3><%= t('att.ehic.name') %></h3>
+        <p><%= t('health.att.ehic.locked') %></p>
+      </div>
+      <% } else { %>
+      <form method="post" action="/health/attestation/ehic" class="att-card">
+        <h3><%= t('att.ehic.name') %></h3>
+        <p><%= t('health.att.ehic.desc') %></p>
+        <button class="btn" type="submit"><%= t('health.att.ehic.btn') %></button>
+      </form>
+      <% } %>
+    </div>
+    <p class="note"><%= t('health.att.next') %> <a href="/insurance/"><%= t('ins.name') %></a></p>
+  </section>
+</div>
+<%- include('../partials/foot') %>

@@ -1,0 +1,18 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <h1><%= t('health.login.title') %></h1>
+  <p class="lead"><%= t('health.login.intro') %></p>
+  <div class="att-grid">
+    <section class="att-card" aria-labelledby="l-hiid">
+      <h2 id="l-hiid"><%= t('health.login.hiid.title') %></h2>
+      <p><%= t('health.login.hiid.body') %></p>
+      <a class="btn" href="/health/login/hiid"><%= t('health.login.hiid.btn') %></a>
+    </section>
+    <section class="att-card" aria-labelledby="l-pid">
+      <h2 id="l-pid"><%= t('health.login.pid.title') %></h2>
+      <p><%= t('health.login.pid.body') %></p>
+      <a class="btn btn-secondary" href="/health/login/pid"><%= t('health.login.pid.btn') %></a>
+    </section>
+  </div>
+</div>
+<%- include('../partials/foot') %>

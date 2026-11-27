@@ -5,7 +5,7 @@ const enc = new Encoder({ useRecords: false, mapsAsObjects: false });
 const sha256 = (b: Buffer) => createHash('sha256').update(b).digest();
 
 /** Elements whose value is a calendar date (ISO 18013-5: full-date, CBOR tag 1004). */
-const DATE_ELEMENTS = new Set(['birth_date', 'issue_date', 'expiry_date', 'portrait_capture_date', 'issuance_date']);
+const DATE_ELEMENTS = new Set(['birth_date', 'issue_date', 'expiry_date', 'portrait_capture_date', 'issuance_date', 'starting_date', 'ending_date', 'matching_birth_date']);
 
 /** Claim values → CBOR values: dates as full-date, the portrait (base64) as bytes, objects as maps. */
 function toCbor(name: string, v: unknown): unknown {

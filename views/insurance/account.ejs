@@ -1,0 +1,36 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <div class="alert alert-success" role="status"><strong><%= t('ins.account.granted') %></strong></div>
+  <h1><%= t('ins.account.hello', { name: name || member }) %></h1>
+  <div class="account-grid">
+    <section class="panel" aria-labelledby="cv-h">
+      <h2 id="cv-h"><%= t('ins.account.cover') %></h2>
+      <dl class="meta">
+        <% if (name) { %><dt><%= t('rental.driver.name') %></dt><dd><%= name %></dd><% } %>
+        <dt><%= t('claim.personal_administrative_number') %></dt><dd class="mono"><%= member %></dd>
+        <% if (c.starting_date) { %><dt><%= t('claim.starting_date') %></dt><dd><%= fmtClaim('starting_date', c.starting_date) %></dd><% } %>
+        <% if (c.ending_date) { %><dt><%= t('claim.ending_date') %></dt><dd><%= fmtClaim('ending_date', c.ending_date) %></dd><% } %>
+        <% if (c.issuing_country) { %><dt><%= t('claim.issuing_country') %></dt><dd><%= fmtClaim('issuing_country', c.issuing_country) %></dd><% } %>
+        <% if (authority) { %><dt><%= t('claim.issuing_authority') %></dt><dd><%= authority %></dd><% } %>
+      </dl>
+    </section>
+    <section class="panel" aria-labelledby="st-h">
+      <h2 id="st-h"><%= t('ins.account.status') %></h2>
+      <% if (standing.valid) { %><p class="cover-ok"><span aria-hidden="true">✔ </span><%= t('ins.account.valid') %></p>
+      <% } else { %><p class="alert alert-error" role="alert"><%= standing.ended ? t('ins.account.expired') : t('ins.account.not_started') %></p><% } %>
+      <p class="note"><%= t('ins.account.note') %></p>
+    </section>
+  </div>
+  <section class="panel" aria-labelledby="cl-h">
+    <h2 id="cl-h"><%= t('ins.claims.title') %></h2>
+    <table class="table">
+      <caption class="sr-only"><%= t('ins.claims.title') %></caption>
+      <thead><tr><th scope="col"><%= t('eshop.order.date') %></th><th scope="col"><%= t('ins.claims.desc') %></th><th scope="col"><%= t('ins.claims.status') %></th></tr></thead>
+      <tbody>
+        <tr><td><%= fmtDate('2026-09-12') %></td><td><%= t('ins.claims.c1') %></td><td><%= t('ins.claims.paid') %></td></tr>
+        <tr><td><%= fmtDate('2026-10-28') %></td><td><%= t('ins.claims.c2') %></td><td><%= t('ins.claims.review') %></td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+<%- include('../partials/foot') %>

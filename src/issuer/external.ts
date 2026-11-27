@@ -35,7 +35,9 @@ export interface ExternalOfferOptions {
   /** Use this credential configuration of the external issuer instead of the attestation's default (e.g. the IdP-login PID). */
   configurationId?: string;
   /** Local issuer only: issue as an ISO mdoc (proximity-capable) instead of SD-JWT. */
-  format?: 'sd-jwt' | 'mdoc';
+  format?: 'sd-jwt' | 'mdoc' | 'both';
+  /** Local issuer, format 'both': the mdoc element values when they differ from the SD-JWT claims. */
+  mdocClaims?: Record<string, unknown>;
 }
 
 let cachedToken: { value: string; exp: number } | undefined;

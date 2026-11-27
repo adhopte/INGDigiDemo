@@ -261,6 +261,94 @@
         "issuing_authority",
         "issuing_country"
       ]
+    },
+    "hiid": {
+      "credentialConfigurationId": "demo_hiid",
+      "vct": "urn:eu.europa.ec.eudi:hiid:1",
+      "acceptedVct": [
+        "urn:eu.europa.ec.eudi:hiid:1"
+      ],
+      "formats": [
+        "mso_mdoc",
+        "dc+sd-jwt"
+      ],
+      "localMdoc": true,
+      "mdoc": {
+        "docType": "eu.europa.ec.eudi.hiid.1",
+        "namespace": "eu.europa.ec.eudi.hiid.1",
+        "elements": {
+          "health_insurance_id": "health_insurance_id",
+          "patient_id": "patient_id",
+          "tax_number": "tax_number",
+          "affiliation_country": "affiliation_country",
+          "issuance_date": "issuance_date",
+          "expiry_date": "expiry_date",
+          "matching_registered_family_name": "matching_registered_family_name",
+          "matching_registered_given_name": "matching_registered_given_name",
+          "matching_birth_date": "matching_birth_date",
+          "matching_resident_address": "matching_resident_address",
+          "matching_birth_place": "matching_birth_place",
+          "issuing_authority": "issuing_authority",
+          "document_number": "document_number",
+          "issuing_country": "issuing_country"
+        }
+      },
+      "claims": [
+        "health_insurance_id",
+        "patient_id",
+        "tax_number",
+        "affiliation_country",
+        "issuance_date",
+        "expiry_date",
+        "matching_registered_family_name",
+        "matching_registered_given_name",
+        "matching_birth_date",
+        "matching_resident_address",
+        "matching_birth_place",
+        "issuing_authority",
+        "document_number",
+        "issuing_country"
+      ]
+    },
+    "ehic": {
+      "credentialConfigurationId": "demo_ehic",
+      "vct": "urn:eudi:ehic:1",
+      "acceptedVct": [
+        "urn:eudi:ehic:1"
+      ],
+      "formats": [
+        "mso_mdoc",
+        "dc+sd-jwt"
+      ],
+      "localMdoc": true,
+      "mdoc": {
+        "docType": "eu.europa.ec.eudi.ehic.1",
+        "namespace": "eu.europa.ec.eudi.ehic.1",
+        "elements": {
+          "personal_administrative_number": "social_security_pin",
+          "date_of_expiry": "expiry_date",
+          "date_of_issuance": "issuance_date",
+          "starting_date": "starting_date",
+          "ending_date": "ending_date",
+          "issuing_authority": "issuing_authority",
+          "issuing_country": "issuing_country",
+          "subject": "subject",
+          "credential_holder": "credential_holder",
+          "document_id": "document_id",
+          "competent_institution": "competent_institution"
+        }
+      },
+      "claims": [
+        "personal_administrative_number",
+        "issuing_authority",
+        "issuing_country",
+        "date_of_expiry",
+        "date_of_issuance",
+        "authentic_source",
+        "starting_date",
+        "ending_date",
+        "subject"
+      ]
     }
   },
   "rps": [
@@ -805,6 +893,91 @@
             "given_name",
             "family_name",
             "birth_date"
+          ]
+        }
+      },
+      "attestations": []
+    },
+    {
+      "id": "health",
+      "displayName": "Demo Health",
+      "themeColor": "#0e7490",
+      "presentations": {
+        "pid": {
+          "types": [
+            "pid"
+          ],
+          "claims": [
+            "given_name",
+            "family_name",
+            "birth_date",
+            "nationality",
+            "resident_address"
+          ],
+          "minClaims": [
+            "given_name",
+            "family_name",
+            "birth_date"
+          ],
+          "compactClaims": [
+            "given_name",
+            "family_name",
+            "birth_date",
+            "nationality"
+          ]
+        },
+        "hiid": {
+          "types": [
+            "hiid"
+          ],
+          "claims": [
+            "health_insurance_id",
+            "matching_registered_given_name",
+            "matching_registered_family_name",
+            "matching_birth_date",
+            "affiliation_country",
+            "expiry_date",
+            "issuing_authority"
+          ],
+          "minClaims": [
+            "health_insurance_id",
+            "matching_registered_family_name",
+            "expiry_date"
+          ],
+          "compactClaims": [
+            "health_insurance_id",
+            "matching_registered_family_name",
+            "expiry_date"
+          ]
+        }
+      },
+      "attestations": []
+    },
+    {
+      "id": "insurance",
+      "displayName": "Demo Insure",
+      "themeColor": "#6d28d9",
+      "presentations": {
+        "ehic": {
+          "types": [
+            "ehic"
+          ],
+          "claims": [
+            "personal_administrative_number",
+            "subject",
+            "starting_date",
+            "ending_date",
+            "issuing_country",
+            "issuing_authority"
+          ],
+          "minClaims": [
+            "personal_administrative_number",
+            "ending_date"
+          ],
+          "compactClaims": [
+            "personal_administrative_number",
+            "subject",
+            "ending_date"
           ]
         }
       },

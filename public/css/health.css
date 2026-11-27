@@ -1,0 +1,5 @@
+/* Demo Health: cyan accent on the shared design system */
+:root { --primary: #0e7490; --primary-dark: #0b5568; --link: #0b5568; --accent: #0e7490; }
+.skin-health .btn-secondary { color: var(--primary-dark); }
+.skin-health .hero-card { background: #ecf8fb; border-color: #c4e5ee; }
+.skin-health .att-card.locked { background: var(--bg); border-style: dashed; }
