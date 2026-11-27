@@ -19,6 +19,12 @@
       <form method="post" action="/health/attestation/hiid" class="att-card">
         <h3><%= t('att.hiid.name') %></h3>
         <p><%= t('health.att.hiid.desc') %></p>
+        <fieldset class="format-choice">
+          <legend><%= t('health.att.format') %></legend>
+          <label class="radio"><input type="radio" name="format" value="mdoc"<%= !mockMode ? ' checked' : '' %>> <%= t('health.att.format.mdoc') %></label>
+          <label class="radio"><input type="radio" name="format" value="sd-jwt"<%= mockMode ? ' checked' : '' %>> <%= t('health.att.format.sdjwt') %></label>
+          <label class="radio"><input type="radio" name="format" value="both"> <%= t('health.att.format.both') %></label>
+        </fieldset>
         <button class="btn" type="submit"><%= t('health.att.hiid.btn') %></button>
       </form>
       <div class="att-card locked">
@@ -29,6 +35,12 @@
       <form method="post" action="/health/attestation/ehic" class="att-card">
         <h3><%= t('att.ehic.name') %></h3>
         <p><%= t('health.att.ehic.desc') %></p>
+        <fieldset class="format-choice">
+          <legend><%= t('health.att.format') %></legend>
+          <label class="radio"><input type="radio" name="format" value="mdoc"<%= !mockMode ? ' checked' : '' %>> <%= t('health.att.format.mdoc') %></label>
+          <label class="radio"><input type="radio" name="format" value="sd-jwt"<%= mockMode ? ' checked' : '' %>> <%= t('health.att.format.sdjwt') %></label>
+          <label class="radio"><input type="radio" name="format" value="both"> <%= t('health.att.format.both') %></label>
+        </fieldset>
         <button class="btn" type="submit"><%= t('health.att.ehic.btn') %></button>
       </form>
       <% } %>

@@ -796,5 +796,9 @@
   "ins.claims.review": "Under granskning",
   "mockw.no_hiid": "Inget hälso-ID i den här plånboken. Logga först in hos Demo Health med ditt PID.",
   "mockw.no_ehic": "Inget EHIC i den här plånboken. Hämta det först hos Demo Health (logga in med ditt hälso-ID).",
-  "mockw.go_health": "Gå till Demo Health"
+  "mockw.go_health": "Gå till Demo Health",
+  "health.att.format": "Format",
+  "health.att.format.mdoc": "mdoc (ISO 18013-5, även för närdelning)",
+  "health.att.format.sdjwt": "SD-JWT VC",
+  "health.att.format.both": "Båda (två poster i plånboken)"
 }

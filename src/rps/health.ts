@@ -9,6 +9,9 @@ import { renderOffer } from './offer.js';
  * Demo Health. A new member signs in with the PID and gets a Health ID attestation derived from it; a returning member signs in with that
  * Health ID and gets the European Health Insurance Card (EHIC) derived from the Health ID.
  */
+/** Which format(s) to issue: the wallet lists one credential per format, so the member chooses (the mdoc is what the QR sign-in asks for; the simulated wallet only holds SD-JWT). */
+const formatOf = (v: unknown, mock: boolean): 'sd-jwt' | 'mdoc' | 'both' => (v === 'sd-jwt' || v === 'mdoc' || v === 'both' ? v : mock ? 'sd-jwt' : 'mdoc');
+
 export function healthRouter(ctx: Ctx, rp: RpConfig): Router {
   const r = rpBase(ctx, rp, 'health');
   const router = Router();
@@ -37,7 +40,7 @@ export function healthRouter(ctx: Ctx, rp: RpConfig): Router {
   router.post('/attestation/hiid', guard, async (req, res) => {
     const p = pid(req);
     if (!p) return void res.sendStatus(403);
-    await renderOffer(ctx, req, res, rp, 'hiid', hiidFromPid(p), `/${rp.id}/portal`, { format: 'both' });
+    await renderOffer(ctx, req, res, rp, 'hiid', hiidFromPid(p), `/${rp.id}/portal`, { format: formatOf(req.body?.format, ctx.cfg.mockMode) });
   });
 
   // EHIC: only for a member who signed in with the Health ID (it is derived from it)
@@ -45,7 +48,7 @@ export function healthRouter(ctx: Ctx, rp: RpConfig): Router {
     const h = hiid(req);
     if (!h) return void res.sendStatus(403);
     const { sd, mdoc } = ehicFromHiid(h);
-    await renderOffer(ctx, req, res, rp, 'ehic', sd, `/${rp.id}/portal`, { format: 'both', mdocClaims: mdoc });
+    await renderOffer(ctx, req, res, rp, 'ehic', sd, `/${rp.id}/portal`, { format: formatOf(req.body?.format, ctx.cfg.mockMode), mdocClaims: mdoc });
   });
 
   return router;

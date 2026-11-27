@@ -796,5 +796,9 @@
   "ins.claims.review": "En cours d’examen",
   "mockw.no_hiid": "Aucun identifiant santé dans ce portefeuille. Connectez-vous d’abord à Demo Health avec votre PID.",
   "mockw.no_ehic": "Aucune CEAM dans ce portefeuille. Obtenez-la d’abord chez Demo Health (connexion avec votre identifiant santé).",
-  "mockw.go_health": "Aller à Demo Health"
+  "mockw.go_health": "Aller à Demo Health",
+  "health.att.format": "Format",
+  "health.att.format.mdoc": "mdoc (ISO 18013-5, aussi en proximité)",
+  "health.att.format.sdjwt": "SD-JWT VC",
+  "health.att.format.both": "Les deux (deux entrées dans le portefeuille)"
 }

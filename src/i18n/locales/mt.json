@@ -796,5 +796,9 @@
   "ins.claims.review": "Taħt eżami",
   "mockw.no_hiid": "M’hemm l-ebda ID tas-saħħa f’dan il-wallet. Idħol l-ewwel f’Demo Health bil-PID.",
   "mockw.no_ehic": "M’hemm l-ebda EHIC f’dan il-wallet. Ikseb l-ewwel minn Demo Health (idħol bl-ID tas-saħħa).",
-  "mockw.go_health": "Mur għal Demo Health"
+  "mockw.go_health": "Mur għal Demo Health",
+  "health.att.format": "Format",
+  "health.att.format.mdoc": "mdoc (ISO 18013-5, anke għal qsim fil-qrib)",
+  "health.att.format.sdjwt": "SD-JWT VC",
+  "health.att.format.both": "It-tnejn (żewġ entrati fil-wallet)"
 }

@@ -376,7 +376,8 @@ export class LocalIssuer {
   metadata(): Record<string, unknown> {
     const configs: Record<string, unknown> = {};
     for (const a of Object.values(this.cfg.attestations).filter((x) => x.formats.includes('dc+sd-jwt'))) {
-      const display = LOCALES.map((l) => ({ name: translator(l.code)(`att.${a.key}.name`), locale: l.code }));
+      // an attestation that exists in two formats shows the format in its name, so the wallet's list tells the two apart
+      const display = LOCALES.map((l) => ({ name: `${translator(l.code)(`att.${a.key}.name`)}${a.localMdoc ? ' (SD-JWT VC)' : ''}`, locale: l.code }));
       configs[a.credentialConfigurationId] = {
         format: SD_JWT_TYP,
         vct: a.vct,
@@ -397,7 +398,7 @@ export class LocalIssuer {
     // the same attestations as ISO 18013-5 mdoc (the only format that can also be shared in proximity, wallet to reader)
     for (const a of Object.values(this.cfg.attestations).filter((x) => x.localMdoc && x.mdoc)) {
       const m = a.mdoc!;
-      const display = LOCALES.map((l) => ({ name: translator(l.code)(`att.${a.key}.name`), locale: l.code }));
+      const display = LOCALES.map((l) => ({ name: `${translator(l.code)(`att.${a.key}.name`)} (mdoc)`, locale: l.code }));
       const claims = Object.values(m.elements).map((e) => ({ path: [m.namespace, e], display: LOCALES.map((l) => ({ name: translator(l.code)(`claim.${e}`), locale: l.code })) }));
       configs[configIdOf(a, 'mdoc')] = {
         format: 'mso_mdoc', doctype: m.docType, scope: configIdOf(a, 'mdoc'),

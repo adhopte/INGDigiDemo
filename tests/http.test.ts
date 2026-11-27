@@ -941,7 +941,31 @@ describe('Demo Health (PID → Health ID → EHIC) and Demo Insure (EHIC login)'
     expect(md.demo_ehic).toMatchObject({ format: 'dc+sd-jwt', vct: 'urn:eudi:ehic:1' });
     expect(md.demo_ehic_mdoc).toMatchObject({ format: 'mso_mdoc', doctype: 'eu.europa.ec.eudi.ehic.1' });
     expect(md.demo_ehic_mdoc.claims.map((c: any) => c.path[1])).toEqual(expect.arrayContaining(['social_security_pin', 'competent_institution', 'credential_holder', 'subject']));
-    expect(md.demo_hiid).toMatchObject({ format: 'dc+sd-jwt', vct: 'urn:eu.europa.ec.eudi:hiid:1' });
+    expect(md.demo_ehic.display[0].name).toMatch(/\(SD-JWT VC\)$/); // the wallet's list tells the formats apart
+    expect(md.demo_ehic_mdoc.display[0].name).toMatch(/\(mdoc\)$/);
+    expect(md.demo_hiid).toMatchObject({ format: 'dc+sd-jwt', vct: 'urn:eu.europa.ec.eudi.hiid:1'.replace('eudi.hiid', 'eudi:hiid') });
     expect(md.demo_hiid_mdoc).toMatchObject({ format: 'mso_mdoc', doctype: 'eu.europa.ec.eudi.hiid.1' });
+  });
+});
+
+describe('Health attestations: one credential per format, chosen by the member', () => {
+  it('the offer lists only the chosen format (default in mock mode: SD-JWT, the simulated wallet\'s format), or both on request', async () => {
+    const { app } = await boot({ MOCK_MODE: 'true' });
+    const a = request.agent(app);
+    const loc = (await a.get('/health/login/pid')).headers.location!;
+    const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec((await a.get(loc)).headers.location!)![1]!;
+    await a.post(`/health/verify/wallet/${id}/add`).type('form').send({ type: 'pid', persona: 'fr' });
+    await a.get((await a.post(`/health/verify/wallet/${id}/share`)).headers.location!);
+    expect((await a.get('/health/portal')).text).toContain('Both (two entries in the wallet)');
+    const ids = async (format?: string) => {
+      const html = (await a.post('/health/attestation/hiid').type('form').send(format ? { format } : {})).text;
+      const link = /href="(openid-credential-offer:[^"]+)"/.exec(html)![1]!.replace(/&amp;/g, '&');
+      return (JSON.parse(decodeURIComponent(link.split('credential_offer=')[1]!)) as { credential_configuration_ids: string[] }).credential_configuration_ids;
+    };
+    expect(await ids()).toEqual(['demo_hiid']);
+    expect(await ids('sd-jwt')).toEqual(['demo_hiid']);
+    expect(await ids('mdoc')).toEqual(['demo_hiid_mdoc']);
+    expect(await ids('both')).toEqual(['demo_hiid', 'demo_hiid_mdoc']);
+    expect(await ids('nonsense')).toEqual(['demo_hiid']);
   });
 });
