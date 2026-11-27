@@ -113,20 +113,26 @@
 
   function loadPortrait(file) {
     if (!file) return;
-    var img = new Image(), url = URL.createObjectURL(file);
-    img.onload = function () {
-      var max = 420, k = Math.min(1, max / Math.max(img.width, img.height));
-      var cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
-      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-      state.identity.portrait = cv.toDataURL('image/jpeg', 0.85).split(',')[1];
-      URL.revokeObjectURL(url); render();
+    // read as a data: URL (the page's content security policy allows data: images, not blob: ones)
+    var reader = new FileReader();
+    reader.onerror = function () { toast(tr('lab.err.portrait_file')); };
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var max = 420, k = Math.min(1, max / Math.max(img.width, img.height));
+        var cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(img.width * k)); cv.height = Math.max(1, Math.round(img.height * k));
+        var ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        state.identity.portrait = cv.toDataURL('image/jpeg', 0.85).split(',')[1];
+        render();
+      };
+      img.onerror = function () { toast(tr('lab.err.portrait_file')); };
+      img.src = String(reader.result);
     };
-    img.onerror = function () { URL.revokeObjectURL(url); toast(tr('lab.err.portrait_file')); };
-    img.src = url;
+    reader.readAsDataURL(file);
   }
   function portraitBox() {
     var p = state.identity.portrait;
-    var fileInput = h('input', { type: 'file', accept: 'image/jpeg,image/png', class: 'sr-only', id: 'portrait-file', onchange: function (e) { loadPortrait(e.target.files[0]); } });
+    var fileInput = h('input', { type: 'file', accept: 'image/*', class: 'sr-only', id: 'portrait-file', onchange: function (e) { loadPortrait(e.target.files[0]); } });
     return h('div', { class: 'lab-portrait' },
       p ? h('img', { class: 'lab-portrait-img', src: portraitSrc(p), alt: tr('lab.portrait'), width: '96', height: '120' }) : h('div', { class: 'lab-portrait-img empty' }, icon(ICONS.user), h('span', null, tr('lab.portrait.none'))),
       h('div', { class: 'lab-portrait-actions' }, h('strong', null, tr('lab.portrait')), fileInput,
