@@ -1,5 +1,6 @@
 import express, { Router, type Request, type Response } from 'express';
 import { log } from '../logger.js';
+import { LocalLab } from '../issuer/lab-local.js';
 import type { Ctx } from '../rps/context.js';
 
 const MAX_CREDENTIALS = 8;
@@ -16,12 +17,14 @@ const clean = (v: unknown): v is string => typeof v === 'string' && v.length <= 
 export function labRouter(ctx: Ctx): Router {
   const { cfg, svc } = ctx;
   const r = Router();
+  // temporary: the workspace issues with the LOCAL issuer while the external one is under maintenance (ISSUER_PORTAL_SOURCE=sigma switches back)
+  const lab = !cfg.mockMode && cfg.issuer.portalSource === 'local' ? new LocalLab(cfg, svc.local) : undefined;
   const base = cfg.issuer.sorApiBase;
-  if (!base) return r;
+  if (!base && !lab) return r;
 
   const call = async (path: string, init: RequestInit = {}): Promise<{ status: number; body: unknown }> => {
     try {
-      const res = await svc.fetchImpl(`${base}${path}`, { ...init, headers: { accept: 'application/json', ...(init.body ? { 'content-type': 'application/json' } : {}) }, signal: AbortSignal.timeout(25_000) });
+      const res = await svc.fetchImpl(`${base!}${path}`, { ...init, headers: { accept: 'application/json', ...(init.body ? { 'content-type': 'application/json' } : {}) }, signal: AbortSignal.timeout(25_000) });
       const text = await res.text();
       let body: unknown;
       try { body = JSON.parse(text); } catch { body = { error: { message: `Unexpected answer (HTTP ${res.status})` } }; }
@@ -39,10 +42,10 @@ export function labRouter(ctx: Ctx): Router {
 
   const api = Router();
   api.use(express.json({ limit: '2mb' }));
-  api.get('/presets', async (_req, res) => send(res, await call('/api/presets')));
+  api.get('/presets', async (_req, res) => send(res, lab ? { status: 200, body: lab.presets() } : await call('/api/presets')));
   api.get('/configurations', async (req: Request, res) => {
     const lang = typeof req.query.locale === 'string' && /^[a-z]{2}$/.test(req.query.locale) ? req.query.locale : 'en';
-    send(res, await call(`/api/configurations?locale=${lang}`));
+    send(res, lab ? { status: 200, body: lab.configurations(lang) } : await call(`/api/configurations?locale=${lang}`));
   });
   api.post('/cases', async (req, res) => {
     const b = req.body as { identity?: Record<string, unknown>; credentials?: Array<Record<string, unknown>> } | undefined;
@@ -67,10 +70,10 @@ export function labRouter(ctx: Ctx): Router {
       }
       credentials.push({ credentialConfigurationId: c.credentialConfigurationId, attributes: attrs, ...(c.portraitFromIdentity === true ? { portraitFromIdentity: true } : {}) });
     }
-    send(res, await call('/api/cases', { method: 'POST', body: JSON.stringify({ identity: id, credentials }) }));
+    send(res, lab ? await lab.createCase(id, credentials as Array<{ credentialConfigurationId: string; attributes: Record<string, unknown>; portraitFromIdentity?: boolean }>) : await call('/api/cases', { method: 'POST', body: JSON.stringify({ identity: id, credentials }) }));
   });
-  api.get('/cases/:id', async (req, res) => (ID.test(String(req.params.id)) ? send(res, await call(`/api/cases/${encodeURIComponent(String(req.params.id))}`)) : void res.sendStatus(404)));
-  api.post('/cases/:id/offer', async (req, res) => (ID.test(String(req.params.id)) ? send(res, await call(`/api/cases/${encodeURIComponent(String(req.params.id))}/offer`, { method: 'POST' })) : void res.sendStatus(404)));
+  api.get('/cases/:id', async (req, res) => (ID.test(String(req.params.id)) ? send(res, lab ? lab.get(String(req.params.id)) : await call(`/api/cases/${encodeURIComponent(String(req.params.id))}`)) : void res.sendStatus(404)));
+  api.post('/cases/:id/offer', async (req, res) => (ID.test(String(req.params.id)) ? send(res, lab ? await lab.regenerate(String(req.params.id)) : await call(`/api/cases/${encodeURIComponent(String(req.params.id))}/offer`, { method: 'POST' })) : void res.sendStatus(404)));
   r.use('/demo-issuer/lab/api', api);
   return r;
 }

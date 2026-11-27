@@ -120,6 +120,8 @@ export interface IssuerConfig {
   offerTtlMinutes: number;
   /** Base URL of the issuer's data workspace API (cases: identity + credentials → offer), e.g. https://issuer-mock.…/mock-sor. Derived from ISSUER_API_BASE_URL when unset; ISSUER_SOR_API_BASE=off disables it. */
   sorApiBase: string | undefined;
+  /** Where the issuance workspace (/demo-issuer) gets its credentials: the LOCAL issuer (temporary, while the external issuer is under maintenance; ISSUER_PORTAL_SOURCE=local, the default) or the external issuer's data API ('sigma'). */
+  portalSource: 'local' | 'sigma';
   signingKeyJwk: string | undefined;
   external: ExternalIssuerConfig;
 }
@@ -331,6 +333,7 @@ export function loadConfig(
       txCode: parseBool(env.ISSUER_TX_CODE, false),
       // default OFF while the Android wallet's handling of the policy is investigated (a restart must not undo the setting); "sigma" declares it
       reusePolicy: (env.ISSUER_CREDENTIAL_REUSE ?? '').toLowerCase() === 'sigma' ? 'sigma' : 'off',
+      portalSource: (env.ISSUER_PORTAL_SOURCE ?? 'local').toLowerCase() === 'sigma' ? 'sigma' : 'local',
       sorApiBase: ((raw) => {
         if (mockMode || issuerMode !== 'external') return undefined;
         if (raw !== undefined) return raw === '' || raw.toLowerCase() === 'off' ? undefined : raw.replace(/\/+$/, '');

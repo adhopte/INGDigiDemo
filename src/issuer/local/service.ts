@@ -1,4 +1,4 @@
-import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
 import { calculateJwkThumbprint, decodeJwt, decodeProtectedHeader, importJWK, importX509, jwtVerify, type JWK } from 'jose';
 import type { AppConfig, AttestationConfig } from '../../config.js';
 import { LOCALES, translator } from '../../i18n/index.js';
@@ -25,14 +25,18 @@ export class IssuerError extends Error {
   }
 }
 
+/** One credential of an offer: an attestation in a format, with the claims of that format. */
+interface OfferItem {
+  attestation: AttestationConfig;
+  format: 'sd-jwt' | 'mdoc';
+  claims: Claims;
+}
+const itemConfigId = (i: OfferItem) => (i.format === 'mdoc' ? `${i.attestation.credentialConfigurationId}_mdoc` : i.attestation.credentialConfigurationId);
+
 interface OfferRecord {
   id: string;
   code: string;
-  attestation: AttestationConfig;
-  claims: Claims;
-  /** Claims for the mdoc, when they differ from the SD-JWT ones (the element names of the mdoc namespace). */
-  mdocClaims: Claims | undefined;
-  format: 'sd-jwt' | 'mdoc' | 'both';
+  items: OfferItem[];
   txCode: string | undefined;
   expiresAt: number;
   attempts: number;
@@ -40,12 +44,9 @@ interface OfferRecord {
 }
 
 interface TokenRecord {
-  attestation: AttestationConfig;
-  claims: Claims;
-  mdocClaims: Claims | undefined;
-  format: 'sd-jwt' | 'mdoc' | 'both';
-  /** Formats of the offer not issued yet: the token is used up when none is left (an offer of both formats takes two requests). */
-  remaining: Set<'sd-jwt' | 'mdoc'>;
+  items: OfferItem[];
+  /** Configuration ids of the offer not issued yet: the token is used up when none is left (one request per credential). */
+  remaining: Set<string>;
   expiresAt: number;
   /** JWK thumbprint of the DPoP key the token is bound to (RFC 9449); undefined for a plain Bearer token. */
   jkt?: string | undefined;
@@ -122,17 +123,26 @@ export class LocalIssuer {
   // ------------------------------------------------------------- offers
 
   createOffer(attestationKey: string, claims: Claims, format: 'sd-jwt' | 'mdoc' | 'both' = 'sd-jwt', mdocClaims?: Claims): CreatedOffer {
+    const formats: Array<'sd-jwt' | 'mdoc'> = format === 'both' ? ['sd-jwt', 'mdoc'] : [format];
+    return this.createMultiOffer(formats.map((f) => ({ attestationKey, format: f, claims: f === 'mdoc' ? mdocClaims ?? claims : claims })));
+  }
+
+  /** One offer for several credentials (each its own attestation / format / claims); the wallet redeems each with the same token. `txLength`: a numeric transaction code of that length, whatever ISSUER_TX_CODE says. */
+  createMultiOffer(entries: Array<{ attestationKey: string; format: 'sd-jwt' | 'mdoc'; claims: Claims }>, opts: { txLength?: number } = {}): CreatedOffer {
     this.sweep();
     if (this.offers.size >= MAX_OFFERS) throw new IssuerError(503, 'temporarily_unavailable', 'Too many open offers');
-    const attestation = this.cfg.attestations[attestationKey];
-    if (!attestation) throw new Error(`Unknown attestation "${attestationKey}"`);
-    const noMdoc = !(attestation.mdoc && attestation.localMdoc), noSdJwt = !attestation.formats.includes('dc+sd-jwt');
-    if (format === 'mdoc' ? noMdoc : format === 'both' ? noMdoc || noSdJwt : noSdJwt) throw new Error(`The local demo issuer does not issue "${attestationKey}" as ${format}`);
+    if (!entries.length) throw new Error('An offer needs at least one credential');
+    const items: OfferItem[] = entries.map((e) => {
+      const attestation = this.cfg.attestations[e.attestationKey];
+      if (!attestation) throw new Error(`Unknown attestation "${e.attestationKey}"`);
+      if (e.format === 'mdoc' ? !(attestation.mdoc && attestation.localMdoc) : !attestation.formats.includes('dc+sd-jwt')) throw new Error(`The local demo issuer does not issue "${e.attestationKey}" as ${e.format}`);
+      return { attestation, format: e.format, claims: e.claims };
+    });
     const id = randomUUID();
     const code = randomBytes(24).toString('base64url');
-    const txCode = this.cfg.issuer.txCode ? String(Math.floor(Math.random() * 10000)).padStart(4, '0') : undefined;
+    const txCode = opts.txLength ? String(randomInt(0, 10 ** opts.txLength)).padStart(opts.txLength, '0') : this.cfg.issuer.txCode ? String(Math.floor(Math.random() * 10000)).padStart(4, '0') : undefined;
     const expiresAt = this.now() + this.cfg.issuer.offerTtlMinutes * 60_000;
-    this.offers.set(id, { id, code, attestation, claims, mdocClaims, format, txCode, expiresAt, attempts: 0, redeemed: false });
+    this.offers.set(id, { id, code, items, txCode, expiresAt, attempts: 0, redeemed: false });
     this.codes.set(code, id);
     return { id, offerUri: `${this.issuerUrl}/offers/${id}`, txCode, expiresAt: new Date(expiresAt) };
   }
@@ -144,7 +154,7 @@ export class LocalIssuer {
     if (!o || o.redeemed) return undefined;
     return {
       credential_issuer: this.issuerUrl,
-      credential_configuration_ids: o.format === 'both' ? [configIdOf(o.attestation, 'sd-jwt'), configIdOf(o.attestation, 'mdoc')] : [configIdOf(o.attestation, o.format)],
+      credential_configuration_ids: o.items.map(itemConfigId),
       grants: {
         [PRE_AUTH_GRANT]: {
           'pre-authorized_code': o.code,
@@ -210,7 +220,7 @@ export class LocalIssuer {
     }
     offer.redeemed = true; // single use
     const accessToken = randomBytes(32).toString('base64url');
-    this.tokens.set(accessToken, { attestation: offer.attestation, claims: offer.claims, mdocClaims: offer.mdocClaims, format: offer.format, remaining: new Set(offer.format === 'both' ? ['sd-jwt', 'mdoc'] : [offer.format]), expiresAt: this.now() + TOKEN_TTL_S * 1000, jkt });
+    this.tokens.set(accessToken, { items: offer.items, remaining: new Set(offer.items.map(itemConfigId)), expiresAt: this.now() + TOKEN_TTL_S * 1000, jkt });
     return {
       access_token: accessToken,
       token_type: jkt ? 'DPoP' : 'Bearer',
@@ -243,12 +253,11 @@ export class LocalIssuer {
     }
 
     const wanted = body.credential_configuration_id;
-    // which format is asked for: the mdoc configuration id, else the SD-JWT one (an offer of both formats is redeemed in two requests)
-    const asked: 'sd-jwt' | 'mdoc' = wanted === configIdOf(grant.attestation, 'mdoc') ? 'mdoc' : 'sd-jwt';
-    const allowed = grant.format === 'both' ? wanted === configIdOf(grant.attestation, 'sd-jwt') || asked === 'mdoc' : wanted === configIdOf(grant.attestation, grant.format);
-    if (wanted && (!allowed || !grant.remaining.has(asked))) throw new IssuerError(400, 'unknown_credential_configuration', 'Not authorised for that credential configuration');
-    const fmt: 'sd-jwt' | 'mdoc' = wanted ? asked : grant.format === 'mdoc' ? 'mdoc' : 'sd-jwt';
-    if (!wanted && body.vct && body.vct !== grant.attestation.vct) throw new IssuerError(400, 'unsupported_credential_type', 'vct does not match the offer');
+    // which credential of the offer is asked for (by configuration id; else by vct, else the first one left)
+    const item = wanted ? grant.items.find((i) => itemConfigId(i) === wanted) : (body.vct ? grant.items.find((i) => i.attestation.vct === body.vct && grant.remaining.has(itemConfigId(i))) : grant.items.find((i) => grant.remaining.has(itemConfigId(i))));
+    if (wanted && (!item || !grant.remaining.has(wanted))) throw new IssuerError(400, 'unknown_credential_configuration', 'Not authorised for that credential configuration');
+    if (!wanted && !item) throw new IssuerError(400, 'unsupported_credential_type', 'vct does not match the offer');
+    const chosen = item!;
 
     const jwtProofs = body.proofs?.jwt ?? (body.proof?.proof_type === 'jwt' && body.proof.jwt ? [body.proof.jwt] : []);
     const attestationProofs = body.proofs?.attestation ?? (body.proof?.proof_type === 'attestation' && body.proof.attestation ? [body.proof.attestation] : []);
@@ -273,14 +282,14 @@ export class LocalIssuer {
       usedNonces.add(v.nonce);
     }
     for (const n of usedNonces) this.nonces.delete(n);
-    grant.remaining.delete(fmt);
+    grant.remaining.delete(itemConfigId(chosen));
     if (!grant.remaining.size) this.tokens.delete(accessToken!); // used up once everything offered was issued
 
-    const m = grant.attestation.mdoc;
+    const m = chosen.attestation.mdoc;
     const credentials = await Promise.all(holderJwks.map(async (holderJwk) => ({
-      credential: fmt === 'mdoc' && m
-        ? await issueMdoc({ privateKey: this.keys.privateKey as CryptoKey, x5c: this.x5c ?? [], docType: m.docType, namespace: m.namespace, elements: grant.mdocClaims ?? grant.claims, deviceJwk: holderJwk })
-        : await issueSdJwt({ privateKey: this.keys.privateKey, kid: this.keys.kid, ...(this.x5c ? { x5c: this.x5c } : {}), iss: this.issuerUrl, vct: grant.attestation.vct, claims: grant.claims, holderJwk }),
+      credential: chosen.format === 'mdoc' && m
+        ? await issueMdoc({ privateKey: this.keys.privateKey as CryptoKey, x5c: this.x5c ?? [], docType: m.docType, namespace: m.namespace, elements: chosen.claims, deviceJwk: holderJwk })
+        : await issueSdJwt({ privateKey: this.keys.privateKey, kid: this.keys.kid, ...(this.x5c ? { x5c: this.x5c } : {}), iss: this.issuerUrl, vct: chosen.attestation.vct, claims: chosen.claims, holderJwk }),
     })));
     return { credentials, credential: credentials[0]!.credential, c_nonce: this.newNonce(), c_nonce_expires_in: NONCE_TTL_MS / 1000 };
   }

@@ -52,8 +52,9 @@ describe('local issuer: the driving licence as an ISO mdoc (proximity-capable)',
     expect(c.demo_mdl.format).toBe('dc+sd-jwt');
     expect(c.demo_mdl_mdoc).toMatchObject({ format: 'mso_mdoc', doctype: DOC, cryptographic_binding_methods_supported: ['cose_key'], credential_signing_alg_values_supported: [-7] });
     expect(c.demo_mdl_mdoc.claims[0].path).toEqual([NS, 'family_name']);
-    expect(c.demo_pid_mdoc).toBeUndefined(); // only the driving licence has a local mdoc
-    expect(() => svc.local.createOffer('pid', {}, 'mdoc')).toThrow(/as mdoc/);
+    expect(c.demo_pid_mdoc).toMatchObject({ format: 'mso_mdoc', doctype: 'eu.europa.ec.eudi.pid.1' });
+    expect(c.demo_birth_certificate_mdoc).toBeUndefined(); // the birth certificate is SD-JWT only
+    expect(() => svc.local.createOffer('birth_certificate', {}, 'mdoc')).toThrow(/as mdoc/);
   });
 
   it('issues a well-formed mdoc: dates as full-date, MSO digests, device key, issuer signature with the certificate chain', async () => {
@@ -120,6 +121,6 @@ describe('local issuer: an offer of both formats (EHIC, Health ID)', () => {
     expect(items.subject).toBeInstanceOf(Map);
     expect((items.subject as Map<string, unknown>).get('birth_date')).toBeInstanceOf(Tag);
     await expect(request('demo_ehic')).rejects.toThrow(); // both were issued: the token is used up
-    expect(() => svc.local.createOffer('pid', {}, 'both')).toThrow();
+    expect(() => svc.local.createOffer('birth_certificate', {}, 'both')).toThrow();
   });
 });

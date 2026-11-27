@@ -59,7 +59,8 @@
           "credentialIdentifier": "credential_id_2_mdoc",
           "label": "Estelle Houngbedji, minor (user-pid-mdoc-002) – from the issuer's own portal sample data"
         }
-      ]
+      ],
+      "localMdoc": true
     },
     "account": {
       "credentialConfigurationId": "demo_bank_account",
