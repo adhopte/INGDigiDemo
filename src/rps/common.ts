@@ -97,7 +97,7 @@ export function rpBase(ctx: Ctx, rp: RpConfig, skin: string): Router {
       if (!tx || tx.status !== 'pending') return void res.status(404).render('error', { title: res.locals.t('error.title'), message: res.locals.t('verify.err.unknown'), retryHref: `/${rp.id}/` });
       const items = tx.reqs.map((rq) => {
         const held = heldCredential(req.session, rq.type);
-        const values = held ? heldClaims(held) : {};
+        const values = held ? heldClaims(held, cfg) : {};
         return { type: rq.type, held: !!held, claims: rq.claims.map((c) => ({ name: c, value: values[c] })) };
       });
       res.render('mock-wallet', {

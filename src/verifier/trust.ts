@@ -84,9 +84,12 @@ export function createIssuerKeyResolver(cfg: AppConfig, local: LocalIssuer | und
   };
 }
 
-/** Chain validation for mdoc issuerAuth (x5chain, DER, leaf first). With TRUST_ANY_ISSUER only the leaf's validity period is checked. */
-export function createMdocChainValidator(cfg: AppConfig) {
+/** Chain validation for mdoc issuerAuth (x5chain, DER, leaf first). With TRUST_ANY_ISSUER only the leaf's validity period is checked; our own issuer's current certificate is always accepted. */
+export function createMdocChainValidator(cfg: AppConfig, ownChain?: () => string[] | undefined) {
   return (chain: Buffer[]): X509Certificate => {
+    // a credential signed with our own issuer's CURRENT certificate is always trusted (like an SD-JWT of our own issuer)
+    const own = ownChain?.()?.[0];
+    if (own && chain[0]!.toString('base64') === own) return new X509Certificate(chain[0]!);
     if (!cfg.verifier.trustAnyIssuer) return validateX5cChain(chain.map((c) => c.toString('base64')), cfg.verifier.trustedCaPem);
     const leaf = new X509Certificate(chain[0]!);
     const now = new Date();

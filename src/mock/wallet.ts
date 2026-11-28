@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import { CompactEncrypt, SignJWT, exportJWK, generateKeyPair, importJWK, type JWK } from 'jose';
+import { CompactEncrypt, SignJWT, calculateJwkThumbprint, exportJWK, generateKeyPair, importJWK, type JWK } from 'jose';
+import { openId4VpSessionTranscripts } from '../mdoc/index.js';
+import { presentMdoc, peekMdoc } from './mdoc-wallet.js';
+import { mdocQueryId } from '../verifier/query.js';
 import type { SessionData } from 'express-session';
 import type { AppConfig } from '../config.js';
 import type { LocalIssuer } from '../issuer/local/service.js';
@@ -84,9 +87,10 @@ export async function redeemOffer(local: LocalIssuer, session: SessionLike, offe
 }
 
 function storeCredential(session: SessionLike, local: LocalIssuer, configId: string, credential: string, holderPrivateJwk: JWK): WalletCredential {
-  const payload = JSON.parse(Buffer.from(credential.split('.')[1]!, 'base64url').toString()) as { vct: string };
+  const isMdoc = !credential.includes('.'); // an SD-JWT VC is dotted, the base64url mdoc is not
+  const payload = isMdoc ? { vct: configId } : (JSON.parse(Buffer.from(credential.split('.')[1]!, 'base64url').toString()) as { vct: string });
   const typeKey = local.typeKeyForConfig(configId) ?? payload.vct;
-  const entry: WalletCredential = { id: randomUUID(), typeKey, vct: payload.vct, credential, holderPrivateJwk, issuedAt: new Date().toISOString() };
+  const entry: WalletCredential = { id: randomUUID(), typeKey, vct: payload.vct, credential, holderPrivateJwk, issuedAt: new Date().toISOString(), ...(isMdoc ? { format: 'mdoc' as const } : {}) };
   session.wallet = [...(session.wallet ?? []).filter((c) => c.typeKey !== typeKey), entry]; // newest per type
   return entry;
 }
@@ -100,14 +104,32 @@ export async function addDemoCredential(local: LocalIssuer, cfg: AppConfig, sess
 }
 
 export const heldCredential = (session: SessionLike, typeKey: string) => session.wallet?.find((c) => c.typeKey === typeKey);
-export const heldClaims = (c: WalletCredential): Claims => peekClaims(c.credential);
+/** The claims of a held credential (for an mdoc: its elements under the claim names the demo uses, when the configuration says how). */
+export const heldClaims = (c: WalletCredential, cfg?: AppConfig): Claims => {
+  if (c.format !== 'mdoc') return peekClaims(c.credential);
+  const att = cfg?.attestations[c.typeKey];
+  if (!att?.mdoc) return {};
+  const el = peekMdoc(c.credential, att.mdoc.namespace);
+  const out: Record<string, unknown> = {};
+  for (const [claim, element] of Object.entries(att.mdoc.elements)) if (el[element] !== undefined) out[claim] = el[element];
+  for (const [k, v] of Object.entries(el)) if (!(k in out) && !Object.values(att.mdoc.elements).includes(k)) out[k] = v; // elements without a demo claim name keep theirs
+  return out as Claims;
+};
 
 /** Build the vp_token (selective disclosure + key binding) for a transaction. Throws if a required credential is missing. */
-export async function buildVpToken(session: SessionLike, tx: Transaction, verifier: Verifier): Promise<Record<string, string[]>> {
+export async function buildVpToken(session: SessionLike, tx: Transaction, verifier: Verifier, cfg?: AppConfig): Promise<Record<string, string[]>> {
   const out: Record<string, string[]> = {};
   for (const req of tx.reqs) {
     const held = heldCredential(session, req.type);
     if (!held) throw new Error(`Wallet holds no ${req.type}`);
+    if (held.format === 'mdoc') {
+      const m = req.attestation.mdoc!;
+      const thumb = tx.enc ? Buffer.from(await calculateJwkThumbprint(tx.enc.publicJwk, 'sha256'), 'base64url') : undefined;
+      const [transcript] = openId4VpSessionTranscripts({ clientId: verifier.clientIdFor(tx), nonce: tx.nonce, responseUri: verifier.responseUri(tx), ...(thumb ? { jwkThumbprint: thumb } : {}) });
+      const reveal = req.claims.map((c) => m.elements[c]).filter((e): e is string => !!e);
+      out[mdocQueryId(req.type)] = [presentMdoc({ credential: held.credential, holderPrivateJwk: held.holderPrivateJwk, docType: m.docType, namespace: m.namespace, reveal, sessionTranscript: transcript })];
+      continue;
+    }
     out[req.type] = [
       await presentSdJwt({
         credential: held.credential,
@@ -118,6 +140,7 @@ export async function buildVpToken(session: SessionLike, tx: Transaction, verifi
       }),
     ];
   }
+  void cfg;
   return out;
 }
 

@@ -134,7 +134,7 @@ export function extrasRouter(ctx: Ctx): Router {
 
   if (cfg.mockMode) {
     r.get('/wallet', (req, res) =>
-      res.render('wallet', { title: res.locals.t('wallet.title'), items: (req.session.wallet ?? []).map((c) => ({ c, claims: heldClaims(c) })) }),
+      res.render('wallet', { title: res.locals.t('wallet.title'), items: (req.session.wallet ?? []).map((c) => ({ c, claims: heldClaims(c, cfg) })) }),
     );
     r.post('/wallet/clear', (req, res) => { req.session.wallet = []; res.redirect('/wallet'); });
 

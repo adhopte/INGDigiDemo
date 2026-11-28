@@ -19,6 +19,8 @@ export interface WalletCredential {
   credential: string;
   holderPrivateJwk: JWK;
   issuedAt: string;
+  /** `mdoc`: the credential is the base64url IssuerSigned structure (and `vct` holds the docType); otherwise an SD-JWT VC. */
+  format?: 'mdoc';
 }
 
 export interface CartItem { id: string; qty: number }

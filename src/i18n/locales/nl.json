@@ -796,9 +796,5 @@
   "ins.claims.review": "In behandeling",
   "mockw.no_hiid": "Geen gezondheids-id in deze wallet. Log eerst in bij Demo Health met uw PID.",
   "mockw.no_ehic": "Geen EHIC in deze wallet. Haal die eerst op bij Demo Health (inloggen met uw gezondheids-id).",
-  "mockw.go_health": "Naar Demo Health",
-  "health.att.format": "Formaat",
-  "health.att.format.mdoc": "mdoc (ISO 18013-5, ook voor nabijheid)",
-  "health.att.format.sdjwt": "SD-JWT VC",
-  "health.att.format.both": "Beide (twee items in de wallet)"
+  "mockw.go_health": "Naar Demo Health"
 }

@@ -796,9 +796,5 @@
   "ins.claims.review": "En revisión",
   "mockw.no_hiid": "No hay identificador sanitario en esta cartera. Inicie sesión primero en Demo Health con su PID.",
   "mockw.no_ehic": "No hay TSE en esta cartera. Obténgala primero en Demo Health (inicio de sesión con su identificador sanitario).",
-  "mockw.go_health": "Ir a Demo Health",
-  "health.att.format": "Formato",
-  "health.att.format.mdoc": "mdoc (ISO 18013-5, también para proximidad)",
-  "health.att.format.sdjwt": "SD-JWT VC",
-  "health.att.format.both": "Ambos (dos entradas en la cartera)"
+  "mockw.go_health": "Ir a Demo Health"
 }

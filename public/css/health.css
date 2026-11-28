@@ -3,6 +3,3 @@
 .skin-health .btn-secondary { color: var(--primary-dark); }
 .skin-health .hero-card { background: #ecf8fb; border-color: #c4e5ee; }
 .skin-health .att-card.locked { background: var(--bg); border-style: dashed; }
-.skin-health .format-choice { margin: .6rem 0 1rem; padding: .6rem .9rem; box-shadow: none; }
-.skin-health .format-choice legend { font-size: .8125rem; color: var(--muted); }
-.skin-health .format-choice label { margin: 0; }

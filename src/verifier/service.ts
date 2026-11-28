@@ -88,6 +88,8 @@ export function sdJwtShape(presentation: string): Record<string, unknown> | unde
 export class Verifier {
   private txs = new Map<string, Transaction>();
   private events: DiagnosticEvent[] = [];
+  /** The certificate chain (base64 DER, leaf first) of our own issuer, whose mdoc credentials are always trusted; set by the services. */
+  ownIssuerChain: (() => string[] | undefined) | undefined;
   private get ttlMs() { return this.cfg.verifier.requestTtlMinutes * 60_000; }
 
   /** Recent protocol events (no claim values, no tokens) for integrators. */
@@ -346,7 +348,7 @@ export class Verifier {
           let lastErr: unknown;
           for (const r of mdocReqs) {
             try {
-              const v = verifyDeviceResponse(p, { docType: r.attestation.mdoc!.docType, validateChain: createMdocChainValidator(this.cfg), sessionTranscripts: transcripts, now: new Date(this.now()) });
+              const v = verifyDeviceResponse(p, { docType: r.attestation.mdoc!.docType, validateChain: createMdocChainValidator(this.cfg, this.ownIssuerChain), sessionTranscripts: transcripts, now: new Date(this.now()) });
               verified.push({ iss: v.issuerSubject, docType: v.docType, claims: normalizeMdocClaims(v.elements, r.attestation.mdoc!.namespace, r.attestation.mdoc!.elements) });
               ok = true;
               break;

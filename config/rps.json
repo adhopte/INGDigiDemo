@@ -270,8 +270,7 @@
         "urn:eu.europa.ec.eudi:hiid:1"
       ],
       "formats": [
-        "mso_mdoc",
-        "dc+sd-jwt"
+        "mso_mdoc"
       ],
       "localMdoc": true,
       "mdoc": {
@@ -318,8 +317,7 @@
         "urn:eudi:ehic:1"
       ],
       "formats": [
-        "mso_mdoc",
-        "dc+sd-jwt"
+        "mso_mdoc"
       ],
       "localMdoc": true,
       "mdoc": {

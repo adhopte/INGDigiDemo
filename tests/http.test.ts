@@ -256,7 +256,7 @@ describe('OpenID4VCI issuer over HTTP', () => {
     const md = (await request(app).get('/.well-known/openid-credential-issuer/issuer')).body;
     expect(md.credential_issuer).toBe('https://rp.example.test/issuer');
     expect(md.credential_endpoint).toBe('https://rp.example.test/issuer/credential');
-    expect(Object.keys(md.credential_configurations_supported).sort()).toEqual(Object.values(cfg.attestations).filter((a) => a.formats.includes('dc+sd-jwt')).flatMap((a) => [a.credentialConfigurationId, ...(a.localMdoc ? [`${a.credentialConfigurationId}_mdoc`] : [])]).sort()); // the mdoc-only driving licence is issued by SIGMA only
+    expect(Object.keys(md.credential_configurations_supported).sort()).toEqual(Object.values(cfg.attestations).flatMap((a) => [...(a.formats.includes('dc+sd-jwt') ? [a.credentialConfigurationId] : []), ...(a.localMdoc ? [`${a.credentialConfigurationId}_mdoc`] : [])]).sort()); // the mdoc-only driving licence is issued by SIGMA only
     expect(md.credential_configurations_supported.demo_bank_payment.format).toBe('dc+sd-jwt');
     const as = (await request(app).get('/.well-known/oauth-authorization-server/issuer')).body;
     expect(as['pre-authorized_grant_anonymous_access_supported']).toBe(true);
@@ -922,7 +922,7 @@ describe('Demo Health (PID → Health ID → EHIC) and Demo Insure (EHIC login)'
     expect(acc.text).toMatch(/HI••••••\d{3}/); // member number masked
   });
 
-  it('cover standing, and the requests stay QR-sized with both formats declared by the local issuer', async () => {
+  it('cover standing, and the requests stay QR-sized; the local issuer declares the mdoc configurations', async () => {
     const { coverStanding } = await import('../src/rps/insurance.js');
     const now = new Date('2026-11-27T00:00:00Z');
     expect(coverStanding({ starting_date: '2026-01-01', ending_date: '2028-01-01' }, now)).toEqual({ valid: true, started: true, ended: false });
@@ -938,34 +938,35 @@ describe('Demo Health (PID → Health ID → EHIC) and Demo Insure (EHIC login)'
       expect(link.length, `${rp}/${pres}`).toBeLessThan(1700);
     }
     const md = (svc.local.metadata() as any).credential_configurations_supported;
-    expect(md.demo_ehic).toMatchObject({ format: 'dc+sd-jwt', vct: 'urn:eudi:ehic:1' });
+    expect(md.demo_ehic).toBeUndefined(); // Health ID and EHIC exist only as mdoc: online and offline
+    expect(md.demo_hiid).toBeUndefined();
     expect(md.demo_ehic_mdoc).toMatchObject({ format: 'mso_mdoc', doctype: 'eu.europa.ec.eudi.ehic.1' });
     expect(md.demo_ehic_mdoc.claims.map((c: any) => c.path[1])).toEqual(expect.arrayContaining(['social_security_pin', 'competent_institution', 'credential_holder', 'subject']));
-    expect(md.demo_ehic.display[0].name).toMatch(/\(SD-JWT VC\)$/); // the wallet's list tells the formats apart
+    expect(md.demo_ehic).toBeUndefined(); // Health ID and EHIC exist only as mdoc: online and offline
+    expect(md.demo_hiid).toBeUndefined();
     expect(md.demo_ehic_mdoc.display[0].name).toMatch(/\(mdoc\)$/);
-    expect(md.demo_hiid).toMatchObject({ format: 'dc+sd-jwt', vct: 'urn:eu.europa.ec.eudi.hiid:1'.replace('eudi.hiid', 'eudi:hiid') });
     expect(md.demo_hiid_mdoc).toMatchObject({ format: 'mso_mdoc', doctype: 'eu.europa.ec.eudi.hiid.1' });
   });
 });
 
-describe('Health attestations: one credential per format, chosen by the member', () => {
-  it('the offer lists only the chosen format (default in mock mode: SD-JWT, the simulated wallet\'s format), or both on request', async () => {
-    const { app } = await boot({ MOCK_MODE: 'true' });
+describe('Health ID and EHIC are issued only as mdoc (online and offline)', () => {
+  it('the offer lists the mdoc configuration only, whatever is asked for; the relying parties request the mdoc only', async () => {
+    const { app, cfg, svc } = await boot({ MOCK_MODE: 'true' });
     const a = request.agent(app);
     const loc = (await a.get('/health/login/pid')).headers.location!;
     const id = /\/verify\/([A-Za-z0-9_-]{16})/.exec((await a.get(loc)).headers.location!)![1]!;
     await a.post(`/health/verify/wallet/${id}/add`).type('form').send({ type: 'pid', persona: 'fr' });
     await a.get((await a.post(`/health/verify/wallet/${id}/share`)).headers.location!);
-    expect((await a.get('/health/portal')).text).toContain('Both (two entries in the wallet)');
-    const ids = async (format?: string) => {
-      const html = (await a.post('/health/attestation/hiid').type('form').send(format ? { format } : {})).text;
+    expect((await a.get('/health/portal')).text).not.toContain('name="format"'); // no format to choose
+    for (const body of [{}, { format: 'sd-jwt' }, { format: 'both' }]) {
+      const html = (await a.post('/health/attestation/hiid').type('form').send(body)).text;
       const link = /href="(openid-credential-offer:[^"]+)"/.exec(html)![1]!.replace(/&amp;/g, '&');
-      return (JSON.parse(decodeURIComponent(link.split('credential_offer=')[1]!)) as { credential_configuration_ids: string[] }).credential_configuration_ids;
-    };
-    expect(await ids()).toEqual(['demo_hiid']);
-    expect(await ids('sd-jwt')).toEqual(['demo_hiid']);
-    expect(await ids('mdoc')).toEqual(['demo_hiid_mdoc']);
-    expect(await ids('both')).toEqual(['demo_hiid', 'demo_hiid_mdoc']);
-    expect(await ids('nonsense')).toEqual(['demo_hiid']);
+      expect((JSON.parse(decodeURIComponent(link.split('credential_offer=')[1]!)) as { credential_configuration_ids: string[] }).credential_configuration_ids).toEqual(['demo_hiid_mdoc']);
+    }
+    for (const [rp, pres] of [['health', 'hiid'], ['insurance', 'ehic']] as const) {
+      const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, pres, '/');
+      const q = (svc.verifier.requestParams(tx) as any).dcql_query;
+      expect(q.credentials.map((c: any) => c.format), `${rp}/${pres}`).toEqual(['mso_mdoc']);
+    }
   });
 });

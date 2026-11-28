@@ -27,5 +27,6 @@ export async function createServices(cfg: AppConfig, fetchImpl: typeof fetch = f
   const issuer = createIssuerProvider(cfg, local, fetchImpl, remote);
   const identity = await createVerifierIdentity(cfg);
   const verifier = new Verifier(cfg, identity, createIssuerKeyResolver(cfg, local, fetchImpl));
+  verifier.ownIssuerChain = () => local.x5c;
   return { local, issuer, verifier, remote, fetchImpl };
 }

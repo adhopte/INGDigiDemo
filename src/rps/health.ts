@@ -6,12 +6,9 @@ import { ehicFromHiid, hiidFromPid } from './health-data.js';
 import { renderOffer } from './offer.js';
 
 /**
- * Demo Health. A new member signs in with the PID and gets a Health ID attestation derived from it; a returning member signs in with that
+ * Demo Health. Health ID and EHIC are issued only as mdoc (ISO 18013-5), so they work online (OpenID4VP) and offline (proximity). A new member signs in with the PID and gets a Health ID attestation derived from it; a returning member signs in with that
  * Health ID and gets the European Health Insurance Card (EHIC) derived from the Health ID.
  */
-/** Which format(s) to issue: the wallet lists one credential per format, so the member chooses (the mdoc is what the QR sign-in asks for; the simulated wallet only holds SD-JWT). */
-const formatOf = (v: unknown, mock: boolean): 'sd-jwt' | 'mdoc' | 'both' => (v === 'sd-jwt' || v === 'mdoc' || v === 'both' ? v : mock ? 'sd-jwt' : 'mdoc');
-
 export function healthRouter(ctx: Ctx, rp: RpConfig): Router {
   const r = rpBase(ctx, rp, 'health');
   const router = Router();
@@ -40,7 +37,7 @@ export function healthRouter(ctx: Ctx, rp: RpConfig): Router {
   router.post('/attestation/hiid', guard, async (req, res) => {
     const p = pid(req);
     if (!p) return void res.sendStatus(403);
-    await renderOffer(ctx, req, res, rp, 'hiid', hiidFromPid(p), `/${rp.id}/portal`, { format: formatOf(req.body?.format, ctx.cfg.mockMode) });
+    await renderOffer(ctx, req, res, rp, 'hiid', hiidFromPid(p), `/${rp.id}/portal`, { format: 'mdoc' });
   });
 
   // EHIC: only for a member who signed in with the Health ID (it is derived from it)
@@ -48,7 +45,7 @@ export function healthRouter(ctx: Ctx, rp: RpConfig): Router {
     const h = hiid(req);
     if (!h) return void res.sendStatus(403);
     const { sd, mdoc } = ehicFromHiid(h);
-    await renderOffer(ctx, req, res, rp, 'ehic', sd, `/${rp.id}/portal`, { format: formatOf(req.body?.format, ctx.cfg.mockMode), mdocClaims: mdoc });
+    await renderOffer(ctx, req, res, rp, 'ehic', sd, `/${rp.id}/portal`, { format: 'mdoc', mdocClaims: mdoc });
   });
 
   return router;
