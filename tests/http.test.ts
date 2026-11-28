@@ -911,6 +911,8 @@ describe('Demo Health (PID → Health ID → EHIC) and Demo Insure (EHIC login)'
     const ehic = heldCredentials((await a.get('/wallet')).text)['European Health Insurance Card (EHIC)']!;
     expect(ehic['Personal administrative number']).toBe(hiid['Health insurance ID']); // derived from the Health ID
     expect(ehic['Issuing country']).toBe('France');
+    expect(ehic['Credential holder']).toBe('Camille Demo'); // plain text: a wallet shows a nested value as raw map text
+    expect(ehic['Cardholder']).toMatch(/^Camille Demo \(\d{4}-\d{2}-\d{2}\)$/);
     // 3. the insurer: EHIC login
     expect((await a.get('/insurance/account')).headers.location).toBe('/insurance/login');
     expect(await present('insurance', '/insurance/login')).toBe('/insurance/account');
@@ -930,6 +932,10 @@ describe('Demo Health (PID → Health ID → EHIC) and Demo Insure (EHIC login)'
     expect(coverStanding({ ending_date: '2026-11-27' }, now).valid).toBe(true);
     expect(coverStanding({ starting_date: '2026-12-01', ending_date: '2028-01-01' }, now)).toMatchObject({ valid: false, started: false });
     const { svc, cfg } = await boot({ MOCK_MODE: 'false', VP_CLIENT_ID_SCHEME: 'redirect_uri' });
+    const hiidTx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === 'health')!, 'hiid', '/');
+    const hq = JSON.parse(new URL(svc.verifier.walletLink(hiidTx)).searchParams.get('dcql_query')!).credentials[0];
+    expect(hq.claim_sets).toBeUndefined(); // no fallback to fewer claims: the EHIC is derived from name and birth date
+    expect(hq.claims.map((c: any) => c.path[1])).toEqual(expect.arrayContaining(['health_insurance_id', 'matching_registered_family_name', 'matching_registered_given_name', 'matching_birth_date']));
     for (const [rp, pres, doc] of [['health', 'hiid', 'eu.europa.ec.eudi.hiid.1'], ['insurance', 'ehic', 'eu.europa.ec.eudi.ehic.1'], ['health', 'pid', 'eu.europa.ec.eudi.pid.1']] as const) {
       const tx = await svc.verifier.createTransaction(cfg.rps.find((r) => r.id === rp)!, pres, '/');
       const link = svc.verifier.walletLink(tx);

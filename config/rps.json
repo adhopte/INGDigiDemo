@@ -941,12 +941,14 @@
           "minClaims": [
             "health_insurance_id",
             "matching_registered_family_name",
-            "expiry_date"
+            "matching_registered_given_name",
+            "matching_birth_date"
           ],
           "compactClaims": [
             "health_insurance_id",
             "matching_registered_family_name",
-            "expiry_date"
+            "matching_registered_given_name",
+            "matching_birth_date"
           ]
         }
       },
@@ -971,6 +973,7 @@
           ],
           "minClaims": [
             "personal_administrative_number",
+            "subject",
             "ending_date"
           ],
           "compactClaims": [

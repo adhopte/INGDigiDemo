@@ -25,10 +25,13 @@ export function hiidFromPid(p: Claims, now = new Date()): Claims {
 /**
  * European Health Insurance Card derived from a verified Health ID, in the two formats of the EUDI reference issuer: the SD-JWT VC
  * (`urn:eudi:ehic:1`: personal_administrative_number, nested issuing_authority / authentic_source) and the mdoc (`eu.europa.ec.eudi.ehic.1`:
- * social_security_pin, competent_institution, …). The holder's name travels as a `subject` object in both, so the insurer can greet the member.
+ * social_security_pin, competent_institution, …). The holder travels as plain text in `credential_holder` (name) and `subject` (name and date of birth), so the insurer can greet the member.
  */
 export function ehicFromHiid(h: Claims, now = new Date()): { sd: Claims; mdoc: Claims } {
-  const holder = { family_name: str(h.matching_registered_family_name), given_name: str(h.matching_registered_given_name), birth_date: str(h.matching_birth_date) };
+  // plain text, not nested objects: wallets show a nested value as raw map text ("{birth_date=…, given_name=…}")
+  const fullName = `${str(h.matching_registered_given_name)} ${str(h.matching_registered_family_name)}`.trim();
+  const holder = fullName;
+  const subject = str(h.matching_birth_date) ? `${fullName} (${str(h.matching_birth_date)})` : fullName;
   const from = day(now), until = day(plusYears(now, 2));
   const country = str(h.affiliation_country) || 'DE';
   const pan = str(h.health_insurance_id);
@@ -38,10 +41,10 @@ export function ehicFromHiid(h: Claims, now = new Date()): { sd: Claims; mdoc: C
       issuing_authority: { id: HEALTH_FUND.id, name: HEALTH_FUND.name }, issuing_country: country,
       date_of_issuance: from, date_of_expiry: until,
       authentic_source: { id: 'DEMO-SIS', name: 'Demo Health Fund member registry' },
-      starting_date: from, ending_date: until, subject: holder,
+      starting_date: from, ending_date: until, subject,
     },
     mdoc: {
-      credential_holder: holder, subject: holder, social_security_pin: pan,
+      credential_holder: holder, subject, social_security_pin: pan,
       starting_date: from, ending_date: until, document_id: `EH${digits(9)}`, competent_institution: HEALTH_FUND.id,
       issuance_date: from, expiry_date: until, issuing_authority: HEALTH_FUND.name, issuing_country: country,
     },

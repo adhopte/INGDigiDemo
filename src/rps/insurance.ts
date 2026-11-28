@@ -25,12 +25,11 @@ export function insuranceRouter(ctx: Ctx, rp: RpConfig): Router {
 
   router.get('/account', guard, (req, res) => {
     const c = ehic(req)!;
-    const s = (c.subject && typeof c.subject === 'object' ? c.subject : {}) as Record<string, unknown>;
     const pan = str(c.personal_administrative_number);
     const authority = c.issuing_authority && typeof c.issuing_authority === 'object' ? str((c.issuing_authority as Record<string, unknown>).name) : str(c.issuing_authority);
     res.render('insurance/account', {
       title: res.locals.t('ins.account.title'),
-      c, standing: coverStanding(c), name: `${str(s.given_name)} ${str(s.family_name)}`.trim(),
+      c, standing: coverStanding(c), name: str(c.subject).replace(/\s*\(\d{4}-\d{2}-\d{2}\)\s*$/, ''),
       member: pan ? `${pan.slice(0, 2)}••••••${pan.slice(-3)}` : '', authority,
     });
   });
